@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name="users")
-public class Users {
+public class UsersEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
     @Column(name="email")
