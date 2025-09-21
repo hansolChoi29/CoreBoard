@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.auth.Entity;
+package com.example.coreboard.domain.auth.entity;
 
 import jakarta.persistence.*;
 

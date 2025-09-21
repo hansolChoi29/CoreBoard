@@ -1,6 +1,6 @@
-package com.example.coreboard.domain.users.Repository;
+package com.example.coreboard.domain.users.repository;
 
-import com.example.coreboard.domain.users.Entity.Users;
+import com.example.coreboard.domain.users.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
