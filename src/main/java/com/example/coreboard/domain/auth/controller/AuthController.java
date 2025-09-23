@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.auth.controller;
 
 
+import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.auth.dto.SignInRequest;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
@@ -22,6 +23,10 @@ public class AuthController {
        this.authService=authService;
    }
 
+   //ResponseEntity가 뭔데?
+        // HTTP응답 통째로 담는 상자.
+        // 상태코드, 헤더(Content-Type), 바디(JSON)
+
     @PostMapping("/sign-in")
     public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest request) {
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -29,12 +34,9 @@ public class AuthController {
 
 
     @PostMapping("/sign-up")
-    public ResponseEntity<String> signUp(@RequestBody SignUpRequest request) {
-        if(authService.existsByUsername(request.username())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 존재하는 사용자입니다.");
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-
+    public ResponseEntity<SignUpResponse> signUp( @RequestBody SignUpRequest  signupRequset){
+        return ResponseEntity.ok(authService.signup(signupRequset));
     }
+
+
 }
