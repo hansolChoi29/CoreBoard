@@ -3,17 +3,17 @@ package com.example.coreboard.domain.auth.controller;
 
 import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
-import com.example.coreboard.domain.auth.dto.SignInRequest;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.auth.dto.TokenResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RequestMapping("/api/auth")
+
 @RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
