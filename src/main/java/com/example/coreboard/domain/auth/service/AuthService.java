@@ -7,12 +7,15 @@ import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.auth.repository.AuthRepository;
 import com.example.coreboard.domain.auth.repository.RefreshTokenRepository;
 import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
+
 
 @Service
 public class AuthService {
@@ -34,7 +37,7 @@ public class AuthService {
         // 트러블: getter인데 파라미터를 넣어서 에러났었음
        //signupRequest.getUsername(username)
         if(authRepository.existsByUsername(signupRequest.getUsername())){
-            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+            throw new AuthErrorException(CONFLICT);
         }
         String encodePassword = passwordEncode.encrypt(signupRequest.getPassword());
 
@@ -52,13 +55,10 @@ public class AuthService {
        String username = signinRequest.getUsername();
        String password = signinRequest.getPassword();
 
-        Users user=userRepository.findByUsername(signinRequest.getUsername()).orElseThrow(()-> new IllegalArgumentException("회원가입을 먼저 해주세요!"));
+        Users user=userRepository.findByUsername(signinRequest.getUsername()).orElseThrow(()-> new AuthErrorException("회원가입을 먼저 해주세요!"));
 
 //       TokenResponse tokenResponse = new TokenResponse(accessToken,refreshToken);
 //       return ResponseEntity.ok(tokenResponse);
-
-
-
 
    }
 
