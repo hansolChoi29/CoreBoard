@@ -4,52 +4,57 @@ import jakarta.persistence.*;
 
 
 @Entity
-@Table(name="sign_in")
+@Table(name = "sign_in")
 public class Users {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long usreId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
 
-    @Column(name="username", nullable=false, unique=true)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(name="password", nullable=false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name="email")
+    @Column(name = "email")
     private String email;
 
-    @Column(name="phone_number")
+    @Column(name = "phone_number")
     private String phoneNumber;
 
+    protected Users() {
+    }
 
-    protected Users(){}
-
-    public Users(String username, String encodePassword, String email, String phoneNumber){
-        this.username=username;
-        this.password=encodePassword;
-        this.phoneNumber=phoneNumber;
-        this.email=email;
+    public Users(String username, String encodePassword, String email, String phoneNumber) {
+        this.username = username;
+        this.password = encodePassword;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
     }
 
     public Users(String username, String encodePassowrd) {
-        this.username=username;
-        this.password=encodePassowrd;
-
+        this.username = username;
+        this.password = encodePassowrd;
     }
 
-    public void  setEmail(String email){
-        this.email=email;
-    }
-    public void  setPhoneNumber(String phoneNumber){
-        this.phoneNumber=phoneNumber;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getUsername(){return username;}
-    public String getPassword(){return password;}
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
 
     public Long getUserId() {
-        return usreId;
+        return userId;
     }
 }

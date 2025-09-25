@@ -26,19 +26,19 @@ public class AuthController {
         // HTTP응답 통째로 담는 상자.
         // 상태코드, 헤더(Content-Type), 바디(JSON)
 
-    @PostMapping("/sign-in")
-    public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest signinRequest) {
-       // 로그인 요청: 아이디/비번
-        //토큰발급
-        // 응답 DTO로 토큰 묶어서 반환
-//        return ResponseEntity.ok(authService.signin(signinRequest));
-
-        String accessToken=JwtUtil.
-        String refreshToken=JwtUtil.
-
-        TokenResponse response=new TokenResponse(accessToken, refreshToken);
-        return ResponseEntity.ok(response);
-   }
+//    @PostMapping("/sign-in")
+//    public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest signinRequest) {
+//       // 로그인 요청: 아이디/비번
+//        //토큰발급
+//        // 응답 DTO로 토큰 묶어서 반환
+////        return ResponseEntity.ok(authService.signin(signinRequest));
+//
+////        String accessToken=JwtUtil.
+////        String refreshToken=JwtUtil.
+////
+////        TokenResponse response=new TokenResponse(accessToken, refreshToken);
+////        return ResponseEntity.ok(response);
+//   }
 
 
 

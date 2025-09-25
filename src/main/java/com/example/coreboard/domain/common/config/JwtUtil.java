@@ -16,51 +16,51 @@ public class JwtUtil {
     // 생성된 토큰을 파싱해서 클래임으로 반환하는 메서드여야 함
 
     // 초기화
-    public static void init(String secret) {
-        secretKey = key.hmacShaKeyFor(secret.getBytes());
-    }
+//    public static void init(String secret) {
+//        secretKey = key.hmacShaKeyFor(secret.getBytes());
+//    }
 
     // AccessToken
-    public static String createAccessToken(Long userId, String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("userId", userId)
-                .claim("typ", "access")
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // RefreshToken
-    public static String createRefreshToken(Long userId, String username) {
-        return Jwts.builder()
-                .setSubject("refresh")
-                .claim("userId", userId)
-                .claim("typ", "refresh")
-                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // 토큰 유효성 검사
-    public static boolean validationToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigninKey(secretKey)
-                    .build()
-                    .parserClaimJws(token);
-        } catch (Exception e) {
-            System.out.println("토큰 만료!" + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("토큰 검증 실패!" + e.getMessage());
-        }
-        return false;
-    }
-
-    public static String getUsername(String token){
-        return getClaim(token);
-    }
-
-    public static Claims getClaim()
+//    public static String createAccessToken(Long userId, String username) {
+//        return Jwts.builder()
+//                .setSubject(username)
+//                .claim("userId", userId)
+//                .claim("typ", "access")
+//                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN))
+//                .signWith(secretKey, SignatureAlgorithm.HS256)
+//                .compact();
+//    }
+//
+//    // RefreshToken
+//    public static String createRefreshToken(Long userId, String username) {
+//        return Jwts.builder()
+//                .setSubject("refresh")
+//                .claim("userId", userId)
+//                .claim("typ", "refresh")
+//                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN))
+//                .signWith(secretKey, SignatureAlgorithm.HS256)
+//                .compact();
+//    }
+//
+//    // 토큰 유효성 검사
+//    public static boolean validationToken(String token) {
+//        try {
+//            Jwts.parserBuilder()
+//                    .setSigninKey(secretKey)
+//                    .build()
+//                    .parserClaimJws(token);
+//        } catch (Exception e) {
+//            System.out.println("토큰 만료!" + e.getMessage());
+//        } catch (Exception e) {
+//            System.out.println("토큰 검증 실패!" + e.getMessage());
+//        }
+//        return false;
+//    }
+//
+//    public static String getUsername(String token){
+//        return getClaim(token);
+//    }
+//
+//    public static Claims getClaim()
 
 }
