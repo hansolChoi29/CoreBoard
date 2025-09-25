@@ -6,7 +6,6 @@ import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.auth.dto.SignInRequest;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,6 +46,4 @@ public class AuthController {
     public ResponseEntity<SignUpResponse> signUp( @RequestBody SignUpRequest  signupRequset){
         return ResponseEntity.ok(authService.signup(signupRequset));
     }
-
-
 }
