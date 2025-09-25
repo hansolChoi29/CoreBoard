@@ -9,7 +9,7 @@ public class Users {
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+    private Long usreId;
 
     @Column(name="username", nullable=false, unique=true)
     private String username;
@@ -49,7 +49,7 @@ public class Users {
     public String getUsername(){return username;}
     public String getPassword(){return password;}
 
-    public Long getId() {
-        return id;
+    public Long getUserId() {
+        return usreId;
     }
 }

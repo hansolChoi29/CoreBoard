@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.config;
+package com.example.coreboard.domain.common.config;
 
 
 import org.springframework.stereotype.Component;
