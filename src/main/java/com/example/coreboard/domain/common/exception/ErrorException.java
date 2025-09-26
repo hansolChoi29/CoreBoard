@@ -1,34 +1,30 @@
 package com.example.coreboard.domain.common.exception;
 
 public abstract class ErrorException extends RuntimeException {
+    // 추상 클래스는 필드 선언 + getter + 생성자 다 들어있음 = 설계도 자체
 
+    // 프론트로 내려줄 에러는 항상 status+message 두개를 갖는다. (강제)
+    // 전역 핸들러가 이 공통 속성만 믿고 꺼내 쓰면 된다.
+
+    // 왜 RuntimeException 상속할까?
+    // try-catch로 만들면 try-catch 지옥
+
+    // 예외에 담을 HTTP 상태 코드
     private final int status;
+    // 예외에 담을 메시지
     private final String message;
 
+    // 생성자: 자식 클래스에서 상태와 메시지를 넘겨주면 저장
     public ErrorException(int status, String message) {
         this.status = status;
         this.message = message;
     }
 
     public int getStatus() {
-        return status;
+        return status; // 상태코드 반환
     }
 
     public String getMessage() {
-        return message;
+        return message;// 메시지 반환
     }
-
-    // HTTP Status Code
-    // 400 Bad Request -> 해석조차 못하겠다
-    // 401 Unauthorized -> 인증 문제, 토큰 없음/만료
-    // 403 Forbidden -> 인가 문제, 접근 권한이 없는 다른 유저 시도
-    // 404 Not Found
-    // 500 Internal Server Error
-
-    // 예시
-    // BAD_REQUEST(400,"다시 작성해 주세요."),
-    // UNAUTHORIZED(401,"다시 로그인해 주세요."),
-    // FORBIDDEN(403, "페이지에 엑세스할 수 없습니다."),
-    // NOT_FOUND(404,"페이지를 찾을 수 없습니다."),
-    // INTERNAL_SERVER_ERROR(500,"페이지가 작동하지 않습니다.")
 }
