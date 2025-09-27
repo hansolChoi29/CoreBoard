@@ -1,11 +1,12 @@
 package com.example.coreboard.domain.common.util;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
-import javax.xml.crypto.Data;
 import java.util.Date;
 
 public class JwtUtil {
@@ -51,12 +52,23 @@ public class JwtUtil {
 
     // 3) 토큰 검증 메서드 
     public static boolean validationToken(String token) {
-
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        }catch(ExpiredJwtException e){
+            System.out.println("토큰 만료!: "+e.getMessage());
+        } catch(JwtException e){
+            System.out.println("토큰 검증 실패!: "+e.getMessage());
+        }
+        return false;
     }
 
     // 4) 토큰에서 username 추출
-    public static String getUsernameToken(String token) {
-
-    }
+//    public static String getUsernameToken(String token) {
+//
+//    }
 
 }
