@@ -37,7 +37,8 @@ public class AuthService {
         if (authRepository.existsByUsername(signupRequest.getUsername())) {
             throw new AuthErrorException(CONFLICT);
         }
-        String encodePassword = passwordEncoder.encrypt(signupRequest.getPassword());
+        byte[] salt=passwordEncoder();
+        String encodePassword = passwordEncoder.encrypt(signupRequest.getPassword(), salt);
 
         Users newUser = new Users(
                 signupRequest.getUsername(),
