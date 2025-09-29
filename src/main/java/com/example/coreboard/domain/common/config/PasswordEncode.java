@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.common.config;
 
 
+import com.example.coreboard.domain.users.entity.Users;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKeyFactory;
@@ -14,12 +15,21 @@ import java.util.Base64;
 @Component
 public class PasswordEncode {
 
-    public String encrypt(String password) {
+    // 회원가입
+    // AuthService에서 한 번 랜덤 salt생성
+    // 비밀번호 + salt -> encryot -> DB저장
+
+    // 로그인
+    // DB에서 저장된 salt 가져오기
+    // 입력 비밀번호 + DB salt -> encrypt -> matches 비교
+
+    public String encrypt(String password, byte[] salt) {
         try {
-            //랜덤하게 넣겠다.(해시 만들기 위한 준비 단계)
-            SecureRandom random = new SecureRandom();
-            byte[] salt = new byte[16];
-            random.nextBytes(salt);
+            // 랜덤하게 넣겠다.(해시 만들기 위한 준비 단계)
+            // SecureRandom random = new SecureRandom();
+            // 트러블슈팅 - 매개변수 있는데 또 선언하여 에러남
+            // byte[] salt = new byte[16];
+            // random.nextBytes(salt);
 
             // PBEKeySpec : 비밀번호를 안전하게 변환하기 위한 규칙을 정의하는 객체임
             // toCharArray : 사용자가 입력한 비밀번호 문자열을 문자 배열로 바꾼 것
@@ -31,8 +41,8 @@ public class PasswordEncode {
 
             // SecretKeyFactory : 암호화 키를 만들어주는 공장
             //PBKDF2 With HmacSHA1: 어떤 방식으로 키를 만들지 지정함
-                // PBKDF2: 비밀번호 기반 키 생성 함수
-                // HmacSHA1: 해시 알고리즘을 사용해서 안전하게 키 생성
+            // PBKDF2: 비밀번호 기반 키 생성 함수
+            // HmacSHA1: 해시 알고리즘을 사용해서 안전하게 키 생성
 
             // PBKDF2 + SHA1 방식으로 안전한 키를 만들어주는 도구(factory)를 준비 단계
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
@@ -46,9 +56,14 @@ public class PasswordEncode {
 
             // NoSuchAlgorithmException: 요청한 암호화 알고리즘(PBKDF2WithHmacSHA1)이 없을 경우
             // InvalidKeySpecException: 키 만들 때 spec이 잘못됐을 때
-            
+
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean matches(String inputPassowrd, Users users) {
+        String hash = encrypt(inputPassowrd, users.getSalt()); // DB에 저장된 비밀번호와 비교할 수 있는 안전한 코드로 바꾼다
+        return hash.equals(users.getPassword()); // 만들어진 해시가 DB에 저장된 비밀번호와 같은지 대조하여 틀리면  false
     }
 }

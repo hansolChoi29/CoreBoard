@@ -23,14 +23,18 @@ public class Users {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(nullable = false)
+    private byte[] salt;
+
     protected Users() {
     }
 
-    public Users(String username, String encodePassword, String email, String phoneNumber) {
+    public Users(String username, String encodePassword, String email, String phoneNumber, byte[] salt) {
         this.username = username;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
+        this.salt = salt;
     }
 
     public Users(String username, String encodePassowrd) {
@@ -56,5 +60,9 @@ public class Users {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public byte[] getSalt() {
+        return salt;
     }
 }
