@@ -12,7 +12,6 @@ public class JwtConfig {
     public void init() {
         JwtUtil.init(jwt);
     }
-
 }
 // 1) "문자열" 선언 - 초기화 시 사용 (SecretKey 객체를 만들기 위한 원재료)
 // 초기화 하는 이유 : 우리가 가진 건 단지 문자열 뿐, JWT 라이브러리가 이해하고 쓸 수 없다.

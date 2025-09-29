@@ -6,7 +6,6 @@ import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
