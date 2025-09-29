@@ -10,25 +10,26 @@ public class SignUpRequest {
     private String email;
     private String phoneNumber;
 
-    public SignUpRequest(String username, String password,String email,String phoneNumber) {
+    public SignUpRequest(String username, String password, String email, String phoneNumber) {
         this.username = username;
         this.password = password;
-        this.email=email;
-        this.phoneNumber=phoneNumber;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
 
     public String getUsername() {
         return username;
     }
-    public String getPassword(){
+
+    public String getPassword() {
         return password;
     }
 
-    public String getEmail(){
+    public String getEmail() {
         return email;
     }
 
-    public String getPhoneNumber(){
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 }

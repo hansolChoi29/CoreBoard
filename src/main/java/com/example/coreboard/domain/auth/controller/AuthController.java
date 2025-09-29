@@ -19,21 +19,25 @@ public class AuthController {
 
     private final AuthService authService;
 
-   public AuthController(AuthService authService){
-       this.authService=authService;
-   }
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
-   //ResponseEntity가 뭔데?
-        // HTTP응답 통째로 담는 상자.
-        // 상태코드, 헤더(Content-Type), 바디(JSON)
+    //ResponseEntity가 뭔데?
+    // HTTP응답 통째로 담는 상자.
+    // 상태코드, 헤더(Content-Type), 바디(JSON)
+
+    // 201: 새로운 리소스를 만들었다는 의미
+    // 로그인은 200
 
     @PostMapping("/sign-in")
     public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest signinRequest) {
-       return ResponseEntity.status(HttpStatus.CREATED).body(authService.signin(signinRequest));
-   }
+        TokenResponse token = authService.signin(signinRequest).getBody(); //로그인 처리 후 토큰 발급
+        return ResponseEntity.ok(token); // 토큰 응답
+    }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<SignUpResponse> signUp( @RequestBody SignUpRequest  signupRequset){
+    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest signupRequset) {
         return ResponseEntity.ok(authService.signup(signupRequset));
     }
 }

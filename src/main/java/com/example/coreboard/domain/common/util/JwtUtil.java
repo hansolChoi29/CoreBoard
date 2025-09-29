@@ -53,17 +53,17 @@ public class JwtUtil {
     // 3) 토큰 검증 메서드 
     public static boolean validationToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        }catch(ExpiredJwtException e){
-            System.out.println("토큰 만료!: "+e.getMessage());
-        } catch(JwtException e){
-            System.out.println("토큰 검증 실패!: "+e.getMessage());
+            Jwts.parserBuilder()// 토큰 검사 준비
+                    .setSigningKey(secretKey)// 서버에서 만든 비밀키로 서명 확인
+                    .build() // 검사기 만들기
+                    .parseClaimsJws(token); // 실제 토큰 검사 : 서명, 만료 체크
+            return true; // 예외 없으면 유효한 토큰
+        } catch (ExpiredJwtException e) {// ExpiredJwtException : jjwt에서 제공하는 예외, 유효시간 지났을 때 발생
+            System.out.println("토큰 만료!: " + e.getMessage());
+        } catch (JwtException e) { // JwtException : jjwt에서 제공하는 예외, 토큰이 올바르지 않거나 검증에 실패했을 때 발생
+            System.out.println("토큰 검증 실패!: " + e.getMessage());
         }
-        return false;
+        return false; // true면 통과, false면 실패
     }
 
     // 4) 토큰에서 username 추출
