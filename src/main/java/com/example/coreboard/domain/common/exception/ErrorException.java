@@ -1,34 +1,17 @@
 package com.example.coreboard.domain.common.exception;
 
+// 공통 예외 베이스 (양식)
 public abstract class ErrorException extends RuntimeException {
 
-    private final int status;
-    private final String message;
+    private final int status; // HTTP 상태 코드
+    // private final String message; RuntimeException를 상속 받을 의미가 없음
 
     public ErrorException(int status, String message) {
+        super(message);         // 표준 메시지에 저장
         this.status = status;
-        this.message = message;
     }
 
-    public int getStatus() {
-        return status;
+    public int getStatus() { // 예외는 컨트롤러 밖(전역 핸들러)에서 처리된까 핸들러가 HTTP 상태 코드를 읽어야 한다
+        return status;      // 전역 핸들러에서 쓰려고 게터
     }
-
-    public String getMessage() {
-        return message;
-    }
-
-    // HTTP Status Code
-    // 400 Bad Request -> 해석조차 못하겠다
-    // 401 Unauthorized -> 인증 문제, 토큰 없음/만료
-    // 403 Forbidden -> 인가 문제, 접근 권한이 없는 다른 유저 시도
-    // 404 Not Found
-    // 500 Internal Server Error
-
-    // 예시
-    // BAD_REQUEST(400,"다시 작성해 주세요."),
-    // UNAUTHORIZED(401,"다시 로그인해 주세요."),
-    // FORBIDDEN(403, "페이지에 엑세스할 수 없습니다."),
-    // NOT_FOUND(404,"페이지를 찾을 수 없습니다."),
-    // INTERNAL_SERVER_ERROR(500,"페이지가 작동하지 않습니다.")
 }
