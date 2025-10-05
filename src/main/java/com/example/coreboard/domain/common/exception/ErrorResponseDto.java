@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.common.exception;
 
+// GlobalException 중복?
 public class ErrorResponseDto {
     private int status;
     private String message;

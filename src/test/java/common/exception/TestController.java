@@ -1,7 +1,6 @@
 package common.exception;
 
 
-import com.example.coreboard.domain.common.exception.GlobalException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
