@@ -1,18 +1,16 @@
 package common.exception;
 
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+import com.example.coreboard.domain.common.exception.GlobalException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+@Test
+@DisplayName("글로벌과 공통 포맷이 잘 되는지 확인하는 테스트")
 public class TestController {
-    @GetMapping("/hello")
-    public void hello(){
-        throw new RuntimeException("예외처리 메시지를 입력해 주세요.");
+
+   try{
+
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public Object error(RuntimeException e){
-        return e.getMessage();
-    }
 }
