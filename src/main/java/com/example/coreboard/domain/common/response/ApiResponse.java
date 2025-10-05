@@ -1,48 +1,43 @@
 package com.example.coreboard.domain.common.response;
 
+import java.util.Collections;
+
 public class ApiResponse<T> {
 
-    private final int status;
     private final String message;
-    private final T data;         // 다양한 형태의 데이터를 담을 수 있도록 타입을 제네릭으로
+    private final T data;
 
-    public ApiResponse(int status, String message, T data) {
-        this.status = status;
+    public ApiResponse( String message, T data) {
         this.message = message;
         this.data = data;
     }
 
     // 성공
-    public static <T> ApiResponse<T> ok(T data, String message) { // ApiResponse 생성자를 호출하여 성공 상태의 응답 객체를 만들어서 반환한다.
-        return new ApiResponse<>(200, message, data);
-        // 첫 번째 인자 : 상태 문자열 ("SUCCESS")
-        // 두 번째 인자 : 실제 응답 데이터
-        // 세 번째 인자 : 메시지
+    public static <T> ApiResponse<T> ok(T data, String message) {   // ApiResponse 생성자를 호출하여 성공 상태의 응답 객체를 만들어서 반환한다.
+        return new ApiResponse<>( message, data);
+        // 두 번째 인자 : 메시지
+        // 세 번째 인자 : 데이터 페이로드
+    }
+    
+    // 400, 500 나눈 이유
+    // 클라이언트와 서버 - 책임을 나눔
+
+    // 실패 - 사용자 실수(400)
+    public static ApiResponse<Object> fail( String message) {   // ApiResponse 생성자를 호출하여 실패 상태의 응답
+                                                                // 객체를 만들어서 반환한다, Void로 하면 데이터가 null로 나오므로 Object로 수정함
+        return new ApiResponse<>( message, Collections.emptyMap());
+        // 두 번째 인자 : 메시지
+        // 세 번째 인자 : 데이터 페이로드 data:{}
     }
 
-    // 실패 - 사용자 실수
-    public static ApiResponse<Void> fail(int status, String message) { // ApiResponse 생성자를 호출하여 실패 상태의 응답
-        // 객체를 만들어서 반환한다.
-        return new ApiResponse<>(status, message, null);
-        // 첫 번째 인자 : 상태 문자열 ("FAIL")
-        // 두 번째 인자 : 실제 응답 데이터
-        // 세 번째 인자 : 메시지
-    }
-
-    // 서버 에러
-    public static <T> ApiResponse<Void> error(int status, String message) { // ApiResponse 생성자를 호출하여 에러 상태의 응답 객체를
-        // 만들어서 반환한다.
-        return new ApiResponse<>(status, message, null);
-        // 첫 번째 인자 : 상태 문자열 ("ERROR")
-        // 두 번째 인자 : 실제 응답 데이터
-        // 세 번째 인자 : 메시지
+    // 서버 에러 (500)
+    public static <T> ApiResponse<Object> error(String message) {   // ApiResponse 생성자를 호출하여 에러 상태의 응답 객체를
+                                                                    // 만들어서 반환한다, Void로 하면 데이터가 null로 나오므로 Object로 수정함
+        return new ApiResponse<>( message, Collections.emptyMap());
+        // 두 번째 인자 : 메시지
+        // 세 번째 인자 : 데이터 페이로드 data:{}
     }
     // 사용 예시 : return ApiResponse.error("예상치 못한 어쩌고 에러발생");
-
-    // JSON 직렬화, 캡슐화, 불변
-    public int getStatus() {
-        return status;
-    }
 
     public T getData() {
         return data;
