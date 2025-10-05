@@ -29,14 +29,14 @@ public class AuthController {
     // 201: 새로운 리소스를 만들었다는 의미
     // 로그인은 200
 
-    @PostMapping("/sign-in")
-    public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest signinRequest) {
-        TokenResponse token = authService.signin(signinRequest).getBody(); //로그인 처리 후 토큰 발급
-        return ResponseEntity.ok(token); // 토큰 응답
-    }
+//    @PostMapping("/sign-in")
+//    public ResponseEntity<TokenResponse> signIn(@RequestBody SignInRequest signinRequest) {
+//        TokenResponse token = authService.signin(signinRequest).getBody(); //로그인 처리 후 토큰 발급
+//        return ResponseEntity.ok(token); // 토큰 응답
+//    }
 
-    @PostMapping("/sign-up")
-    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest signupRequset) {
-        return ResponseEntity.ok(authService.signup(signupRequset));
-    }
+//    @PostMapping("/sign-up")
+//    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest signupRequset) {
+//        return ResponseEntity.ok(authService.signup(signupRequset));
+//    }
 }

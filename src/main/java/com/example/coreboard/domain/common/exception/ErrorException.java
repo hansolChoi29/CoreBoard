@@ -3,7 +3,7 @@ package com.example.coreboard.domain.common.exception;
 // 공통 예외 베이스 (양식)
 public abstract class ErrorException extends RuntimeException {
 
-    private final int status; //HTTP 상태 코드
+    private final int status; // HTTP 상태 코드
     // private final String message; RuntimeException를 상속 받을 의미가 없음
 
     public ErrorException(int status, String message) {

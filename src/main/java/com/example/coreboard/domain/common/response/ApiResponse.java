@@ -12,7 +12,7 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    //성공
+    // 성공
     public static <T> ApiResponse<T> ok(T data, String message) { // ApiResponse 생성자를 호출하여 성공 상태의 응답 객체를 만들어서 반환한다.
         return new ApiResponse<>(200, message, data);
         // 첫 번째 인자 : 상태 문자열 ("SUCCESS")
@@ -20,7 +20,7 @@ public class ApiResponse<T> {
         // 세 번째 인자 : 메시지
     }
 
-    // 실패
+    // 실패 - 사용자 실수
     public static ApiResponse<Void> fail(int status, String message) { // ApiResponse 생성자를 호출하여 실패 상태의 응답
         // 객체를 만들어서 반환한다.
         return new ApiResponse<>(status, message, null);
@@ -29,7 +29,7 @@ public class ApiResponse<T> {
         // 세 번째 인자 : 메시지
     }
 
-    // 에러
+    // 서버 에러
     public static <T> ApiResponse<Void> error(int status, String message) { // ApiResponse 생성자를 호출하여 에러 상태의 응답 객체를
         // 만들어서 반환한다.
         return new ApiResponse<>(status, message, null);
