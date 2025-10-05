@@ -10,9 +10,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<T>> handleMemberException(ErrorException e) {
+    public ResponseEntity<ApiResponse<Void>> handleFailException(ErrorException e) { // <String>은 data 타입을 문자열로
+        // 보내겠다.
         return ResponseEntity
                 .status(e.getStatus())
-                .body(ApiResponse.fail(data,e.getMessage()));
+                .body(ApiResponse.fail(e.getStatus(), e.getMessage()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleErrorException(ErrorException e) {
+
+        return ResponseEntity
+                .status(e.getStatus())
+                .body(ApiResponse.error(e.getStatus(), e.getMessage()));
     }
 }
