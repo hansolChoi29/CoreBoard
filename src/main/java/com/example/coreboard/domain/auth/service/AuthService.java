@@ -2,85 +2,89 @@ package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.SignInRequest;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.auth.dto.SignUpResponse;
+import com.example.coreboard.domain.auth.dto.AuthResponse;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
-import com.example.coreboard.domain.auth.repository.AuthRepository;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
 import com.example.coreboard.domain.common.config.PasswordEncode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
-import com.example.coreboard.domain.users.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.http.ResponseEntity;
+import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 
 
 @Service
 public class AuthService {
-    private final AuthRepository authRepository;
-    private final UserRepository userRepository;
+    private final UsersRepository usersRepository;
     private final PasswordEncode passwordEncoder;
+    private final EmailPhoneNumberEncode emailPhoneNumberEncode;
 
-    public AuthService(AuthRepository authRepository, PasswordEncode passwordEncoder, UserRepository userRepository) {
-        this.authRepository = authRepository;
+    public AuthService(PasswordEncode passwordEncoder, UsersRepository usersRepository,
+                       EmailPhoneNumberEncode emailPhoneNumberEncode) {
         this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
+        this.usersRepository = usersRepository;
+        this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
-//    @Transactional
-//    public SignUpResponse signup(SignUpRequest signupRequest) {
-//        // 트러블: getter인데 파라미터를 넣어서 에러났었음
-//        //signupRequest.getUsername(username)
-//        if (authRepository.existsByUsername(signupRequest.getUsername())) {
-//            throw new AuthErrorException(CONFLICT);
-//        }
-//        byte[] salt=passwordEncoder();
-//        String encodePassword = passwordEncoder.encrypt(signupRequest.getPassword(), salt);
-//
-//        Users newUser = new Users(
-//                signupRequest.getUsername(),
-//                encodePassword
-//        );
-//        authRepository.save(newUser);
-//        return new SignUpResponse(newUser.getUsername(), "가입 성공!");
-//    }
+    // 회원가입
+    public AuthResponse signup(SignUpRequest signUpRequest) { // AuthResponse :  객체 형태로 반환한다는 의미
+        // 1) 비밀번호 확인
+        if (signUpRequest.getPassword() == null || !signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
+            throw new AuthErrorException(PASSWORD_CONFIRM_MISMATCH); // 비밀번호 확인 불일치
+        }
 
-    // 검증을 한 번 더 하는 이유
-    // 유틸은 단순히 JWT 구조/서명/만료 검증
-    // 서비스는 Claim값 검증, DB조회/사용자 체크
+        // 2) 아이디 중복 체크
+        if (usersRepository.existsByUsername(signUpRequest.getUsername())) {
+            throw new AuthErrorException(CONFLICT); // 409: 이미 존재
+        }
 
-    // 서비스 로그인 
-    // 1) 사용자 인증 - DB 조회 검증
-    // 2) JWT 발급 - 로그인 성공 시 유틸 호출
-    // 3) 응답 DTO 반환 - accessToken
+        // 3) 암호화
+        String encodedPassword = passwordEncoder.encrypt(signUpRequest.getPassword());
+        String encryptedEmail = emailPhoneNumberEncode.encrypt(signUpRequest.getEmail());
+        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(signUpRequest.getPhoneNumber());
 
-//    @Transactional
-//    public ResponseEntity<TokenResponse> signin(@RequestBody SignInRequest signinRequest) {
-//        // 사용자 입력 정보 추출
-//        String username = signinRequest.getUsername(); //  사용자 아이디
-//        String inputPassword = signinRequest.getPassword(); // 사용자 비밀번호
-//
-//        // DB에서 사용자 조회
-//        Users user = userRepository.findByUsername(username) //DB에 접근하여 아이디 조회
-//                .orElseThrow(() -> new AuthErrorException(NOT_FOUND)); // 값이 없을 경우 에러 던짐, 있다면 값 반환
-//        // 비밀번호 검증
-//        if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
-//            // matches : PasswordEncoder객체가 제공하는 메서드여야 함
-//            throw new AuthErrorException(BAD_REQUEST);
-//        } else {
-//            Long userId = user.getUserId(); // DB에서 사용자 ID 조회
-//            String accessToken = JwtUtil.createAccessToken(userId, username); // 엑세스 토큰 발급
-//            String refreshToken = JwtUtil.createRefreshToken(userId, username); // 엑세스 토큰 발급
-//
-//            // put은 문법상 맞지 않음
-//            // tokenResponse.put("accessToken",accessToken);
-//            // tokenResponse.put("refreshToken",refreshToken);
-//
-//            TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken); // 토큰 세터로 주입
-//            return ResponseEntity.ok().body(tokenResponse); // 바디에 accessToken, refreshToken응답
-//        }
-//    }
+        // 4) 저장 - 트러블 : createUsers와 순서 맞춰야 함
+        Users users = Users.createUsers(
+                signUpRequest.getUsername(), // 사용자의 아이디,
+                encodedPassword,             // 사용자의 암호화된 비밀번호를
+                encryptedEmail,              // 사용자의 암호화된 이메일
+                encryptPhoneNubmer           // 사용자의 암호화된 전화번호
+        );
+        usersRepository.save(users); // DB에 저장한다.
+
+        // 5) 응답
+        return new AuthResponse(users.getUsername(), "회원가입이 완료되었습니다.");
+    }
+
+
+    public TokenResponse signIn(SignInRequest signInRequset) {
+        // 빈 값 방지용
+        if (
+                signInRequset.getUsername() == null
+                        || signInRequset.getUsername().isBlank()
+                        || signInRequset.getPassword() == null
+                        || signInRequset.getPassword().isBlank()
+        ) {
+            throw new AuthErrorException(BAD_REQUEST);
+        }
+
+        // 사용자 조회
+        Users users =
+                usersRepository.findByUsername(signInRequset.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));  // Optional 객체에서 값을 꺼내 오는 메서드(값이 존재하는 경우 해당 값
+        // 반환, 없는 경우 예외 발생)
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(signInRequset.getPassword(), users.getPassword())) {
+            throw new AuthErrorException(UNAUTHORIZED);
+        }
+
+        // 토큰 발급
+        String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
+        String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
+
+        // 토큰 반환
+        return new TokenResponse(accessToken, refreshToken);
+    }
 }

@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     // ResponseEntity: HTTP 응답 껍데기(상태코드/헤더/바디)
     // ApiResponse<Object> : 바디에 넣을 공통 포맷 {"message" : "","data" : {}}
     
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(ErrorException.class)
     public ResponseEntity<ApiResponse<Object>> handleFailException(ErrorException e) {
         // ResponseEntity는 HTTP 응답 객체고,
         // 안에 ApiResponse을 담겠다, Void는 status+message만 보내겠다.
@@ -23,12 +23,21 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(e.getMessage())); // 에러 메시지와 응답 코드를 body에 담겠다.
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleErrorException(ErrorException e) {
-        // ResponseEntity는 HTTP 응답 객체고,
-        // 안에 ApiResponse을 담겠다, Void는 status+message만 보내겠다.
+
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiResponse<Object>> handleErrorException(ErrorException e) {
+//        // ResponseEntity는 HTTP 응답 객체고,
+//        // 안에 ApiResponse을 담겠다, Void는 status+message만 보내겠다.
+//        return ResponseEntity
+//                .status(e.getStatus())                        //500 서버 에러
+//                .body(ApiResponse.error(e.getMessage()));    // 에러 메시지와 응답 코드를 body에 담겠다.
+//    }
+
+    // 에러 충돌 - 하나의 예외 타입은 하나의 핸들러가 처리하도록 겹치지 않게 재설계
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleUnexpected(Exception e) {
         return ResponseEntity
-                .status(e.getStatus())                        //500 서버 에러
-                .body(ApiResponse.error(e.getMessage()));    // 에러 메시지와 응답 코드를 body에 담겠다.
+                .internalServerError() // 500
+                .body(ApiResponse.error("서버 내부 오류가 발생했습니다."));
     }
 }
