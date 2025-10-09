@@ -1,11 +1,13 @@
 package com.example.coreboard.domain.auth.dto;
 
-public class SignUpResponse {
+public class AuthResponse {
     private String username;
     private String message;
 
-    public SignUpResponse(String username,
-                          String message) {
+    public AuthResponse(
+            String username,
+            String message
+    ) {
         this.username = username;
         this.message = message;
     }
