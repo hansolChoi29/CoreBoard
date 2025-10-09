@@ -7,12 +7,20 @@ public class SignUpRequest {
     @NotBlank
     private String username;
     private String password;
+    private String confirmPassword;
     private String email;
     private String phoneNumber;
 
-    public SignUpRequest(String username, String password, String email, String phoneNumber) {
+    public SignUpRequest(
+            String username,
+            String password,
+            String confirmPassword,
+            String email,
+            String phoneNumber
+    ){
         this.username = username;
         this.password = password;
+        this.confirmPassword = confirmPassword;
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
@@ -23,6 +31,10 @@ public class SignUpRequest {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getConfirmPassword(){
+        return confirmPassword;
     }
 
     public String getEmail() {

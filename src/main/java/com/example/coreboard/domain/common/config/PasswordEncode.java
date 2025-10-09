@@ -1,69 +1,35 @@
 package com.example.coreboard.domain.common.config;
 
 
-import com.example.coreboard.domain.users.entity.Users;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.util.Base64;
 
 @Component
 public class PasswordEncode {
+    // BCrypt는 salt가 자동 포함
 
-    // 회원가입
-    // AuthService에서 한 번 랜덤 salt생성
-    // 비밀번호 + salt -> encryot -> DB저장
+    private static final int COST = 12; // 2의 12승만큼 반복 조합
 
-    // 로그인
-    // DB에서 저장된 salt 가져오기
-    // 입력 비밀번호 + DB salt -> encrypt -> matches 비교
-
-    public String encrypt(String password, byte[] salt) {
-        try {
-            // 랜덤하게 넣겠다.(해시 만들기 위한 준비 단계)
-            // SecureRandom random = new SecureRandom();
-            // 트러블슈팅 - 매개변수 있는데 또 선언하여 에러남
-            // byte[] salt = new byte[16];
-            // random.nextBytes(salt);
-
-            // PBEKeySpec : 비밀번호를 안전하게 변환하기 위한 규칙을 정의하는 객체임
-            // toCharArray : 사용자가 입력한 비밀번호 문자열을 문자 배열로 바꾼 것
-            // 85319 : 반복횟수(반복이 많아질수록 안전하지만 느려짐)
-            // 128 : key length
-
-            //비밀번호 문자열 + 랜덤 salt → 8만 번 반복 → 128비트 길이의 안전한 해시 생성
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 85319, 128); //128비트
-
-            // SecretKeyFactory : 암호화 키를 만들어주는 공장
-            //PBKDF2 With HmacSHA1: 어떤 방식으로 키를 만들지 지정함
-            // PBKDF2: 비밀번호 기반 키 생성 함수
-            // HmacSHA1: 해시 알고리즘을 사용해서 안전하게 키 생성
-
-            // PBKDF2 + SHA1 방식으로 안전한 키를 만들어주는 도구(factory)를 준비 단계
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-
-            //generateSecret(spec): 방금 만든 팩토리로 실제 비번 해시 계산
-            // 최종적으로 DB에 저장할 수 있는 형태임
-            byte[] hash = factory.generateSecret(spec).getEncoded();
-
-            // 바이트 배열을 문자열로 변환 DB에 저장하거나 JSON으로 전송할 때 편리함
-            return Base64.getEncoder().encodeToString(hash);
-
-            // NoSuchAlgorithmException: 요청한 암호화 알고리즘(PBKDF2WithHmacSHA1)이 없을 경우
-            // InvalidKeySpecException: 키 만들 때 spec이 잘못됐을 때
-
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
-        }
+    // 비밀번호를 bcrypt로 해시하는 전 과정
+    public String encrypt(String password) {
+        // BCrypt : 암호화 도구
+        // 사용 이유 : bcrypt가 PBKDF2보다 비밀번호 해시에 더 적합하고 무차별 대입 공격에 강함
+        // withDefaults : 기본 설정
+        // hashToString : 비밀번호 해시해서 문자열로 변환
+        return BCrypt.withDefaults().hashToString(COST, password.toCharArray()); // 2의 12승 만큼 조합하여 비밀번호를 문자 배열로 변환하겠다.
     }
 
-    public boolean matches(String inputPassowrd, Users users) {
-        String hash = encrypt(inputPassowrd, users.getSalt()); // DB에 저장된 비밀번호와 비교할 수 있는 안전한 코드로 바꾼다
-        return hash.equals(users.getPassword()); // 만들어진 해시가 DB에 저장된 비밀번호와 같은지 대조하여 틀리면  false
+    // 로그인 시 비밀번호 검증
+    public boolean matches(
+            String inputPassword,
+            String storedHash
+    ) {
+        // storedHash가 isEmpty거나 null이면 false = public final boolean verified;
+        if (storedHash == null || storedHash.isEmpty())
+            return false;
+        return BCrypt.verifyer()
+                // verify(입력 비밀번호, 저장된 해시) : 입력된 비밀번호를 bcrypt 규칙대로 다시 해시하여 DB의 해시와 비교
+                .verify(inputPassword.toCharArray(), storedHash)
+                .verified; // verified : 두 해시가 일치하면 true, 다르면 false
     }
 }
