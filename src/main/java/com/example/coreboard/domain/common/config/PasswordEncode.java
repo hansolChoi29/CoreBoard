@@ -20,7 +20,10 @@ public class PasswordEncode {
     }
 
     // 로그인 시 비밀번호 검증
-    public boolean matches(String inputPassword, String storedHash) {
+    public boolean matches(
+            String inputPassword,
+            String storedHash
+    ) {
         // storedHash가 isEmpty거나 null이면 false = public final boolean verified;
         if (storedHash == null || storedHash.isEmpty())
             return false;
