@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 
 @Entity
-@Table(name = "sign_in")
+@Table(name = "users")
 public class Users {
 
     @Id
@@ -24,22 +24,27 @@ public class Users {
     private String phoneNumber;
 
     @Column(nullable = false)
-    private byte[] salt;
+    private String salt; // Base64 문자열
 
     protected Users() {
     }
 
-    public Users(String username, String encodePassword, String email, String phoneNumber, byte[] salt) {
+    public Users(String username, String encodePassword, String email, String phoneNumber, String base64Salt) {
         this.username = username;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.salt = salt;
+        this.salt = base64Salt;
     }
 
-    public Users(String username, String encodePassowrd) {
-        this.username = username;
-        this.password = encodePassowrd;
+    public static Users createUsers(
+            String username,
+            String encodedPassword,
+            String email,
+            String phoneNumber,
+            String base64Salt
+    ) {
+        return new Users(username, encodedPassword, email, phoneNumber, base64Salt);
     }
 
     public void setEmail(String email) {
@@ -62,7 +67,7 @@ public class Users {
         return userId;
     }
 
-    public byte[] getSalt() {
+    public String  getSalt() {
         return salt;
     }
 }

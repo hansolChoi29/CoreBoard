@@ -10,6 +10,7 @@ public class SignUpResponse {
         this.message = message;
     }
 
+
     public String getUsername() {
         return username;
     }
