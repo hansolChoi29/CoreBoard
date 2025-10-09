@@ -39,8 +39,8 @@ public class AuthService {
         
         // 3) 암호화
         String encodedPassword = passwordEncoder.encrypt(signUpRequest.getPassword());
-        String encryptedEmail= passwordEncoder.encrypt(signUpRequest.getEmail());
-        String encryptPhoneNubmer=passwordEncoder.encrypt(signUpRequest.getPhoneNumber());
+        String encryptedEmail= emailPhoneNumberEncode.encrypt(signUpRequest.getEmail());
+        String encryptPhoneNubmer=emailPhoneNumberEncode.encrypt(signUpRequest.getPhoneNumber());
 
         // 4) 저장
         Users users = Users.createUsers(
