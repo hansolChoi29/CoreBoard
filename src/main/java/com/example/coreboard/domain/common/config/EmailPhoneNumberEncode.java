@@ -20,6 +20,7 @@ public class EmailPhoneNumberEncode {
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int IV_LENGTH = 12; // GCM 표준
     private static final int TAG_BIT_LENGTH = 128;
+
     @Value("${aes.secret.key}")
     private String secretKey; //16글자
 

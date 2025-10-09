@@ -2,6 +2,7 @@ package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
 import com.example.coreboard.domain.auth.dto.SignUpResponse;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
 import com.example.coreboard.domain.common.config.PasswordEncode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.users.entity.Users;
@@ -15,10 +16,12 @@ import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*
 public class AuthService {
     private final UsersRepository usersRepository;
     private final PasswordEncode passwordEncoder;
+    private final EmailPhoneNumberEncode emailPhoneNumberEncode;
 
-    public AuthService(PasswordEncode passwordEncoder, UsersRepository usersRepository) {
+    public AuthService(PasswordEncode passwordEncoder, UsersRepository usersRepository, EmailPhoneNumberEncode emailPhoneNumberEncode) {
         this.passwordEncoder = passwordEncoder;
         this.usersRepository = usersRepository;
+        this.emailPhoneNumberEncode=emailPhoneNumberEncode;
     }
 
     // 회원가입
@@ -34,14 +37,16 @@ public class AuthService {
             throw new AuthErrorException(CONFLICT); // 409: 이미 존재
         }
         
-        // 3) 비밀번호 암호화
+        // 3) 암호화
         String encodedPassword = passwordEncoder.encrypt(signUpRequest.getPassword());
+        String encryptedEmail= passwordEncoder.encrypt(signUpRequest.getEmail());
+        String encryptPhoneNubmer=passwordEncoder.encrypt(signUpRequest.getPhoneNumber());
 
         // 4) 저장
         Users users = Users.createUsers(
                 signUpRequest.getUsername(), // 사용자의 아이디,
-                signUpRequest.getEmail(), // 사용자의 이메일,
-                signUpRequest.getPhoneNumber(), // 사용자의 전화번호,
+                encryptedEmail, // 사용자의 암호화된 이메일
+                encryptPhoneNubmer, // 사용자의 암호화된 전화번호
                 encodedPassword // 사용자의 암호화된 비밀번호를
         );
         usersRepository.save(users); // DB에 저장한다.
