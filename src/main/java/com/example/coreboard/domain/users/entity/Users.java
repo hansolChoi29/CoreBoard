@@ -23,28 +23,23 @@ public class Users {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String salt; // Base64 문자열
-
     protected Users() {
     }
 
-    public Users(String username, String encodePassword, String email, String phoneNumber, String base64Salt) {
+    public Users(String username, String encodePassword, String email, String phoneNumber) {
         this.username = username;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.salt = base64Salt;
     }
 
     public static Users createUsers(
             String username,
             String encodedPassword,
             String email,
-            String phoneNumber,
-            String base64Salt
+            String phoneNumber
     ) {
-        return new Users(username, encodedPassword, email, phoneNumber, base64Salt);
+        return new Users(username, encodedPassword, email, phoneNumber);
     }
 
     public void setEmail(String email) {
@@ -63,11 +58,11 @@ public class Users {
         return password;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String GetEmail(){
+        return email;
     }
 
-    public String  getSalt() {
-        return salt;
+    public Long getUserId() {
+        return userId;
     }
 }
