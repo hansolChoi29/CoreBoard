@@ -31,9 +31,9 @@ public class AuthController {
 //        TokenResponse token = authService.signin(signinRequest).getBody(); //로그인 처리 후 토큰 발급
 //        return ResponseEntity.ok(token); // 토큰 응답
 //    }
-    @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponse<SignUpResponse>> signUp(SignUpRequest request) {
-        SignUpResponse signUpResponse = authService.signup(request);
-        return ResponseEntity.ok(ApiResponse.ok(signUpResponse, "회원가입 성공"));
-    }
+//    @PostMapping("/sign-up")
+//    public ResponseEntity<ApiResponse<SignUpResponse>> signUp(SignUpRequest request) {
+//        SignUpResponse signUpResponse = authService.signup(request);
+//        return ResponseEntity.ok(ApiResponse.ok(signUpResponse, "회원가입 성공"));
+//    }
 }
