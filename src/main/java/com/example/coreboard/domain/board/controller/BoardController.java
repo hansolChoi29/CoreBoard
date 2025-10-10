@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.controller;
 
 
+import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
 import com.example.coreboard.domain.board.dto.BoardRequest;
 import com.example.coreboard.domain.board.dto.BoardApiResponse;
 import com.example.coreboard.domain.board.dto.BoardResponse;
@@ -61,4 +62,13 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto,"게시글 수정 완료!"));
     }
 
+    // 보드 삭제
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<ApiResponse<BoardDeleteResponse>> deleteBoard(
+            @RequestAttribute("username") String username,
+            @PathVariable Long boardId
+    ){
+        BoardDeleteResponse responseDto= boardService.deleteBoard(username, boardId);
+        return ResponseEntity.ok(ApiResponse.ok(responseDto,"게시글 삭제완료!"));
+    }
 }

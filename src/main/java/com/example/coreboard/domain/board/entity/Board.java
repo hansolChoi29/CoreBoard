@@ -35,8 +35,14 @@ public class Board {
             String boardTitle,
             String boardContents,
             String username
-            ) {
+    ) {
         return new Board(boardTitle, boardContents, username);
+    }
+
+    // 수정 용도
+    public void update(String newTitle, String newContents) {
+        this.boardTitle = newTitle;
+        this.boardContents = newContents;
     }
 
     public Long getBoardId() {
@@ -50,7 +56,8 @@ public class Board {
     public String getBoardContents() {
         return boardContents;
     }
-    public String getUsername(){
+
+    public String getUsername() {
         return username;
     }
 }

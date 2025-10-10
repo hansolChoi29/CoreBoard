@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.service;
 
 
+import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
 import com.example.coreboard.domain.board.dto.BoardRequest;
 import com.example.coreboard.domain.board.dto.BoardApiResponse;
 import com.example.coreboard.domain.board.dto.BoardResponse;
@@ -75,14 +76,30 @@ public class BoardService {
         }
         
         // 저장
-        Board updateBoard = Board.createBoard(
-                boardRequestDto.getBoardTitle(),
-                boardRequestDto.getBoardContents(),
-                username
-        );
-        boardRepository.save(updateBoard);
+       board.update(boardRequestDto.getBoardTitle(), boardRequestDto.getBoardContents());
 
         return new BoardResponse(
+                board.getBoardTitle(),
+                board.getBoardContents()
+        );
+    }
+
+    // 보드 삭제
+    public BoardDeleteResponse deleteBoard(
+            String username,
+            Long boardId
+    ){
+        Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
+                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
+
+        if (!board.getUsername().equals(username)) { // 권한 체크
+            throw new AuthErrorException(FORBIDDEN);
+        }
+
+        boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
+
+        return new BoardDeleteResponse(
+                board.getBoardId(),
                 board.getBoardTitle(),
                 board.getBoardContents()
         );
