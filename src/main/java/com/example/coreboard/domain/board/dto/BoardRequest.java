@@ -1,24 +1,13 @@
-package com.example.coreboard.domain.board.entity;
+package com.example.coreboard.domain.board.dto;
 
-import jakarta.persistence.*;
+import com.example.coreboard.domain.board.entity.Board;
 
-@Entity
-@Table(name = "board")
-public class Board {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardid;
-
-    @Column(name = "boardTitle", nullable = false)
+public class BoardRequest {
+    // 요청 넣어야 하는 것
     private String boardTitle;
-
-    @Column(name = "boardContents", nullable = false, length = 1000)
     private String boardContents;
 
-    protected Board() {
-    }
-
-    public Board(
+    public BoardRequest(
             String boardTitle,
             String boardContents
     ) {
@@ -33,9 +22,6 @@ public class Board {
         return new Board(boardTitle, boardContents);
     }
 
-    public Long getBoardId() {
-        return boardid;
-    }
 
     public String getBoardTitle() {
         return boardTitle;
@@ -45,5 +31,3 @@ public class Board {
         return boardContents;
     }
 }
-
-
