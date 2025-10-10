@@ -55,4 +55,36 @@ public class BoardService {
                 board.getBoardContents()
         );
     }
+
+    // 보드 전체 조회
+//    public BoardResponse findAllBoard(
+//            String username
+//    ){
+//        Page<Board> boardPage = boardRepository.findAll();
+//    }
+
+    // 보드 수정
+    public BoardResponse updateBoard(
+            String username,
+            Long boardId,
+            BoardRequest boardRequestDto){
+        Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
+                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
+        if (!board.getUsername().equals(username)) { // 권한 체크
+            throw new AuthErrorException(FORBIDDEN);
+        }
+        
+        // 저장
+        Board updateBoard = Board.createBoard(
+                boardRequestDto.getBoardTitle(),
+                boardRequestDto.getBoardContents(),
+                username
+        );
+        boardRepository.save(updateBoard);
+
+        return new BoardResponse(
+                board.getBoardTitle(),
+                board.getBoardContents()
+        );
+    }
 }
