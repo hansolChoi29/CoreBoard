@@ -1,10 +1,10 @@
 package com.example.coreboard.domain.auth.dto;
 
-public class AuthResponse {
+public class AuthApiResponse {
     private String username;
     private String message;
 
-    public AuthResponse(
+    public AuthApiResponse(
             String username,
             String message
     ) {
