@@ -3,19 +3,63 @@ package com.example.coreboard.domain.board.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="board")
+@Table(name = "board")
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long boardId;
 
-    @Column(name="boardTitle")
+    @Column(name = "boardTitle", nullable = false)
     private String boardTitle;
 
-    @Column(name="boardContents")
+    @Column(name = "boardContents", nullable = false, length = 1000)
     private String boardContents;
 
+    @Column(nullable = false)
+    private String username;
 
+    protected Board() {
+    }
+
+    public Board(
+            String boardTitle,
+            String boardContents,
+            String username
+    ) {
+        this.boardTitle = boardTitle;
+        this.boardContents = boardContents;
+        this.username = username;
+    }
+
+    public static Board createBoard(
+            String boardTitle,
+            String boardContents,
+            String username
+    ) {
+        return new Board(boardTitle, boardContents, username);
+    }
+
+    // 수정 용도
+    public void update(String newTitle, String newContents) {
+        this.boardTitle = newTitle;
+        this.boardContents = newContents;
+    }
+
+    public Long getBoardId() {
+        return boardId;
+    }
+
+    public String getBoardTitle() {
+        return boardTitle;
+    }
+
+    public String getBoardContents() {
+        return boardContents;
+    }
+
+    public String getUsername() {
+        return username;
+    }
 }
 
 
