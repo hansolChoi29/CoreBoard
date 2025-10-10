@@ -2,6 +2,7 @@ package com.example.coreboard.domain.common.exception.auth;
 
 public enum AuthErrorCode {
     BAD_REQUEST(400, "비밀번호 또는 아이디가 일치하지 않습니다."),
+    PASSWORD_CONFIRM_MISMATCH(400, "비밀번호 확인이 일치하지 않습니다."),
     UNAUTHORIZED(401, "다시 로그인해 주세요."),
     FORBIDDEN(403, "접근 권한이 없습니다."),
     NOT_FOUND(404, "존재하지 않는 사용자입니다."),

@@ -3,14 +3,16 @@ package com.example.coreboard.domain.common.config;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration // 트러블 - 안 붙이면 init 실행 안됨,"Key argument cannot be null.”
 public class JwtConfig {
-    @Value("${jwt.secret.key}") // 문자열 : 비밀 값 원재료
-    private String jwt;
+    @Value("${jwt.secret.key}")
+    private String jwtSecretKey;
 
     @PostConstruct // 의존성 주입이 이루어진 후 초기화를 수행하는 메서드, 생성자 보다 늦게 호출됨
     public void init() {
-        JwtUtil.init(jwt);
+        JwtUtil.init(jwtSecretKey);
     }
 }
 // 1) "문자열" 선언 - 초기화 시 사용 (SecretKey 객체를 만들기 위한 원재료)

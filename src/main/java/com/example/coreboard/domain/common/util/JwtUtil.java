@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 public class JwtUtil {
@@ -17,13 +18,14 @@ public class JwtUtil {
     // 문자열 없이 SecretKey 못 만들고
     // SecretKey 없이 JWT 발급/검증 못함
 
+
     public static void init(String secret) {
         // 문자열을 객체로 변환하기
-        secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         // Keys : 문자열로 된 비밀키를 객체로 쉽게 만들어주는 유틸 클래스
         // hmacShaKeyFor : Key클래스 안의 정적 메서드(HMAC SHA 알고리즘)
         // secret.getBytes() : 문자열을 바이트 배열로 변환 (이유: HMAC SHA알고리즘은 바이트 배열 형태로 키를 필요로 함)
-
+        System.out.println("JWT secret init 길이= " + (secret == null ? 0 : secret.length()));
         // HMAC SHA알고리즘이란?
         // 핵심은 비밀 키로 토큰 변조를 막는다.
     }
@@ -65,10 +67,4 @@ public class JwtUtil {
         }
         return false; // true면 통과, false면 실패
     }
-
-    // 4) 토큰에서 username 추출
-//    public static String getUsernameToken(String token) {
-//
-//    }
-
 }
