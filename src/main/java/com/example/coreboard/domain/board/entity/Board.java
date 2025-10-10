@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardid;
+    private Long boardId;
 
     @Column(name = "boardTitle", nullable = false)
     private String boardTitle;
@@ -40,7 +40,7 @@ public class Board {
     }
 
     public Long getBoardId() {
-        return boardid;
+        return boardId;
     }
 
     public String getBoardTitle() {
@@ -49,6 +49,9 @@ public class Board {
 
     public String getBoardContents() {
         return boardContents;
+    }
+    public String getUsername(){
+        return username;
     }
 }
 
