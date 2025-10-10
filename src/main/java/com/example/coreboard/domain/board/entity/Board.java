@@ -15,22 +15,28 @@ public class Board {
     @Column(name = "boardContents", nullable = false, length = 1000)
     private String boardContents;
 
+    @Column(nullable = false)
+    private String username;
+
     protected Board() {
     }
 
     public Board(
             String boardTitle,
-            String boardContents
+            String boardContents,
+            String username
     ) {
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
+        this.username = username;
     }
 
     public static Board createBoard(
             String boardTitle,
-            String boardContents
-    ) {
-        return new Board(boardTitle, boardContents);
+            String boardContents,
+            String username
+            ) {
+        return new Board(boardTitle, boardContents, username);
     }
 
     public Long getBoardId() {

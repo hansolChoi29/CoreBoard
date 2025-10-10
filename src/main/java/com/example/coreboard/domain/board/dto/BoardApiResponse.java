@@ -12,7 +12,6 @@ public class BoardApiResponse {
         this.message = message;
     }
 
-
     public String getBoardTitle() {
         return boardTitle;
     }
