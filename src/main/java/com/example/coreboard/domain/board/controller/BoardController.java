@@ -37,7 +37,28 @@ public class BoardController {
             @PathVariable Long boardId                      // 단건 조회라서 id 받게 함
     ) {
         BoardResponse responseDto = boardService.findOneBoard(username, boardId);    // 유저id와 게시글id findOneBoard 실행하여
-                                                                                     // 반환된 값 변수에 넣음
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 조회!"));
+        // 반환된 값 변수에 넣음
+        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
     }
+
+    //보드 전체 조회 - 페이지네이션 공부하기;;
+//    @GetMapping
+//    public ResponseEntity<ApiResponse<BoardResponse>> getAllBoard(
+//            @RequestAttribute("username") String username
+//    ){
+//        BoardResponse responseDto = boardService.findAllBoard(username);
+//        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 전체 조회!"));
+//    }
+
+    // 보드 수정
+    @PostMapping("/{boardId}")
+    public ResponseEntity<ApiResponse<BoardResponse>> updateBoard(
+            @RequestAttribute("username") String username,
+            @PathVariable Long boardId,
+            @RequestBody BoardRequest boardRequestDto
+    ) {
+        BoardResponse responseDto = boardService.updateBoard(username, boardId, boardRequestDto);
+        return ResponseEntity.ok(ApiResponse.ok(responseDto,"게시글 수정 완료!"));
+    }
+
 }
