@@ -1,15 +1,18 @@
 package com.example.coreboard.domain.board.service;
 
 
-import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
-import com.example.coreboard.domain.board.dto.BoardRequest;
-import com.example.coreboard.domain.board.dto.BoardApiResponse;
-import com.example.coreboard.domain.board.dto.BoardResponse;
+import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
@@ -32,7 +35,8 @@ public class BoardService {
         Board board = Board.createBoard(
                 boardRequestDto.getBoardTitle(),
                 boardRequestDto.getBoardContents(),
-                username
+                username,
+                boardRequestDto.getLastModifiedDate()
         );
         boardRepository.save(board); // 저장
         return new BoardApiResponse(board.getBoardTitle(), "게시글이 성공적으로 생성되었습니다.");
@@ -58,25 +62,32 @@ public class BoardService {
     }
 
     // 보드 전체 조회
-//    public BoardResponse findAllBoard(
-//            String username
-//    ){
-//        Page<Board> boardPage = boardRepository.findAll();
-//    }
+    public PageResultResponse<BoardResponse> findAllBoard(
+            String username,
+            int page,
+            int size
+    ) {
+        // 클라이언트 요청으로 받은 page, size로 Pageable생성
+        Pageable pageable = PageRequest.of(page, size, Sort.by("memberId").descending());
+        // 레포에서 username 기준으로 모든 게시글 조회
+        Page<Board> pageResponse = boardRepository.findAllByUsername(username, pageable);
+        return (PageResultResponse<BoardResponse>) pageResponse;
+    }
 
     // 보드 수정
     public BoardResponse updateBoard(
+            BoardRequest boardRequestDto,
             String username,
-            Long boardId,
-            BoardRequest boardRequestDto){
+            Long boardId
+    ) {
         Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
         if (!board.getUsername().equals(username)) { // 권한 체크
             throw new AuthErrorException(FORBIDDEN);
         }
-        
+
         // 저장
-       board.update(boardRequestDto.getBoardTitle(), boardRequestDto.getBoardContents());
+        board.update(boardRequestDto.getBoardTitle(), boardRequestDto.getBoardContents());
 
         return new BoardResponse(
                 board.getBoardTitle(),
@@ -88,7 +99,7 @@ public class BoardService {
     public BoardDeleteResponse deleteBoard(
             String username,
             Long boardId
-    ){
+    ) {
         Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
