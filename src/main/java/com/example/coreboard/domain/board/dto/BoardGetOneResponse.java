@@ -1,12 +1,11 @@
 package com.example.coreboard.domain.board.dto;
 
 
-
 import java.time.LocalDateTime;
 
 public class BoardGetOneResponse {
     private final Long id;
-    private final String username;
+    private final long userId;
     private final String boardTitle;
     private final String boardContents;
     private final LocalDateTime createdDate;
@@ -15,14 +14,14 @@ public class BoardGetOneResponse {
 
     public BoardGetOneResponse(
             Long id,
-            String username,
+            long userId,
             String boardTitle,
             String boardContents,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
         this.id = id;
-        this.username = username;
+        this.userId = userId;
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
         this.createdDate = createdDate;
@@ -33,8 +32,8 @@ public class BoardGetOneResponse {
         return id;
     }
 
-    public String getUsername() {
-        return username;
+    public long getUserId() {
+        return userId;
     }
 
     public String getBoardTitle() {
