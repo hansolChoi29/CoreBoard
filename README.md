@@ -2,7 +2,7 @@
 ## 개발환경 세팅
 1. JDK : 17.0.15 (Amazon Corretto) 
 2. MySQL : 8.0.34
-3. Gradle : 8.3
+3. Gradle : 8.14.3
 4. Spring Boot : 3.5.6
 5. OS : Windows 11
 
