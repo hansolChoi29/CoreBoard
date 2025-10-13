@@ -10,7 +10,7 @@ public class BaordLocalDateTimeTest {
     @Test
     void localDateTimeTest(){
         final BoardRepository boardRepository=null;
-        final Board board=new Board("title", "contents");
+//        final Board board=new Board("title", "contents");
 
         String username ="fjdklsa12";
 
