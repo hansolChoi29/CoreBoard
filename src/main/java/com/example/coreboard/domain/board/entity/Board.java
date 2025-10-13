@@ -50,7 +50,7 @@ public class Board {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board BoardCreateResponse(String username, String boardTitle, String boardContents) {
+    public static Board create(String username, String boardTitle, String boardContents) {
         Board board=new Board();
         board.username=username;
         board.boardTitle=boardTitle;
@@ -63,9 +63,12 @@ public class Board {
             String newContents
 
     ) {
-        this.boardTitle = newTitle;
-        this.boardContents = newContents;
-
+        if(newTitle != null && !newTitle.isBlank()){
+            this.boardTitle=newTitle;
+        }
+        if(newContents != null && !newContents.isBlank()){
+            this.boardContents=newContents;
+        }
     }
 
     public Long getId() {
