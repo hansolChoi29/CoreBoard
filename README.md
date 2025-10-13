@@ -11,7 +11,7 @@
 
 ##  application-dev.yml (로컬 개발용)
 
-- application-dev.yml에 있는 Mysql 비밀번호가 민감하다 판단되어 .gitignore에 포함되어 있습니다. 직접 로컬에 만들어 사용해 주세요.
+- application-dev.yml에 있는 Mysql 비밀번호가 민감하다 판단되어 .gitignore에 포함되어 있습니다.
 
 -  경로 : `src/main/resources/`
 ```
