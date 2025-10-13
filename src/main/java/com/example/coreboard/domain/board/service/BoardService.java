@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
@@ -36,7 +37,8 @@ public class BoardService {
                 boardRequestDto.getBoardContents()
         );
         boardRepository.save(board); // 저장
-        return new BoardCreateResponse(board.getBoardTitle(),board.getBoardContents());
+        return new BoardCreateResponse(board.getId(), username, board.getBoardTitle(), board.getBoardContents(),
+                board.getCreatedDate());
     }
 
     // 보드 단건 조회
@@ -53,8 +55,12 @@ public class BoardService {
 
         // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
         return new BoardGetOneResponse(
+                board.getId(),
+                username,
                 board.getBoardTitle(),
-                board.getBoardContents()
+                board.getBoardContents(),
+                board.getCreatedDate(),
+                board.getLastModifiedDate()
         );
     }
 
@@ -71,7 +77,8 @@ public class BoardService {
         return (PageResultResponse<BoardGetAllResponse>) pageResponse;
     }
 
-    // 보드 수정
+    // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
+    @Transactional
     public BoardUpdateResponse updateBoard(
             BoardRequest boardRequestDto,
             String username,
@@ -88,7 +95,13 @@ public class BoardService {
                 boardRequestDto.getBoardTitle(),
                 boardRequestDto.getBoardContents()
         );
-        return new BoardUpdateResponse(board.getBoardTitle(),board.getBoardContents());
+        return new BoardUpdateResponse(
+                board.getId(),
+                username,
+                board.getBoardTitle(),
+                board.getBoardContents(),
+                board.getLastModifiedDate()
+        );
     }
 
     // 보드 삭제
@@ -106,9 +119,7 @@ public class BoardService {
         boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
 
         return new BoardDeleteResponse(
-                board.getId(),
-                board.getBoardTitle(),
-                board.getBoardContents()
+                board
         );
     }
 }

@@ -86,6 +86,14 @@ public class Board {
     public String getUsername() {
         return username;
     }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public LocalDateTime getLastModifiedDate() {
+        return lastModifiedDate;
+    }
 }
 
 
