@@ -34,11 +34,11 @@ public class BoardService {
             BoardRequest boardRequestDto,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
+        boardRequestDto.validation(); // 유효성 검사
 
         // users 테이블의 username이 들어있으면 값을 user에 담는다. (반환용)
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
 
         // 보드 저장할 것들 세팅
         Board board = Board.create(
@@ -52,7 +52,12 @@ public class BoardService {
         }
 
         boardRepository.save(board); // 저장
-        return new BoardCreateResponse(board.getId(), user.getUserId(), board.getBoardTitle(), board.getBoardContents(),
+
+        return new BoardCreateResponse(
+                board.getId(),
+                user.getUserId(),
+                board.getBoardTitle(),
+                board.getBoardContents(),
                 board.getCreatedDate());
     }
 
@@ -60,6 +65,7 @@ public class BoardService {
     public BoardGetOneResponse findOneBoard(
             Long id
     ) {
+
 
         Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
@@ -88,6 +94,9 @@ public class BoardService {
             String username,
             Long id
     ) {
+
+        boardRequestDto.validation(); // 유효성 검사
+
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(()-> new AuthErrorException(NOT_FOUND));
 
