@@ -36,10 +36,9 @@ public class BoardController {
     // 보드 단건조회
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOneBoard(
-            @RequestAttribute("username") String username, // 유저 id 뽑아와서 권한체크
-            @PathVariable Long id                      // 단건 조회라서 id 받게 함
+            @PathVariable Long id                                        // 단건 조회라서 id 받게 함
     ) {
-        BoardGetOneResponse responseDto = boardService.findOneBoard(username, id);    // 유저id와 게시글id findOneBoard 실행하여
+        BoardGetOneResponse responseDto = boardService.findOneBoard(id); // 유저id와 게시글id findOneBoard 실행하여
         // 반환된 값 변수에 넣음
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
     }

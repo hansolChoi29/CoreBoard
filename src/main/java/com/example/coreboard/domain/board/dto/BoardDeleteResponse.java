@@ -4,13 +4,13 @@ import com.example.coreboard.domain.board.entity.Board;
 
 public class BoardDeleteResponse {
     private final Long id;
-    private final String username;
+    private final long userId;
     private final String boardTitle;
 
 
     public BoardDeleteResponse(Board board) {
         this.id = board.getId();
-        this.username=board.getUsername();
+        this.userId=board.getUserId();
         this.boardTitle = board.getBoardTitle();
 
     }
@@ -23,7 +23,7 @@ public class BoardDeleteResponse {
         return id;
     }
 
-    public String getUsername(){
-        return username;
+    public long getUserId(){
+        return userId;
     }
 }

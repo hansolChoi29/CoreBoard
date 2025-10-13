@@ -4,20 +4,20 @@ import java.time.LocalDateTime;
 
 public class BoardUpdateResponse {
     private final Long id;
-    private final String username;
+    private final long userId;
     private final String boardTitle;
     private final String boardContents;
     private final LocalDateTime lastModifiedDate;
 
     public BoardUpdateResponse(
             Long id,
-            String username,
+            long userId,
             String boardTitle,
             String boardContents,
             LocalDateTime lastModifiedDate
     ) {
         this.id = id;
-        this.username = username;
+        this.userId = userId;
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
         this.lastModifiedDate = lastModifiedDate;
@@ -27,8 +27,8 @@ public class BoardUpdateResponse {
         return id;
     }
 
-    public String getUsername() {
-        return username;
+    public long getUserId() {
+        return userId;
     }
 
     public String getBoardTitle() {
