@@ -32,9 +32,9 @@ public class BoardController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOneBoard(
             @RequestAttribute("username") String username, // 유저 id 뽑아와서 권한체크
-            @PathVariable Long boardId                      // 단건 조회라서 id 받게 함
+            @PathVariable Long id                      // 단건 조회라서 id 받게 함
     ) {
-        BoardGetOneResponse responseDto = boardService.findOneBoard(username, boardId);    // 유저id와 게시글id findOneBoard 실행하여
+        BoardGetOneResponse responseDto = boardService.findOneBoard(username, id);    // 유저id와 게시글id findOneBoard 실행하여
         // 반환된 값 변수에 넣음
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
     }
@@ -56,9 +56,9 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> updateBoard(
             @RequestBody BoardRequest boardRequestDto,
             @RequestAttribute("username") String username,
-            @PathVariable Long boardId
+            @PathVariable Long id
     ) {
-        BoardUpdateResponse responseDto = boardService.updateBoard(boardRequestDto, username, boardId);
+        BoardUpdateResponse responseDto = boardService.updateBoard(boardRequestDto, username, id);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 
@@ -66,9 +66,9 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardDeleteResponse>> deleteBoard(
             @RequestAttribute("username") String username,
-            @PathVariable Long boardId
+            @PathVariable Long id
     ) {
-        BoardDeleteResponse responseDto = boardService.deleteBoard(username, boardId);
+        BoardDeleteResponse responseDto = boardService.deleteBoard(username, id);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 삭제완료!"));
     }
 }

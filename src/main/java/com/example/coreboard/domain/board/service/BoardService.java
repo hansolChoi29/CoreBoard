@@ -30,7 +30,7 @@ public class BoardService {
     ) {
 
         // 보드 저장할 것들 세팅
-        Board board = Board.BoardCreateResponse(
+        Board board = Board.create(
                 username,
                 boardRequestDto.getBoardTitle(),
                 boardRequestDto.getBoardContents()
@@ -42,9 +42,9 @@ public class BoardService {
     // 보드 단건 조회
     public BoardGetOneResponse findOneBoard(
             String username,
-            Long boardId
+            Long id
     ) {
-        Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         if (!board.getUsername().equals(username)) { // 권한 체크
@@ -75,9 +75,9 @@ public class BoardService {
     public BoardUpdateResponse updateBoard(
             BoardRequest boardRequestDto,
             String username,
-            Long boardId
+            Long id
     ) {
-        Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
         if (!board.getUsername().equals(username)) { // 권한 체크
             throw new AuthErrorException(FORBIDDEN);
@@ -94,9 +94,9 @@ public class BoardService {
     // 보드 삭제
     public BoardDeleteResponse deleteBoard(
             String username,
-            Long boardId
+            Long id
     ) {
-        Board board = boardRepository.findById(boardId) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         if (!board.getUsername().equals(username)) { // 권한 체크

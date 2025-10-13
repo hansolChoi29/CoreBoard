@@ -2,13 +2,13 @@ package com.example.coreboard.domain.board.dto;
 
 public class BoardDeleteResponse {
     // 응답으로 나와야 하는 것
-    Long boardId;
+    Long id;
     String boardTitle;
     String boardContents;
 
 
-    public BoardDeleteResponse(Long boardId, String boardTitle, String boardContents) {
-        this.boardId = boardId;
+    public BoardDeleteResponse(Long id, String boardTitle, String boardContents) {
+        this.id = id;
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
     }
@@ -21,7 +21,7 @@ public class BoardDeleteResponse {
         return boardContents;
     }
 
-    public Long getBoardId() {
-        return boardId;
+    public Long getId() {
+        return id;
     }
 }
