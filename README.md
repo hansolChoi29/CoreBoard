@@ -17,7 +17,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/CoreBoard?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/CoreBoard?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Seoul
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
