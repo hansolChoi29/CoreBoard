@@ -22,7 +22,7 @@ public class Board {
     private String boardContents;
 
     @Column(nullable = false)
-    private Long username;
+    private long userId;
 
     @CreatedDate
     @Column(updatable = false)
@@ -36,7 +36,7 @@ public class Board {
     }
 
     public Board(
-            String username,
+            Long userId,
             String boardTitle,
             String boardContents,
             LocalDateTime createdDate,
@@ -44,16 +44,16 @@ public class Board {
     ) {
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
-        this.username = username;
+        this.userId = userId;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board create(String username, String boardTitle, String boardContents) {
-        Board board=new Board();
-        board.username=username;
-        board.boardTitle=boardTitle;
-        board.boardContents=boardContents;
+    public static Board create(long userId, String boardTitle, String boardContents) {
+        Board board = new Board();
+        board.userId = userId;
+        board.boardTitle = boardTitle;
+        board.boardContents = boardContents;
         return board;
     }
 
@@ -62,11 +62,11 @@ public class Board {
             String newContents
 
     ) {
-        if(newTitle != null && !newTitle.isBlank()){
-            this.boardTitle=newTitle;
+        if (newTitle != null && !newTitle.isBlank()) {
+            this.boardTitle = newTitle;
         }
-        if(newContents != null && !newContents.isBlank()){
-            this.boardContents=newContents;
+        if (newContents != null && !newContents.isBlank()) {
+            this.boardContents = newContents;
         }
     }
 
@@ -82,8 +82,8 @@ public class Board {
         return boardContents;
     }
 
-    public String getUsername() {
-        return username;
+    public long getUserId() {
+        return userId;
     }
 
     public LocalDateTime getCreatedDate() {

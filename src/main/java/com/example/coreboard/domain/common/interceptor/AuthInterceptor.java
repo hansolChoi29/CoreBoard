@@ -24,12 +24,20 @@ public class AuthInterceptor implements HandlerInterceptor {
         // JWT는 일반적으로 Authorization: Bearer토큰 형태로 실어 보내기 때문
         String authorization = request.getHeader("Authorization");
 
-        // 헤더가 없으면 인증 자체가 안 됨 -> 401
-        // 인증이 안 된 요청을 뒤로 넘기면 실제 비즈니스 로직에서 더 큰 보안 리스크가 생김
+        // getRequestURL() : 전체 URL (toString() 같이 써야함)
+        // getRequestURI() : 경로만 반환
+
+        String uri=request.getRequestURI();
+        String method=request.getMethod();
+
+        // 예외 처리
         if (authorization == null) {
+            // 메소드가 GET이고 /api/board로 시작하는 uri는 인증없이 통과!
+            if ("GET".equals(method) && uri.startsWith("/api/board")) {
+                return true;
+            }
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
         }
-
         // (?i) : 대소문자 무시(Bearer/bearer 모두 허용)
         // ^Bearer\s : 문자열 시작에서 Bearer 다음의 한 칸 이상 공백 제거
         // replaceAll("\\s+", "") : 토큰 앞뒤/ 중간에 섞여 들어온 개행/스페이스 방지

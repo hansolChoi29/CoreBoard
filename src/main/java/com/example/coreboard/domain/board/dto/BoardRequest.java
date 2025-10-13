@@ -1,8 +1,6 @@
 package com.example.coreboard.domain.board.dto;
 
 
-import java.time.LocalDateTime;
-
 public class BoardRequest {
     // 요청 넣어야 하는 것
     private String boardTitle;
