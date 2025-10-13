@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+aes:
+  secret:
+    key: ${AES_SECRET_KEY}
+
+logging:
+  level:
+    root: INFO
