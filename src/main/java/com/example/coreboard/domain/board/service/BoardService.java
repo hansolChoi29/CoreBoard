@@ -7,9 +7,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,16 +63,9 @@ public class BoardService {
     }
 
     // 보드 전체 조회
-    public PageResultResponse<BoardGetAllResponse> findAllBoard(
-            String username,
-            int page,
-            int size
+    public Page<Board> findAllBoard(Pageable pageable
     ) {
-        // 클라이언트 요청으로 받은 page, size로 Pageable생성
-        Pageable pageable = PageRequest.of(page, size, Sort.by("memberId").descending());
-        // 레포에서 username 기준으로 모든 게시글 조회
-        Page<Board> pageResponse = boardRepository.findAllByUsername(username, pageable);
-        return (PageResultResponse<BoardGetAllResponse>) pageResponse;
+        return boardRepository.findAll(pageable);
     }
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)

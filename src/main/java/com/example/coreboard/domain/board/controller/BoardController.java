@@ -2,8 +2,13 @@ package com.example.coreboard.domain.board.controller;
 
 
 import com.example.coreboard.domain.board.dto.*;
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.response.ApiResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,17 +44,21 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
     }
 
-    //보드 전체 조회 - 페이지네이션 공부하기;;
+    // 1) 보드 전체 조회 - PageableRequset
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResultResponse<BoardGetAllResponse>>> getAllBoard(
-            @RequestAttribute("username") String username,
-            @RequestParam(defaultValue = "1") int page, // 클라이언트 요청 page
-            @RequestParam(defaultValue="10") int size // 클라이언트 요청 size
+    public ResponseEntity<ApiResponse<Page<Board>>> getAllBoard(
+            // RequestParam : ?paeg=0&size=10 바인딩 해주는 어노테이션
+            @RequestParam(defaultValue = "0") int page, // 클라이언트 요청 page
+            @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
     ) {
-        // 서비스 호충해서 페이지네이션 처리 및 Board -> DTO 변환
-        PageResultResponse<BoardGetAllResponse> responseDto = boardService.findAllBoard(username, page, size);
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 전체 조회!"));
+        // pageable = page와 size, 정렬(내림차순) 규칙이 설정된 createdDate를 객체(Pageable)를 담음
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<Board> result = boardService.findAllBoard(pageable);
+        return ResponseEntity.ok(ApiResponse.ok(result, "게시글 전체 조회!"));
     }
+
+    // 2) 보드 전체 조회 - Cursor
+
 
     // 보드 수정
     @PostMapping("/{id}")

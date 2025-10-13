@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.board.entity;
 
-import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -23,7 +22,7 @@ public class Board {
     private String boardContents;
 
     @Column(nullable = false)
-    private String username;
+    private Long username;
 
     @CreatedDate
     @Column(updatable = false)
