@@ -1,27 +1,29 @@
 package com.example.coreboard.domain.board.dto;
 
+import com.example.coreboard.domain.board.entity.Board;
+
 public class BoardDeleteResponse {
-    // 응답으로 나와야 하는 것
-    Long boardId;
-    String boardTitle;
-    String boardContents;
+    private final Long id;
+    private final String username;
+    private final String boardTitle;
 
 
-    public BoardDeleteResponse(Long boardId, String boardTitle, String boardContents) {
-        this.boardId = boardId;
-        this.boardTitle = boardTitle;
-        this.boardContents = boardContents;
+    public BoardDeleteResponse(Board board) {
+        this.id = board.getId();
+        this.username=board.getUsername();
+        this.boardTitle = board.getBoardTitle();
+
     }
 
     public String getBoardTitle() {
         return boardTitle;
     }
 
-    public String getBoardContents() {
-        return boardContents;
+    public Long getId() {
+        return id;
     }
 
-    public Long getBoardId() {
-        return boardId;
+    public String getUsername(){
+        return username;
     }
 }

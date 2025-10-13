@@ -7,6 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+// 실제 인터셉터 동작 로직
+// 핵심 기능
+// 1) 요청 헤더에 Authorization 가져오기
+// 2) JWT 토큰 검증
+// 3) 토큰에서 username 추출 후 request 저장
+// 4) 유효하지 않으면 예외 발생 (컨트롤러 실행 안 되게)
 public class AuthInterceptor implements HandlerInterceptor {
     // 트러블 - 토큰 검증 실패!: JWT strings must contain exactly 2 period characters
     // 매 컨트롤러/서비스 마다 토큰 검증하는 대신 인터셉터 이용하기로 함

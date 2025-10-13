@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+// Interceptor를 스프링 MVC에 등록해주는 설정 클래스
+// 핵심 기능
+// 1) 어떤 URL 패턴에 인터셉터 적용할지
+// 2) 적용 제외할 url 지정
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
