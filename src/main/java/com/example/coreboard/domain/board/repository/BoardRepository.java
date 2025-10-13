@@ -7,11 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    // 클라이언트 요청(page=2, size=10)
-    // -> 컨트롤러(page, size)
-    // -> 서비스(page, size)
-    // -> 페이지 계산
-    // -> PageResult<Board> 생성 (contents, page, size, totalElements, totalPages)
-    // -> 응답
-    Page<Board> findAllByUsername(String username, Pageable pageable);
+    // Page<Board> : 반환타입, 게시글 목록과 페이지 정보를 함께 담은 객체
+    // (Pageable pageable) : 어떻게 가져올지 정보를 담음
+    // Pageable에 들어가는 값 예시 : PageRequest.of(0, 10, Sort.by("createdDate").descending());
+    Page<Board> findAll(Pageable pageable); // JPA가 제공하는 Pageable 이용하여 PageRequest 기반 오프셋 만들기
 }
