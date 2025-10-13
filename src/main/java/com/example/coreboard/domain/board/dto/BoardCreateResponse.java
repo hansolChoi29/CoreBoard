@@ -44,4 +44,5 @@ public class BoardCreateResponse {
     public long getUserId() {
         return userId;
     }
+
 }
