@@ -1,13 +1,20 @@
 package com.example.coreboard.domain.board.entity;
 
+import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
+@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name = "board")
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId;
+    private Long id;
 
     @Column(name = "boardTitle", nullable = false)
     private String boardTitle;
@@ -18,35 +25,54 @@ public class Board {
     @Column(nullable = false)
     private String username;
 
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
+
+    @LastModifiedDate
+    @Column(updatable = false)
+    private LocalDateTime lastModifiedDate;
+
     protected Board() {
     }
 
     public Board(
+            String username,
             String boardTitle,
             String boardContents,
-            String username
+            LocalDateTime createdDate,
+            LocalDateTime lastModifiedDate
     ) {
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
         this.username = username;
+        this.createdDate = createdDate;
+        this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board createBoard(
-            String boardTitle,
-            String boardContents,
-            String username
+    public static Board create(String username, String boardTitle, String boardContents) {
+        Board board=new Board();
+        board.username=username;
+        board.boardTitle=boardTitle;
+        board.boardContents=boardContents;
+        return board;
+    }
+
+    public void update(
+            String newTitle,
+            String newContents
+
     ) {
-        return new Board(boardTitle, boardContents, username);
+        if(newTitle != null && !newTitle.isBlank()){
+            this.boardTitle=newTitle;
+        }
+        if(newContents != null && !newContents.isBlank()){
+            this.boardContents=newContents;
+        }
     }
 
-    // 수정 용도
-    public void update(String newTitle, String newContents) {
-        this.boardTitle = newTitle;
-        this.boardContents = newContents;
-    }
-
-    public Long getBoardId() {
-        return boardId;
+    public Long getId() {
+        return id;
     }
 
     public String getBoardTitle() {
@@ -59,6 +85,14 @@ public class Board {
 
     public String getUsername() {
         return username;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public LocalDateTime getLastModifiedDate() {
+        return lastModifiedDate;
     }
 }
 
