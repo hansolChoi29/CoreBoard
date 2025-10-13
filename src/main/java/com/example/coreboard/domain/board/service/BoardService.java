@@ -30,7 +30,7 @@ public class BoardService {
     }
 
     // 보드 생성
-    public BoardCreateResponse createBoard(
+    public BoardCreateResponse create(
             BoardRequest boardRequestDto,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
@@ -47,7 +47,7 @@ public class BoardService {
                 boardRequestDto.getBoardContents()
         );
 
-        if(board.getUserId() != user.getUserId()){
+        if (board.getUserId() != user.getUserId()) {
             throw new AuthErrorException(FORBIDDEN);
         }
 
@@ -62,7 +62,7 @@ public class BoardService {
     }
 
     // 보드 단건 조회
-    public BoardGetOneResponse findOneBoard(
+    public BoardGetOneResponse findOne(
             Long id
     ) {
 
@@ -82,14 +82,14 @@ public class BoardService {
     }
 
     // 보드 전체 조회
-    public Page<Board> findAllBoard(Pageable pageable
+    public Page<Board> findAll(Pageable pageable
     ) {
         return boardRepository.findAll(pageable);
     }
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
-    public BoardUpdateResponse updateBoard(
+    public BoardUpdateResponse update(
             BoardRequest boardRequestDto,
             String username,
             Long id
@@ -98,7 +98,7 @@ public class BoardService {
         boardRequestDto.validation(); // 유효성 검사
 
         Users user = usersRepository.findByUsername(username)
-                .orElseThrow(()-> new AuthErrorException(NOT_FOUND));
+                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
@@ -123,17 +123,17 @@ public class BoardService {
     }
 
     // 보드 삭제
-    public BoardDeleteResponse deleteBoard(
+    public BoardDeleteResponse delete(
             String username,
             Long id
     ) {
         Users user = usersRepository.findByUsername(username)
-                .orElseThrow(()-> new AuthErrorException(NOT_FOUND));
+                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
-        if (board.getUserId()!= user.getUserId()) { // 권한 체크
+        if (board.getUserId() != user.getUserId()) { // 권한 체크
             throw new AuthErrorException(FORBIDDEN);
         }
 
