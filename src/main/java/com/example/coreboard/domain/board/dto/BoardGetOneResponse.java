@@ -1,7 +1,6 @@
 package com.example.coreboard.domain.board.dto;
 
 
-
 import java.time.LocalDateTime;
 
 public class BoardGetOneResponse {

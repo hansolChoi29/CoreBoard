@@ -10,7 +10,7 @@ public class BoardDeleteResponse {
 
     public BoardDeleteResponse(Board board) {
         this.id = board.getId();
-        this.userId=board.getUserId();
+        this.userId = board.getUserId();
         this.boardTitle = board.getBoardTitle();
 
     }
@@ -23,7 +23,7 @@ public class BoardDeleteResponse {
         return id;
     }
 
-    public long getUserId(){
+    public long getUserId() {
         return userId;
     }
 }
