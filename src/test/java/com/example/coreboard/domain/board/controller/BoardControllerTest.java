@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.BoardCreateResponse;
+import com.example.coreboard.domain.board.dto.BoardGetOneResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,13 +19,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -67,16 +69,25 @@ class BoardControllerTest {
                 """;
 
         mockMvc.perform(
-                post(BASE)
-                        .requestAttr("username", "tester")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        ).andExpect(status().isOk());
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                ).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(10))
+                .andExpect(jsonPath("$.data.boardTitle").value("제목"))
+                .andExpect(jsonPath("$.data.boardContents").value("본문"))
+                .andExpect(jsonPath("$.data.createdDate", notNullValue()));
         verify(boardService).create(any(), eq("tester"));
     }
 
     @Test
-    void getOne() {
+    @DisplayName("게시글 단건 조회 성공")
+    void getOne() throws Exception {
+
     }
 
     @Test
