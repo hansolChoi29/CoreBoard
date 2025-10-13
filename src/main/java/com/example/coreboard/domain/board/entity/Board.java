@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,9 +16,11 @@ public class Board {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message="제목은 필수입니다")
     @Column(name = "boardTitle", nullable = false)
     private String boardTitle;
 
+    @NotBlank(message="내용은 필수입니다")
     @Column(name = "boardContents", nullable = false, length = 1000)
     private String boardContents;
 
