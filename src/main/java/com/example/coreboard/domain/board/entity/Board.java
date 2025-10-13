@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.board.entity;
 
+import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -7,14 +8,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name = "board")
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId;
+    private Long id;
 
     @Column(name = "boardTitle", nullable = false)
     private String boardTitle;
@@ -26,48 +26,50 @@ public class Board {
     private String username;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false))
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(name = "last_modified_at", nullable = false)
+    @Column(updatable = false)
     private LocalDateTime lastModifiedDate;
 
     protected Board() {
     }
 
     public Board(
+            String username,
             String boardTitle,
             String boardContents,
-            String username,
+            LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
         this.boardTitle = boardTitle;
         this.boardContents = boardContents;
         this.username = username;
+        this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public Board(String title, String contents) {
+    public static Board BoardCreateResponse(String username, String boardTitle, String boardContents) {
+        Board board=new Board();
+        board.username=username;
+        board.boardTitle=boardTitle;
+        board.boardContents=boardContents;
+        return board;
     }
 
-    public static Board createBoard(
-            String boardTitle,
-            String boardContents,
-            String username,
-            LocalDateTime lastModifiedDate
+    public void update(
+            String newTitle,
+            String newContents
+
     ) {
-        return new Board(boardTitle, boardContents, username, lastModifiedDate);
-    }
-
-    // 수정 용도
-    public void update(String newTitle, String newContents) {
         this.boardTitle = newTitle;
         this.boardContents = newContents;
+
     }
 
-    public Long getBoardId() {
-        return boardId;
+    public Long getId() {
+        return id;
     }
 
     public String getBoardTitle() {
@@ -80,9 +82,6 @@ public class Board {
 
     public String getUsername() {
         return username;
-    }
-    public LocalDateTime getLastModifiedDate(){
-        return lastModifiedDate;
     }
 }
 

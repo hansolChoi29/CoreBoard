@@ -12,8 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
 
@@ -26,24 +24,23 @@ public class BoardService {
     }
 
     // 보드 생성
-    public BoardApiResponse createBoard(
+    public BoardCreateResponse createBoard(
             BoardRequest boardRequestDto,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
 
         // 보드 저장할 것들 세팅
-        Board board = Board.createBoard(
-                boardRequestDto.getBoardTitle(),
-                boardRequestDto.getBoardContents(),
+        Board board = Board.BoardCreateResponse(
                 username,
-                boardRequestDto.getLastModifiedDate()
+                boardRequestDto.getBoardTitle(),
+                boardRequestDto.getBoardContents()
         );
         boardRepository.save(board); // 저장
-        return new BoardApiResponse(board.getBoardTitle(), "게시글이 성공적으로 생성되었습니다.");
+        return new BoardCreateResponse(board.getBoardTitle(),board.getBoardContents());
     }
 
     // 보드 단건 조회
-    public BoardResponse findOneBoard(
+    public BoardGetOneResponse findOneBoard(
             String username,
             Long boardId
     ) {
@@ -55,14 +52,14 @@ public class BoardService {
         }
 
         // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
-        return new BoardResponse(
+        return new BoardGetOneResponse(
                 board.getBoardTitle(),
                 board.getBoardContents()
         );
     }
 
     // 보드 전체 조회
-    public PageResultResponse<BoardResponse> findAllBoard(
+    public PageResultResponse<BoardGetAllResponse> findAllBoard(
             String username,
             int page,
             int size
@@ -71,11 +68,11 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("memberId").descending());
         // 레포에서 username 기준으로 모든 게시글 조회
         Page<Board> pageResponse = boardRepository.findAllByUsername(username, pageable);
-        return (PageResultResponse<BoardResponse>) pageResponse;
+        return (PageResultResponse<BoardGetAllResponse>) pageResponse;
     }
 
     // 보드 수정
-    public BoardResponse updateBoard(
+    public BoardUpdateResponse updateBoard(
             BoardRequest boardRequestDto,
             String username,
             Long boardId
@@ -87,12 +84,11 @@ public class BoardService {
         }
 
         // 저장
-        board.update(boardRequestDto.getBoardTitle(), boardRequestDto.getBoardContents());
-
-        return new BoardResponse(
-                board.getBoardTitle(),
-                board.getBoardContents()
+        board.update(
+                boardRequestDto.getBoardTitle(),
+                boardRequestDto.getBoardContents()
         );
+        return new BoardUpdateResponse(board.getBoardTitle(),board.getBoardContents());
     }
 
     // 보드 삭제
@@ -110,7 +106,7 @@ public class BoardService {
         boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
 
         return new BoardDeleteResponse(
-                board.getBoardId(),
+                board.getId(),
                 board.getBoardTitle(),
                 board.getBoardContents()
         );
