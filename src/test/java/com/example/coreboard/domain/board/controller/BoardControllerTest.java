@@ -1,33 +1,41 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.BoardCreateResponse;
+import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
 import com.example.coreboard.domain.board.dto.BoardGetOneResponse;
+import com.example.coreboard.domain.board.dto.BoardUpdateResponse;
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -56,7 +64,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 생성 성공")
+    @DisplayName("게시글 생성")
     void createBoard() throws Exception {
 
         // 컨트롤러가 서비스의 create(dto, "tester"부르면 무조건 dummy 돌려주라고 규칙 심음
@@ -98,6 +106,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @Timeout(5)
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
         long id = 1;
@@ -121,18 +130,107 @@ class BoardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"))
                 .andExpect(jsonPath("$.data.id").value(1));
-            verify(boardService).findOne(eq(id));
+        verify(boardService).findOne(eq(id));
     }
 
     @Test
-    void getAll() {
+    @DisplayName("게시글 전체 조회")
+    void getAll() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("boardTitle").ascending());
+        Board dummy = new Board(
+                1L,
+                "제목",
+                "내용",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+
+        Page<Board> page = new PageImpl<>(List.of(dummy), pageable, 1);
+
+        given(boardService.findAll(any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(
+                        get(BASE)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
+                .andExpect(jsonPath("$.data.content[0].boardTitle").value("제목"))
+                .andExpect(jsonPath("$.data.content[0].boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
+                .andExpect(jsonPath("$.data.content[0].lastModifiedDate", notNullValue()));
+        verify(boardService).findAll(any(Pageable.class));
+
+
     }
 
     @Test
-    void update() {
+    @DisplayName("게시글 수정")
+    void update() throws Exception {
+        long userId = 10L;
+        BoardUpdateResponse dummy = new BoardUpdateResponse(
+                1L,
+                userId,
+                "제목",
+                "내용",
+                LocalDateTime.now()
+        );
+        given(boardService.update(any(), eq("tester"), eq(userId))).willReturn(dummy);
+
+        String json = """
+                {
+                    "boardTitle":"제목",
+                    "boardContents":"내용"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/{id}", userId)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.boardTitle").value("제목"))
+                .andExpect(jsonPath("$.data.boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
+        verify(boardService).update(any(), eq("tester"), eq(userId));
     }
 
     @Test
-    void delete() {
+    @DisplayName("게시글 삭제")
+    void deleted() throws Exception {
+        long boardId = 1;
+        long userId = 1;
+
+        // response에서 생성자 매개변수에 엔티티를 받고 있음
+        Board board = mock(Board.class);
+
+        // 삭제할 데이터 넣기
+        when(board.getId()).thenReturn(boardId);
+        when(board.getUserId()).thenReturn(userId);
+        when(board.getBoardTitle()).thenReturn("제목");
+        
+        BoardDeleteResponse dummy = new BoardDeleteResponse(board);
+
+        given(boardService.delete(eq("tester"), eq(userId))).willReturn(dummy);
+
+        mockMvc.perform(
+                        delete(BASE + "/{id}", boardId)
+                                .requestAttr("username", "tester")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 삭제완료!"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.boardTitle").value("제목"));
+        verify(boardService).delete(eq("tester"), eq(userId));
     }
 }
