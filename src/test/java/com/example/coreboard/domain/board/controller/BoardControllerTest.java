@@ -2,15 +2,19 @@ package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.BoardCreateResponse;
 import com.example.coreboard.domain.board.dto.BoardGetOneResponse;
+import com.example.coreboard.domain.board.dto.BoardUpdateResponse;
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
@@ -18,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -28,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -98,6 +104,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @Timeout(5)
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
         long id = 1;
@@ -121,11 +128,39 @@ class BoardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"))
                 .andExpect(jsonPath("$.data.id").value(1));
-            verify(boardService).findOne(eq(id));
+        verify(boardService).findOne(eq(id));
     }
 
     @Test
-    void getAll() {
+    void getAll() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("boardTitle").ascending());
+        Board dummy = new Board(
+                1L,
+                "제목",
+                "내용",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+
+        Page<Board> page = new PageImpl<>(List.of(dummy), pageable, 1);
+
+        given(boardService.findAll(any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(
+                        get(BASE)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
+                .andExpect(jsonPath("$.data.content[0].boardTitle").value("제목"))
+                .andExpect(jsonPath("$.data.content[0].boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
+                .andExpect(jsonPath("$.data.content[0].lastModifiedDate", notNullValue()));
+        verify(boardService).findAll(any(Pageable.class));
+
+
     }
 
     @Test
