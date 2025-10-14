@@ -164,7 +164,39 @@ class BoardControllerTest {
     }
 
     @Test
-    void update() {
+    void update() throws Exception {
+        long userId = 10L;
+        BoardUpdateResponse dummy = new BoardUpdateResponse(
+                1L,
+                userId,
+                "제목",
+                "내용",
+                LocalDateTime.now()
+        );
+        given(boardService.update(any(), eq("tester"), eq(userId))).willReturn(dummy);
+
+        String json = """
+                {
+                    "boardTitle":"제목",
+                    "boardContents":"내용"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/{id}", userId)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.boardTitle").value("제목"))
+                .andExpect(jsonPath("$.data.boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
+        verify(boardService).update(any(), eq("tester"), eq(userId));
     }
 
     @Test
