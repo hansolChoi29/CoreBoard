@@ -19,6 +19,16 @@ docker run -d --name coreboard-mysql `
   -v "${PWD}\docker\mysql\init:/docker-entrypoint-initdb.d" `
   --restart=always mysql:8.0.34
 ```
+- 컨테이너 상태 확인
+
+```
+docker ps
+docker exec -it coreboard-mysql mysql -u root -p
+# 비밀번호: password
+SHOW DATABASES;
+```
+
+
 
 - macOS / Linux
 
