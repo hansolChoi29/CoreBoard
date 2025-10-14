@@ -12,7 +12,6 @@ public class BoardDeleteResponse {
         this.id = board.getId();
         this.userId = board.getUserId();
         this.boardTitle = board.getBoardTitle();
-
     }
 
     public String getBoardTitle() {

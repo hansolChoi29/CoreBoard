@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.BoardCreateResponse;
+import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
 import com.example.coreboard.domain.board.dto.BoardGetOneResponse;
 import com.example.coreboard.domain.board.dto.BoardUpdateResponse;
 import com.example.coreboard.domain.board.entity.Board;
@@ -18,6 +19,9 @@ import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -25,13 +29,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -200,6 +202,32 @@ class BoardControllerTest {
     }
 
     @Test
-    void delete() {
+    void deleted() throws Exception {
+        long boardId = 1;
+        long userId = 1;
+
+        // response에서 생성자 매개변수에 엔티티를 받고 있음
+        Board board = mock(Board.class);
+
+        // 삭제할 데이터 넣기
+        when(board.getId()).thenReturn(boardId);
+        when(board.getUserId()).thenReturn(userId);
+        when(board.getBoardTitle()).thenReturn("제목");
+        
+        BoardDeleteResponse dummy = new BoardDeleteResponse(board);
+
+        given(boardService.delete(eq("tester"), eq(userId))).willReturn(dummy);
+
+        mockMvc.perform(
+                        delete(BASE + "/{id}", boardId)
+                                .requestAttr("username", "tester")
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 삭제완료!"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.boardTitle").value("제목"));
+        verify(boardService).delete(eq("tester"), eq(userId));
     }
 }
