@@ -9,7 +9,7 @@
 
 ## Docker에서 MySQL 컨테이너 실행
 
-- Windows (PowerShell/CMD)
+### Windows (PowerShell/CMD)
 ```
 docker run -d --name coreboard-mysql `
   -e MYSQL_ROOT_PASSWORD=password `
@@ -30,7 +30,7 @@ SHOW DATABASES;
 
 
 
-- macOS / Linux
+### macOS / Linux
 
 ```
 docker run -d \
@@ -38,8 +38,15 @@ docker run -d \
   -e MYSQL_ROOT_PASSWORD=password \
   -e MYSQL_DATABASE=CoreBoard \
   -p 3306:3306 \
-  -v ${PWD}/docker/mysql/data:/var/lib/mysql \
-  -v ${PWD}/docker/mysql/init:/docker-entrypoint-initdb.d \
+  -v "${PWD}/docker/mysql/data:/var/lib/mysql" \
+  -v "${PWD}/docker/mysql/init:/docker-entrypoint-initdb.d" \
   --restart always \
   mysql:8.0.34
 ```
+
+---
+
+## IntelliJ Run/Debug 설정
+실행 시 로컬 환경(application-local.yml)을 사용하려면
+Run ▸ Edit Configurations ▸ Active Profiles에 local 입력
+
