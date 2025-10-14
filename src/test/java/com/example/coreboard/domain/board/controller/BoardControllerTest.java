@@ -64,7 +64,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 생성 성공")
+    @DisplayName("게시글 생성")
     void createBoard() throws Exception {
 
         // 컨트롤러가 서비스의 create(dto, "tester"부르면 무조건 dummy 돌려주라고 규칙 심음
@@ -134,6 +134,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @DisplayName("게시글 전체 조회")
     void getAll() throws Exception {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("boardTitle").ascending());
         Board dummy = new Board(
@@ -166,6 +167,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @DisplayName("게시글 수정")
     void update() throws Exception {
         long userId = 10L;
         BoardUpdateResponse dummy = new BoardUpdateResponse(
@@ -202,6 +204,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @DisplayName("게시글 삭제")
     void deleted() throws Exception {
         long boardId = 1;
         long userId = 1;
