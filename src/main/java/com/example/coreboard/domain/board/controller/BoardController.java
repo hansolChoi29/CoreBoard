@@ -51,7 +51,7 @@ public class BoardController {
             @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
     ) {
         // pageable = page와 size, 정렬(내림차순) 규칙이 설정된 createdDate를 객체(Pageable)를 담음
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("boardTitle").ascending());
         Page<Board> result = boardService.findAll(pageable);
         return ResponseEntity.ok(ApiResponse.ok(result, "게시글 전체 조회!"));
     }
