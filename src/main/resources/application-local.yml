@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/CoreBoard?useSSL=false&serverTimezone=Asia/Seoul
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+jwt:
+  secret:
+    key: ad28a1bb3bad96055ba5345cbe3c6b99
+aes:
+  secret:
+    key: MySuperSecretKey
