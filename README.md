@@ -11,15 +11,8 @@
 
 - Windows (PowerShell/CMD)
 ```
-docker run -d ^
-  --name coreboard-mysql ^
-  -e MYSQL_ROOT_PASSWORD=password ^
-  -e MYSQL_DATABASE=CoreBoard ^
-  -p 3306:3306 ^
-  -v %cd%\docker\mysql\data:/var/lib/mysql ^
-  -v %cd%\docker\mysql\init:/docker-entrypoint-initdb.d ^
-  --restart always ^
-  mysql:8.0.34
+docker run -d --name coreboard-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=CoreBoard -p 3306:3306 -v "%cd%/docker/mysql/data:/var/lib/mysql" -v "%cd%/docker/mysql/init:/docker-entrypoint-initdb.d" --restart always mysql:8.0.34
+
 ```
 
 - macOS / Linux
