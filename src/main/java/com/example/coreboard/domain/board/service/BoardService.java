@@ -31,14 +31,17 @@ public class BoardService {
 
     // 보드 생성
     public BoardCreateResponse create(
-            BoardRequest boardRequestDto,
+            BoardCreateRequest boardRequestDto,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
-        boardRequestDto.validation(); // 유효성 검사
-
         // users 테이블의 username이 들어있으면 값을 user에 담는다. (반환용)
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
+        // 제목 중복 검사
+        if (boardRepository.existsByTitle(boardRequestDto.getBoardTitle())) {
+            throw new BoardErrorException(TITLE_DUPLICATED);
+        }
 
         // 보드 저장할 것들 세팅
         Board board = Board.create(
@@ -46,10 +49,6 @@ public class BoardService {
                 boardRequestDto.getBoardTitle(),
                 boardRequestDto.getBoardContents()
         );
-
-        if (board.getUserId() != user.getUserId()) {
-            throw new AuthErrorException(FORBIDDEN);
-        }
 
         boardRepository.save(board); // 저장
 
@@ -65,7 +64,6 @@ public class BoardService {
     public BoardGetOneResponse findOne(
             Long id
     ) {
-
 
         Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
@@ -90,27 +88,30 @@ public class BoardService {
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
     public BoardUpdateResponse update(
-            BoardRequest boardRequestDto,
+            BoardUpdateRequest boardupdateRequest,
             String username,
             Long id
     ) {
-
-        boardRequestDto.validation(); // 유효성 검사
-
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
-        if (board.getUserId() != user.getUserId()) { // 권한 체크
+        // 권한 체크
+        if (board.getUserId() != user.getUserId()) {
             throw new AuthErrorException(FORBIDDEN);
+        }
+
+        // 제목 중복 검사
+        if (boardRepository.existsByTitle(boardupdateRequest.getBoardTitle())) {
+            throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 저장
         board.update(
-                boardRequestDto.getBoardTitle(),
-                boardRequestDto.getBoardContents()
+                boardupdateRequest.getBoardTitle(),
+                boardupdateRequest.getBoardContents()
         );
 
         return new BoardUpdateResponse(

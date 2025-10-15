@@ -17,12 +17,12 @@ public class Board {
     private Long id;
 
     @NotBlank(message = "제목은 필수입니다")
-    @Column(name = "boardTitle", nullable = false)
-    private String boardTitle;
+    @Column(name = "title", nullable = false)
+    private String title;
 
     @NotBlank(message = "내용은 필수입니다")
-    @Column(name = "boardContents", nullable = false, length = 1000)
-    private String boardContents;
+    @Column(name = "contents", nullable = false, length = 1000)
+    private String contents;
 
     @Column(nullable = false)
     private long userId;
@@ -40,23 +40,23 @@ public class Board {
 
     public Board(
             Long userId,
-            String boardTitle,
-            String boardContents,
+            String title,
+            String contents,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
-        this.boardTitle = boardTitle;
-        this.boardContents = boardContents;
+        this.title = title;
+        this.contents = contents;
         this.userId = userId;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board create(long userId, String boardTitle, String boardContents) {
+    public static Board create(long userId, String title, String contents) {
         Board board = new Board();
         board.userId = userId;
-        board.boardTitle = boardTitle;
-        board.boardContents = boardContents;
+        board.title = title;
+        board.contents = contents;
         return board;
     }
 
@@ -66,10 +66,10 @@ public class Board {
 
     ) {
         if (newTitle != null && !newTitle.isBlank()) {
-            this.boardTitle = newTitle;
+            this.title = newTitle;
         }
         if (newContents != null && !newContents.isBlank()) {
-            this.boardContents = newContents;
+            this.contents = newContents;
         }
     }
 
@@ -78,11 +78,11 @@ public class Board {
     }
 
     public String getBoardTitle() {
-        return boardTitle;
+        return title;
     }
 
     public String getBoardContents() {
-        return boardContents;
+        return contents;
     }
 
     public long getUserId() {

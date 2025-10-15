@@ -7,21 +7,21 @@ public class BoardCreateResponse {
     // private final : 값을 한 번만 저장하고 절대 바꾸지 않겠다.
     private final Long id;
     private final long userId;
-    private final String boardTitle;
-    private final String boardContents;
+    private final String title;
+    private final String contents;
     private final LocalDateTime createdDate;
 
     public BoardCreateResponse(
             Long id,
             long userId,
-            String boardTitle,
-            String boardContents,
+            String title,
+            String contents,
             LocalDateTime createdDate
     ) {
         this.id = id;
         this.userId = userId;
-        this.boardTitle = boardTitle;
-        this.boardContents = boardContents;
+        this.title = title;
+        this.contents = contents;
         this.createdDate = createdDate;
     }
 
@@ -30,11 +30,11 @@ public class BoardCreateResponse {
     }
 
     public String getBoardTitle() {
-        return boardTitle;
+        return title;
     }
 
     public String getBoardContents() {
-        return boardContents;
+        return contents;
     }
 
     public LocalDateTime getCreatedDate() {
