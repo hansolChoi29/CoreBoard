@@ -27,15 +27,17 @@ public class AuthInterceptor implements HandlerInterceptor {
         // getRequestURL() : 전체 URL (toString() 같이 써야함)
         // getRequestURI() : 경로만 반환
 
-        String uri=request.getRequestURI();
-        String method=request.getMethod();
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
 
         // 예외 처리
         if (authorization == null) {
-            // 메소드가 GET이고 /api/board로 시작하는 uri는 인증없이 통과!
-            if ("GET".equals(method) && uri.startsWith("/api/board")) {
+            // 메소드가 GET은 인증없이 통과!
+            // equalsIgnoreCase : 대소문자 구분 없이 비교
+            if ("GET".equals(request.getMethod())) {
                 return true;
             }
+
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
         }
         // (?i) : 대소문자 무시(Bearer/bearer 모두 허용)

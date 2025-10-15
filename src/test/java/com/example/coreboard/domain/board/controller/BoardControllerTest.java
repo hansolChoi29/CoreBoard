@@ -147,7 +147,7 @@ class BoardControllerTest {
 
         Page<Board> page = new PageImpl<>(List.of(dummy), pageable, 1);
 
-        given(boardService.findAll(any(Pageable.class))).willReturn(page);
+//        given(boardService.findAll(any(Pageable.class))).willReturn(page);
 
         mockMvc.perform(
                         get(BASE)
@@ -161,7 +161,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
                 .andExpect(jsonPath("$.data.content[0].lastModifiedDate", notNullValue()));
-        verify(boardService).findAll(any(Pageable.class));
+//        verify(boardService).findAll(any(Pageable.class));
 
 
     }

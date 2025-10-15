@@ -7,9 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    // Page<Board> : 반환타입, 게시글 목록과 페이지 정보를 함께 담은 객체
-    // (Pageable pageable) : 어떻게 가져올지 정보를 담음
-    // Pageable에 들어가는 값 예시 : PageRequest.of(0, 10, Sort.by("createdDate").descending());
+    // 오프셋
+    // page가 커질수록 OFFSET이 커져서 느려짐 (대용량 테이블에서 비효율)
+    // Spring Date JPA 기본 지원(Pageable, Page), 표준 정렬 지원(Sort)
+    // LIMIT : 한 페이지에 몇 개 보여줄지
+    // OFFSET : 몇 개 건너뛸지 계산 (page * size)
+    // COUNT : 전체 데이터 개수 계산
+
     Page<Board> findAll(Pageable pageable); // JPA가 제공하는 Pageable 이용하여 PageRequest 기반 오프셋 만들기
     boolean existsByTitle(String title);
 }
