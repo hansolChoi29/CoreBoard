@@ -122,12 +122,12 @@ class BoardControllerTest {
     // 3) willThrow() : 이 상황이면 이 예외 던져라
 
     @Test
-    @DisplayName("게시글_생성하려는데_없는_유저")
+    @DisplayName("게시글_생성_유저없음_401")
     void createIsNotUser() throws Exception {
         String json = """
                 {
-                  "title": "제목",
-                  "content": "내용"
+                  "title" : "제목",
+                  "content" : "내용"
                 }
                 """;
 
@@ -147,6 +147,34 @@ class BoardControllerTest {
         verify(boardService).create(any(BoardCreateRequest.class), eq("ghost"));
     }
 
+    @Test
+    @DisplayName("게시글_생성_권한없음_403")
+    void createForbidden() throws Exception {
+        String json = """
+                {
+                    "title" : "제목",
+                    "content" : "내용"
+                }
+                """;
+        String username = "tester";
+        // Mockito 타입별 매처
+        // 1) any() : 아무 객체 허용
+        // 2) anyString() : 아무 문자열 허용
+        // 3) anyInt() : 아무 int 허용
+        // 4) eq(value) : 정확히 이 값일 때만 허용
+        given(boardService.create(any(BoardCreateRequest.class), eq(username))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+        mockMvc.perform(
+                        post("/api/board")
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
+
+        verify(boardService).create(any(BoardCreateRequest.class), eq(username));
+    }
 
     @Test
     @Timeout(5)
@@ -240,10 +268,11 @@ class BoardControllerTest {
 
         String json = """
                 {
-                    "title":"제목",
-                    "content":"내용"
+                    "title" : "제목",
+                    "content" : "내용"
                 }
                 """;
+
         mockMvc.perform(
                         post(BASE + "/{id}", boardId)
                                 .requestAttr("username", "tester")
