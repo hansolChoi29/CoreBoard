@@ -6,6 +6,7 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BoardService {
@@ -80,9 +87,35 @@ public class BoardService {
     }
 
     // 보드 전체 조회
-    public Page<Board> findAll(Pageable pageable
+    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size
     ) {
-        return boardRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
+
+        // Page<Board>타입의 result 즉 게시글 여러개를 페이지네이션해서 담고 있는 객체.
+        Page<Board> result = boardRepository.findAll(pageable);
+
+        // contents는 게시글 응답DTO를 담을 리스트, 엔티티 그대로 반환하지 않고 필요한 정보만 담은 DTO객체들로 변환해서 저장하기 위한 용도
+        List<BoardSummaryResponse> contents = new ArrayList<>(); // ArrayList는 비어있는 상태
+
+        // result 안의 게시글들을 하나씩 꺼내서 DTO(summary)로 변환하고 contents 리스트에 차곡차곡 추가
+        for (Board board : result.getContent()) { // result.getContent(): 게시글 리스트를 꺼내옴
+            contents.add(new BoardSummaryResponse(
+                    board.getId(),
+                    board.getUserId(),
+                    board.getBoardTitle(),
+                    board.getCreatedDate()
+            ));
+        }
+
+        // DB에서 꺼낸 페이지네이션 결과를 API 응답형식(PageResponse)로 감쌈
+        PageResponse<BoardSummaryResponse> body = new PageResponse<>(
+                contents,
+                result.getNumber(),       // 현재 페이지 번호
+                result.getSize(),         // 한 페이지에 몇 개
+                result.getTotalElements() // 전체 게시글 수
+        );
+
+        return ApiResponse.ok(body, "게시글 전체 조회!");
     }
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)

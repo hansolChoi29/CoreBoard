@@ -3,7 +3,6 @@ package com.example.coreboard.domain.board.dto;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
 
 import ch.qos.logback.core.util.StringUtil;
-import org.springframework.util.StringUtils;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 
 public class BoardCreateRequest {

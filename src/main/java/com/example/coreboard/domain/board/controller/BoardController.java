@@ -2,14 +2,9 @@ package com.example.coreboard.domain.board.controller;
 
 
 import com.example.coreboard.domain.board.dto.*;
-import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,17 +41,13 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
     }
 
-    // 1) 보드 전체 조회 - PageableRequset
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<Board>>> getAll(
+    public ResponseEntity<ApiResponse<PageResponse<BoardSummaryResponse>>> getAll(
             // RequestParam : ?paeg=0&size=10 바인딩 해주는 어노테이션
             @RequestParam(defaultValue = "0") int page, // 클라이언트 요청 page
             @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
     ) {
-        // pageable = page와 size, 정렬(내림차순) 규칙이 설정된 createdDate를 객체(Pageable)를 담음
-        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
-        Page<Board> result = boardService.findAll(pageable);
-        return ResponseEntity.ok(ApiResponse.ok(result, "게시글 전체 조회!"));
+        return ResponseEntity.ok(boardService.findAll(page,size));
     }
 
     // 2) 보드 전체 조회 - Cursor
