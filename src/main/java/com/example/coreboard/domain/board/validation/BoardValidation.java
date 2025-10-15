@@ -1,0 +1,69 @@
+package com.example.coreboard.domain.board.validation;
+
+import ch.qos.logback.core.util.StringUtil;
+import com.example.coreboard.domain.board.dto.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+
+import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
+import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.TITLE_AND_CONTENTS_BLANK;
+
+public class BoardValidation {
+
+    private BoardValidation() {
+    }
+
+    // 컨트롤러에서 가져온 값 주입하여 검증 세팅
+    public static void createValidation(BoardCreateRequest createRequest) {
+        createValidation(createRequest.getBoardTitle(), createRequest.getBoardContents());
+    }
+
+    public static void updateValidation(BoardUpdateRequest updateRequest) {
+        updateValidation(updateRequest.getBoardTitle(), updateRequest.getBoardContents());
+    }
+
+    public static void updateValidation(String title, String content) {
+
+        boolean titleValidation = StringUtil.isNullOrEmpty(title);
+
+        boolean contentValidation = StringUtil.isNullOrEmpty(content);
+
+        if (titleValidation && contentValidation) {
+            throw new BoardErrorException(TITLE_AND_CONTENTS_BLANK);
+        }
+        if (titleValidation) {
+            throw new BoardErrorException(NOT_TITLE);
+        }
+        if (contentValidation) {
+            throw new BoardErrorException(NOT_CONTENT);
+        }
+        if (title.length() > 255) {
+            throw new BoardErrorException(TITLE_TOO_LONG);
+        }
+        if (content.length() > 1000) {
+            throw new BoardErrorException(CONTENT_TOO_LONG);
+        }
+    }
+
+    public static void createValidation(String title, String content) {
+        boolean titleValidation = StringUtil.isNullOrEmpty(title);
+
+        boolean contentValidation = StringUtil.isNullOrEmpty(content);
+
+        if (titleValidation && contentValidation) {
+            throw new BoardErrorException(TITLE_AND_CONTENTS_BLANK);
+        }
+        if (titleValidation) {
+            throw new BoardErrorException(NOT_TITLE);
+        }
+        if (contentValidation) {
+            throw new BoardErrorException(NOT_CONTENT);
+        }
+        if (title.length() > 255) {
+            throw new BoardErrorException(TITLE_TOO_LONG);
+        }
+        if (content.length() > 1000) {
+            throw new BoardErrorException(CONTENT_TOO_LONG);
+        }
+    }
+}

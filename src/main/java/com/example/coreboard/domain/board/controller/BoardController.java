@@ -4,6 +4,7 @@ package com.example.coreboard.domain.board.controller;
 import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
+import com.example.coreboard.domain.board.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +30,7 @@ public class BoardController {
             @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
-        boardRequestDto.validation();
+        BoardValidation.createValidation(boardRequestDto);
         BoardCreateResponse responseDto = boardService.create(boardRequestDto, username); // title과 contents,
         // uesrname 같이 응답하기 위함
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글이 성공적으로 생성되었습니다."));
@@ -68,7 +69,7 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-        updateRequestDto.validation(); // 유효성 검사
+        BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
         BoardUpdateResponse responseDto = boardService.update(updateRequestDto, username, id);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
