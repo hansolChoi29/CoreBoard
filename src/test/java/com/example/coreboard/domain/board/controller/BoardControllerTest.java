@@ -3,6 +3,9 @@ package com.example.coreboard.domain.board.controller;
 import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
+import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -39,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @ExtendWith(MockitoExtension.class) // JUnit5에 Mockito 기능을 꽂아줌(@Mock/@InjectMocks가 동작하도록
+@Import(GlobalExceptionHandler.class) // 글로벌핸들러 등록
 class BoardControllerTest {
     // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
 
@@ -53,20 +58,27 @@ class BoardControllerTest {
     MockMvc mockMvc; // 진짜 톰캣/스프링 컨텍스트 없이 컨트롤러만 올려서 웹 호출을 시뮬레이션하는 가짜 클라이언트
 
 
+    // MockMvcBuilders: 가짜 스프링 웹 환경(가짜 HTTP 환경) 만들기
+    // standaloneSetup : 테스트할 컨트롤러만 독립적으로 올리겠다
+    // setControllerAdvice : 전역 예외처리기 등록
+    // setMessageConverters : 객체 자동 변환기 등록
+    // MappingJackson2HttpMessageConverter: JSON 변환기
+
+    // 테스트 실행 전에 매번 실행되는 초기 설정 메서드
     @BeforeEach
+    // 각 테스트 전에 실행할 준비 단계
     void setup() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(boardController)
-                // setMessageConverters : JSON ↔ 객체 변환기(Jackson)를 수동 등록
-                .setMessageConverters(new MappingJackson2HttpMessageConverter())
-                .build();
+        mockMvc = MockMvcBuilders // MockMvc를 만들어주는 빌더(조립기) 시작
+                .standaloneSetup(boardController) // 테스트할 컨트롤러 1개만 독립적으로 올림
+                .setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외처리기 등록 (예외 → JSON 응답으로 변환)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter()) // JSON <-> 객체 변환기 등록(Jackson)
+                .build(); // 위 설정들로 MockMvc 인스턴스 생성
     }
 
     @Test
-    @DisplayName("게시글 생성")
-    void createBoard() throws Exception {
+    @DisplayName("게시글_생성")
+    void create() throws Exception {
 
-        // 컨트롤러가 서비스의 create(dto, "tester"부르면 무조건 dummy 돌려주라고 규칙 심음
         BoardCreateResponse dummy = new BoardCreateResponse(
                 1L,
                 10L,
@@ -80,8 +92,8 @@ class BoardControllerTest {
         // HTTP 요청 시뮬
         String json = """
                 {
-                    "boardTitle" : "제목",
-                    "boardContents" : "본문"
+                    "title" : "제목",
+                    "content" : "본문"
                 }
                 """;
 
@@ -103,6 +115,38 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
         verify(boardService).create(any(), eq("tester")); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
     }
+
+    // Mockito 3대 기능
+    // 1) eq() : 이 값이 정확히 들어오면 = equals
+    // 2) any() : 요청 값이 아무거나 OK 들어와도
+    // 3) willThrow() : 이 상황이면 이 예외 던져라
+
+    @Test
+    @DisplayName("게시글_생성하려는데_없는_유저")
+    void createIsNotUser() throws Exception {
+        String json = """
+                {
+                  "title": "제목",
+                  "content": "내용"
+                }
+                """;
+
+        given(boardService.create(any(BoardCreateRequest.class), eq("ghost")))
+                .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
+
+        mockMvc.perform(
+                        post("/api/board")
+                                .requestAttr("username", "ghost")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isNotFound()) // 기대 결과
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
+
+        verify(boardService).create(any(BoardCreateRequest.class), eq("ghost"));
+    }
+
 
     @Test
     @Timeout(5)
@@ -183,24 +227,25 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 수정")
     void update() throws Exception {
+        Long boardId = 1L;
         long userId = 10L;
         BoardUpdateResponse dummy = new BoardUpdateResponse(
-                1L,
+                boardId,
                 userId,
                 "제목",
                 "내용",
                 LocalDateTime.now()
         );
-        given(boardService.update(any(), eq("tester"), eq(userId))).willReturn(dummy);
+        given(boardService.update(any(), eq("tester"), eq(boardId))).willReturn(dummy);
 
         String json = """
                 {
-                    "boardTitle":"제목",
-                    "boardContents":"내용"
+                    "title":"제목",
+                    "content":"내용"
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/{id}", userId)
+                        post(BASE + "/{id}", boardId)
                                 .requestAttr("username", "tester")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -214,7 +259,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
-        verify(boardService).update(any(), eq("tester"), eq(userId));
+        verify(boardService).update(any(), eq("tester"), eq(boardId));
     }
 
     @Test
@@ -229,7 +274,7 @@ class BoardControllerTest {
         // 삭제할 데이터 넣기
         when(board.getId()).thenReturn(boardId);
         when(board.getUserId()).thenReturn(userId);
-        when(board.getBoardTitle()).thenReturn("제목");
+        when(board.getTitle()).thenReturn("제목");
 
         BoardDeleteResponse dummy = new BoardDeleteResponse(board);
 

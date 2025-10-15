@@ -8,20 +8,20 @@ public class BoardCreateResponse {
     private final Long id;
     private final long userId;
     private final String title;
-    private final String contents;
+    private final String content;
     private final LocalDateTime createdDate;
 
     public BoardCreateResponse(
             Long id,
             long userId,
             String title,
-            String contents,
+            String content,
             LocalDateTime createdDate
     ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
-        this.contents = contents;
+        this.content = content;
         this.createdDate = createdDate;
     }
 
@@ -29,12 +29,12 @@ public class BoardCreateResponse {
         return id;
     }
 
-    public String getBoardTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public String getBoardContents() {
-        return contents;
+    public String getContent() {
+        return content;
     }
 
     public LocalDateTime getCreatedDate() {

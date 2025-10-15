@@ -21,8 +21,8 @@ public class Board {
     private String title;
 
     @NotBlank(message = "내용은 필수입니다")
-    @Column(name = "contents", nullable = false, length = 1000)
-    private String contents;
+    @Column(name = "content", nullable = false, length = 1000)
+    private String content;
 
     @Column(nullable = false)
     private long userId;
@@ -41,35 +41,35 @@ public class Board {
     public Board(
             Long userId,
             String title,
-            String contents,
+            String content,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
         this.title = title;
-        this.contents = contents;
+        this.content = content;
         this.userId = userId;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board create(long userId, String title, String contents) {
+    public static Board create(long userId, String title, String content) {
         Board board = new Board();
         board.userId = userId;
         board.title = title;
-        board.contents = contents;
+        board.content = content;
         return board;
     }
 
     public void update(
             String newTitle,
-            String newContents
+            String newContent
 
     ) {
         if (newTitle != null && !newTitle.isBlank()) {
             this.title = newTitle;
         }
-        if (newContents != null && !newContents.isBlank()) {
-            this.contents = newContents;
+        if (newContent != null && !newContent.isBlank()) {
+            this.content = newContent;
         }
     }
 
@@ -77,12 +77,12 @@ public class Board {
         return id;
     }
 
-    public String getBoardTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public String getBoardContents() {
-        return contents;
+    public String getContent() {
+        return content;
     }
 
     public long getUserId() {
