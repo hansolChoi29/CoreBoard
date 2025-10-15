@@ -5,17 +5,17 @@ import com.example.coreboard.domain.board.entity.Board;
 public class BoardDeleteResponse {
     private final Long id;
     private final long userId;
-    private final String boardTitle;
+    private final String title;
 
 
     public BoardDeleteResponse(Board board) {
         this.id = board.getId();
         this.userId = board.getUserId();
-        this.boardTitle = board.getBoardTitle();
+        this.title = board.getTitle();
     }
 
-    public String getBoardTitle() {
-        return boardTitle;
+    public String getTitle() {
+        return title;
     }
 
     public Long getId() {

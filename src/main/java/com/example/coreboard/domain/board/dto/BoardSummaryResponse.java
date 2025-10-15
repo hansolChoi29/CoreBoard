@@ -2,25 +2,22 @@ package com.example.coreboard.domain.board.dto;
 
 import java.time.LocalDateTime;
 
-public class BoardUpdateResponse {
+public class BoardSummaryResponse {
     private final Long id;
     private final long userId;
     private final String title;
-    private final String content;
-    private final LocalDateTime lastModifiedDate;
+    private final LocalDateTime createdDate;
 
-    public BoardUpdateResponse(
+    public BoardSummaryResponse(
             Long id,
             long userId,
             String title,
-            String content,
-            LocalDateTime lastModifiedDate
+            LocalDateTime createdDate
     ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
-        this.content = content;
-        this.lastModifiedDate = lastModifiedDate;
+        this.createdDate = createdDate;
     }
 
     public Long getId() {
@@ -35,11 +32,7 @@ public class BoardUpdateResponse {
         return title;
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public LocalDateTime getLastModifiedDate() {
-        return lastModifiedDate;
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
     }
 }
