@@ -17,12 +17,12 @@ public class Board {
     private Long id;
 
     @NotBlank(message = "제목은 필수입니다")
-    @Column(name = "boardTitle", nullable = false)
-    private String boardTitle;
+    @Column(name = "title", nullable = false)
+    private String title;
 
     @NotBlank(message = "내용은 필수입니다")
-    @Column(name = "boardContents", nullable = false, length = 1000)
-    private String boardContents;
+    @Column(name = "content", nullable = false, length = 1000)
+    private String content;
 
     @Column(nullable = false)
     private long userId;
@@ -40,36 +40,36 @@ public class Board {
 
     public Board(
             Long userId,
-            String boardTitle,
-            String boardContents,
+            String title,
+            String content,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
-        this.boardTitle = boardTitle;
-        this.boardContents = boardContents;
+        this.title = title;
+        this.content = content;
         this.userId = userId;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board create(long userId, String boardTitle, String boardContents) {
+    public static Board create(long userId, String title, String content) {
         Board board = new Board();
         board.userId = userId;
-        board.boardTitle = boardTitle;
-        board.boardContents = boardContents;
+        board.title = title;
+        board.content = content;
         return board;
     }
 
     public void update(
             String newTitle,
-            String newContents
+            String newContent
 
     ) {
         if (newTitle != null && !newTitle.isBlank()) {
-            this.boardTitle = newTitle;
+            this.title = newTitle;
         }
-        if (newContents != null && !newContents.isBlank()) {
-            this.boardContents = newContents;
+        if (newContent != null && !newContent.isBlank()) {
+            this.content = newContent;
         }
     }
 
@@ -77,12 +77,12 @@ public class Board {
         return id;
     }
 
-    public String getBoardTitle() {
-        return boardTitle;
+    public String getTitle() {
+        return title;
     }
 
-    public String getBoardContents() {
-        return boardContents;
+    public String getContent() {
+        return content;
     }
 
     public long getUserId() {

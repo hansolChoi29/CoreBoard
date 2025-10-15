@@ -9,7 +9,8 @@ public enum BoardErrorCode {
     TITLE_TOO_LONG(400,"제목은 255자 이하여야 합니다"),
     CONTENT_TOO_LONG(400, "본문은 1000자 이하여야 합니다"),
     TITLE_AND_CONTENT_BLANK(400, "제목 또는 본문을 입력해 주세요!"),
-    POST_NOT_FOUND(400, "존재하지 않는 게시글입니다.");
+    POST_NOT_FOUND(400, "존재하지 않는 게시글입니다."),
+    TITLE_DUPLICATED(404,"이미 사용 중인 제목입니다.");
 
     private final int status;
     private final String message;
