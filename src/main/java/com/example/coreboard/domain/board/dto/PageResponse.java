@@ -23,6 +23,7 @@ public class PageResponse<T> {
         this.totalElements = totalElements;
     }
 
+
     public List<T> getContent() {
         return content;
     }

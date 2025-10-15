@@ -1,11 +1,9 @@
 package com.example.coreboard.domain.board.controller;
 
-import com.example.coreboard.domain.board.dto.BoardCreateResponse;
-import com.example.coreboard.domain.board.dto.BoardDeleteResponse;
-import com.example.coreboard.domain.board.dto.BoardGetOneResponse;
-import com.example.coreboard.domain.board.dto.BoardUpdateResponse;
+import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
+import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -100,7 +99,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(10))
                 .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.contents").value("본문"))
+                .andExpect(jsonPath("$.data.content").value("본문"))
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
         verify(boardService).create(any(), eq("tester")); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
     }
@@ -136,34 +135,49 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 전체 조회")
     void getAll() throws Exception {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("boardTitle").ascending());
-        Board dummy = new Board(
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+
+        BoardSummaryResponse dummy = new BoardSummaryResponse(
                 1L,
+                10L,
                 "제목",
-                "내용",
-                LocalDateTime.now(),
                 LocalDateTime.now()
         );
 
-        Page<Board> page = new PageImpl<>(List.of(dummy), pageable, 1);
+        List<BoardSummaryResponse> content = List.of(dummy);
 
-//        given(boardService.findAll(any(Pageable.class))).willReturn(page);
+        PageResponse<BoardSummaryResponse> pageResponse =
+                new PageResponse<>(
+                        content,   // content
+                        0,         // page
+                        10,        // size
+                        1L         // totalElements
+                );
+
+        ApiResponse<PageResponse<BoardSummaryResponse>> body =
+                ApiResponse.ok(pageResponse, "게시글 전체 조회!");
+
+        given(boardService.findAll(anyInt(), anyInt()))
+                .willReturn(body);
 
         mockMvc.perform(
                         get(BASE)
+                                .param("page", "0")
+                                .param("size", "10")
                                 .accept(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.content[0].userId").value(10))
                 .andExpect(jsonPath("$.data.content[0].title").value("제목"))
-                .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
+//                .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
-                .andExpect(jsonPath("$.data.content[0].lastModifiedDate", notNullValue()));
-//        verify(boardService).findAll(any(Pageable.class));
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(10));
 
-
+        verify(boardService).findAll(anyInt(), anyInt());
     }
 
     @Test
@@ -198,7 +212,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(userId))
                 .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.contents").value("내용"))
+                .andExpect(jsonPath("$.data.content").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
         verify(boardService).update(any(), eq("tester"), eq(userId));
     }
@@ -216,7 +230,7 @@ class BoardControllerTest {
         when(board.getId()).thenReturn(boardId);
         when(board.getUserId()).thenReturn(userId);
         when(board.getBoardTitle()).thenReturn("제목");
-        
+
         BoardDeleteResponse dummy = new BoardDeleteResponse(board);
 
         given(boardService.delete(eq("tester"), eq(userId))).willReturn(dummy);

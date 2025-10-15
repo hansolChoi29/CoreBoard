@@ -32,7 +32,7 @@ public class BoardSummaryResponse {
         return title;
     }
 
-    public LocalDateTime getCretedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 }
