@@ -4,6 +4,8 @@ package com.example.coreboard.domain.board.controller;
 import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,11 @@ public class BoardController {
     @PostMapping
     public ResponseEntity<ApiResponse<BoardCreateResponse>> createBoard(
             @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
-            @RequestAttribute("username") String username   // 인터셉터의 username 이용
+            @RequestAttribute(name = "username", required = false) String username   // 인터셉터의 username 이용
     ) {
+        if (username == null) {
+            throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED); // 401
+        }
         BoardValidation.createValidation(boardRequestDto);
         BoardCreateResponse responseDto = boardService.create(boardRequestDto, username); // title과 contents,
         // uesrname 같이 응답하기 위함

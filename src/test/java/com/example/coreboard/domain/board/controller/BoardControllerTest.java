@@ -122,7 +122,7 @@ class BoardControllerTest {
     // 3) willThrow() : 이 상황이면 이 예외 던져라
 
     @Test
-    @DisplayName("게시글_생성_유저없음_401")
+    @DisplayName("게시글_생성_유저없음_404")
     void createIsNotUser() throws Exception {
         String json = """
                 {
@@ -175,6 +175,32 @@ class BoardControllerTest {
 
         verify(boardService).create(any(BoardCreateRequest.class), eq(username));
     }
+
+    @Test
+    @DisplayName("게시글_생성_로그인_안함_401")
+    void createUnauthorized() throws Exception {
+        String json = """
+                {
+                    "title" : "제목",
+                    "content" : "내용"
+                }
+                """;
+        mockMvc.perform(
+                        post("/api/board")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
+
+        verify(boardService, never()).create(any(BoardCreateRequest.class), anyString());
+    }
+
+    // 시나리오
+    // 1. 제목 비어있음
+    // 2. 내용 비어있음
+    // 3. 제목/내용 너무 김
+    // 4. 잘못된 JSON
 
     @Test
     @Timeout(5)
