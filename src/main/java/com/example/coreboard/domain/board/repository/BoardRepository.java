@@ -11,4 +11,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     // (Pageable pageable) : 어떻게 가져올지 정보를 담음
     // Pageable에 들어가는 값 예시 : PageRequest.of(0, 10, Sort.by("createdDate").descending());
     Page<Board> findAll(Pageable pageable); // JPA가 제공하는 Pageable 이용하여 PageRequest 기반 오프셋 만들기
+    boolean existsByTitle(String title);
 }

@@ -99,8 +99,8 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(10))
-                .andExpect(jsonPath("$.data.boardTitle").value("제목"))
-                .andExpect(jsonPath("$.data.boardContents").value("본문"))
+                .andExpect(jsonPath("$.data.title").value("제목"))
+                .andExpect(jsonPath("$.data.contents").value("본문"))
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
         verify(boardService).create(any(), eq("tester")); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
     }
@@ -157,8 +157,8 @@ class BoardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
-                .andExpect(jsonPath("$.data.content[0].boardTitle").value("제목"))
-                .andExpect(jsonPath("$.data.content[0].boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.content[0].title").value("제목"))
+                .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
                 .andExpect(jsonPath("$.data.content[0].lastModifiedDate", notNullValue()));
         verify(boardService).findAll(any(Pageable.class));
@@ -197,8 +197,8 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(userId))
-                .andExpect(jsonPath("$.data.boardTitle").value("제목"))
-                .andExpect(jsonPath("$.data.boardContents").value("내용"))
+                .andExpect(jsonPath("$.data.title").value("제목"))
+                .andExpect(jsonPath("$.data.contents").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
         verify(boardService).update(any(), eq("tester"), eq(userId));
     }
@@ -230,7 +230,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 삭제완료!"))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(userId))
-                .andExpect(jsonPath("$.data.boardTitle").value("제목"));
+                .andExpect(jsonPath("$.data.title").value("제목"));
         verify(boardService).delete(eq("tester"), eq(userId));
     }
 }

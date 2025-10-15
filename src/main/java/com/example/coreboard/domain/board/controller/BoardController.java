@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+
 @RestController
 @RequestMapping("/api/board")
 public class BoardController {
@@ -25,9 +26,10 @@ public class BoardController {
     // 보드 생성
     @PostMapping
     public ResponseEntity<ApiResponse<BoardCreateResponse>> createBoard(
-            @RequestBody BoardRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
+            @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
+        boardRequestDto.validation();
         BoardCreateResponse responseDto = boardService.create(boardRequestDto, username); // title과 contents,
         // uesrname 같이 응답하기 위함
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글이 성공적으로 생성되었습니다."));
@@ -51,7 +53,7 @@ public class BoardController {
             @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
     ) {
         // pageable = page와 size, 정렬(내림차순) 규칙이 설정된 createdDate를 객체(Pageable)를 담음
-        Pageable pageable = PageRequest.of(page, size, Sort.by("boardTitle").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
         Page<Board> result = boardService.findAll(pageable);
         return ResponseEntity.ok(ApiResponse.ok(result, "게시글 전체 조회!"));
     }
@@ -62,11 +64,12 @@ public class BoardController {
     // 보드 수정
     @PostMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
-            @RequestBody BoardRequest boardRequestDto,
+            @RequestBody BoardUpdateRequest updateRequestDto,
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-        BoardUpdateResponse responseDto = boardService.update(boardRequestDto, username, id);
+        updateRequestDto.validation(); // 유효성 검사
+        BoardUpdateResponse responseDto = boardService.update(updateRequestDto, username, id);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 

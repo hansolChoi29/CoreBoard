@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 public class BoardGetOneResponse {
     private final Long id;
     private final long userId;
-    private final String boardTitle;
-    private final String boardContents;
+    private final String title;
+    private final String contents;
     private final LocalDateTime createdDate;
     private final LocalDateTime lastModifiedDate;
 
@@ -15,15 +15,15 @@ public class BoardGetOneResponse {
     public BoardGetOneResponse(
             Long id,
             long userId,
-            String boardTitle,
-            String boardContents,
+            String title,
+            String contents,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
         this.id = id;
         this.userId = userId;
-        this.boardTitle = boardTitle;
-        this.boardContents = boardContents;
+        this.title = title;
+        this.contents = contents;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
@@ -37,11 +37,11 @@ public class BoardGetOneResponse {
     }
 
     public String getBoardTitle() {
-        return boardTitle;
+        return title;
     }
 
     public String getBoardContents() {
-        return boardContents;
+        return contents;
     }
 
     public LocalDateTime getCreateDate() {
