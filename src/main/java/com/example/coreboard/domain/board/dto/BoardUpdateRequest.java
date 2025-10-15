@@ -25,10 +25,10 @@ public class BoardUpdateRequest {
     public long getUserId(){
         return userId;
     }
-    public String getBoardTitle(){
+    public String getTitle(){
         return title;
     }
-    public String getBoardContents(){
+    public String getContent(){
         return content;
     }
 }

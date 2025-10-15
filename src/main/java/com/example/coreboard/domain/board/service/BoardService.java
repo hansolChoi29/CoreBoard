@@ -46,15 +46,15 @@ public class BoardService {
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         // 제목 중복 검사
-        if (boardRepository.existsByTitle(boardRequestDto.getBoardTitle())) {
+        if (boardRepository.existsByTitle(boardRequestDto.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 보드 저장할 것들 세팅
         Board board = Board.create(
                 user.getUserId(),
-                boardRequestDto.getBoardTitle(),
-                boardRequestDto.getBoardContents()
+                boardRequestDto.getTitle(),
+                boardRequestDto.getContent()
         );
 
         boardRepository.save(board); // 저장
@@ -62,8 +62,8 @@ public class BoardService {
         return new BoardCreateResponse(
                 board.getId(),
                 user.getUserId(),
-                board.getBoardTitle(),
-                board.getBoardContents(),
+                board.getTitle(),
+                board.getContent(),
                 board.getCreatedDate());
     }
 
@@ -79,8 +79,8 @@ public class BoardService {
         return new BoardGetOneResponse(
                 board.getId(),
                 board.getUserId(),
-                board.getBoardTitle(),
-                board.getBoardContents(),
+                board.getTitle(),
+                board.getContent(),
                 board.getCreatedDate(),
                 board.getLastModifiedDate()
         );
@@ -102,7 +102,7 @@ public class BoardService {
             contents.add(new BoardSummaryResponse(
                     board.getId(),
                     board.getUserId(),
-                    board.getBoardTitle(),
+                    board.getTitle(),
                     board.getCreatedDate()
             ));
         }
@@ -137,21 +137,21 @@ public class BoardService {
         }
 
         // 제목 중복 검사
-        if (boardRepository.existsByTitle(boardupdateRequest.getBoardTitle())) {
+        if (boardRepository.existsByTitle(boardupdateRequest.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 저장
         board.update(
-                boardupdateRequest.getBoardTitle(),
-                boardupdateRequest.getBoardContents()
+                boardupdateRequest.getTitle(),
+                boardupdateRequest.getContent()
         );
 
         return new BoardUpdateResponse(
                 board.getId(),
                 user.getUserId(),
-                board.getBoardTitle(),
-                board.getBoardContents(),
+                board.getTitle(),
+                board.getContent(),
                 board.getLastModifiedDate()
         );
     }

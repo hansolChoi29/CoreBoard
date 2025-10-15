@@ -11,10 +11,10 @@ public class BoardDeleteResponse {
     public BoardDeleteResponse(Board board) {
         this.id = board.getId();
         this.userId = board.getUserId();
-        this.title = board.getBoardTitle();
+        this.title = board.getTitle();
     }
 
-    public String getBoardTitle() {
+    public String getTitle() {
         return title;
     }
 

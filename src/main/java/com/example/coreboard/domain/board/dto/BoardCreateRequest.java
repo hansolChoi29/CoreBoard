@@ -10,20 +10,20 @@ public class BoardCreateRequest {
 
     // 요청 넣어야 하는 것
     private String title;
-    private String contents;
+    private String content;
 
     public BoardCreateRequest(
             String title,
-            String contents
+            String content
     ) {
         this.title = title;
-        this.contents = contents;
+        this.content = content;
     }
 
     // 글자 수 및 빈값 예외처리
     public void validation() {
         boolean titleValidation = StringUtil.isNullOrEmpty(title);
-        boolean contentValidation = StringUtil.isNullOrEmpty(contents);
+        boolean contentValidation = StringUtil.isNullOrEmpty(content);
 
         if (titleValidation && contentValidation) {
             throw new BoardErrorException(TITLE_AND_CONTENTS_BLANK);
@@ -37,19 +37,19 @@ public class BoardCreateRequest {
         if (title.length() > 255) {
             throw new BoardErrorException(TITLE_TOO_LONG);
         }
-        if (contents.length() > 1000) {
+        if (content.length() > 1000) {
             throw new BoardErrorException(CONTENT_TOO_LONG);
         }
 
         this.title = title;
-        this.contents = contents;
+        this.content = content;
     }
 
-    public String getBoardTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public String getBoardContents() {
-        return contents;
+    public String getContent() {
+        return content;
     }
 }

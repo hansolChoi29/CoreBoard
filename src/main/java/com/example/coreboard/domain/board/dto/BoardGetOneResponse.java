@@ -7,7 +7,7 @@ public class BoardGetOneResponse {
     private final Long id;
     private final long userId;
     private final String title;
-    private final String contents;
+    private final String content;
     private final LocalDateTime createdDate;
     private final LocalDateTime lastModifiedDate;
 
@@ -16,14 +16,14 @@ public class BoardGetOneResponse {
             Long id,
             long userId,
             String title,
-            String contents,
+            String content,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
-        this.contents = contents;
+        this.content = content;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
@@ -36,12 +36,12 @@ public class BoardGetOneResponse {
         return userId;
     }
 
-    public String getBoardTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public String getBoardContents() {
-        return contents;
+    public String getContent() {
+        return content;
     }
 
     public LocalDateTime getCreateDate() {

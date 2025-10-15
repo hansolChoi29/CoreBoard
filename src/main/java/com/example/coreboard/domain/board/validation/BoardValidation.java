@@ -15,11 +15,11 @@ public class BoardValidation {
 
     // 컨트롤러에서 가져온 값 주입하여 검증 세팅
     public static void createValidation(BoardCreateRequest createRequest) {
-        createValidation(createRequest.getBoardTitle(), createRequest.getBoardContents());
+        createValidation(createRequest.getTitle(), createRequest.getContent());
     }
 
     public static void updateValidation(BoardUpdateRequest updateRequest) {
-        updateValidation(updateRequest.getBoardTitle(), updateRequest.getBoardContents());
+        updateValidation(updateRequest.getTitle(), updateRequest.getContent());
     }
 
     public static void updateValidation(String title, String content) {
