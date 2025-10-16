@@ -2,6 +2,7 @@ package com.example.coreboard.domain.board.service;
 
 import com.example.coreboard.domain.board.dto.BoardCreateRequest;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 
 @ExtendWith(MockitoExtension.class)
+@Import(GlobalExceptionHandler.class)
 class BoardServiceTest {
 
     @Mock
