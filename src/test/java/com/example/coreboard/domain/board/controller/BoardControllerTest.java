@@ -6,6 +6,8 @@ import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +30,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -72,6 +73,7 @@ class BoardControllerTest {
                 .standaloneSetup(boardController) // 테스트할 컨트롤러 1개만 독립적으로 올림
                 .setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외처리기 등록 (예외 → JSON 응답으로 변환)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter()) // JSON <-> 객체 변환기 등록(Jackson)
+//                .addInterceptors(new AuthInterceptor()) // 진짜 인터셉터 재현
                 .build(); // 위 설정들로 MockMvc 인스턴스 생성
     }
 
@@ -135,7 +137,7 @@ class BoardControllerTest {
                 .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
 
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", "ghost")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -164,7 +166,7 @@ class BoardControllerTest {
         // 4) eq(value) : 정확히 이 값일 때만 허용
         given(boardService.create(any(BoardCreateRequest.class), eq(username))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -179,6 +181,8 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_로그인_안함_401")
     void createUnauthorized() throws Exception {
+        // setup()에 인터셉터가 있어도/없어도 모두 401 통과되는 이유
+        // 컨트롤러에도 401예외처리가 구현되어있다.
         String json = """
                 {
                     "title" : "제목",
@@ -186,7 +190,7 @@ class BoardControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -196,11 +200,132 @@ class BoardControllerTest {
         verify(boardService, never()).create(any(BoardCreateRequest.class), anyString());
     }
 
-    // 시나리오
-    // 1. 제목 비어있음
-    // 2. 내용 비어있음
-    // 3. 제목/내용 너무 김
-    // 4. 잘못된 JSON
+    // controller test 시 given을 사용하겠다란 말은
+    // 서비스를 호출하겠다라는 의미인데, 입력값이 이미 비어있기 때문에 서비스까지 굳이 가지 않겠다 never()
+    @Test
+    @DisplayName("게시글_생성_제목과_본문_비어있음_400")
+    void creatteTitleAndContentIsBlank() throws Exception {
+        String json = """
+                {
+                    "title" : "",
+                    "content" :""
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
+        // 서비스가 단 한번도 호출되면 안 된다.
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_제목_400")
+    void createContentIsBlank() throws Exception {
+        String json = """
+                {
+                    "title" : "dsa",
+                    "content" : ""
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_제목_400")
+    void createTitleOrContentIsBlank() throws Exception {
+        String json = """
+                {
+                    "title" : "",
+                    "content" : "asda"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_제목_너무_김_400")
+    void createTitleToLong() throws Exception {
+        String json = """
+                {
+                    "title" :"jslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenja;riuerioawuralfkdjsalkfejfklsad;jfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowv",
+                    "content" : "zx"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목은 255자 미만이어야 합니다"));
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_본문_너무_김_400")
+    void createContentToLong() throws Exception {
+        String json = """
+                {
+                    "title" :"jdsdsd",
+                     "content" : "slekrwjrwdjwklrjqoirwrkfjwejrlkawejrlaralrhlawerjkbhwriurhuisberh23iurhsaruiarh82rheurasajkfhfauiwfhb289rhwefahf289bfheskhfvawekfh2iufvesfjaklejfewklfjwelfweffahejkrhawekjfhasdkjfhasflehauwifhawueifvlahwfajkhfaklsioruviaowerwrktjqwelkrjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3erjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksfjweklr23yr32uirh2rui23rih2o3iurh2buirh23uri23iur23hri2u34y8914yruihfhjksfahlkfjehfkjhfdkjfhkjsfhdsjkfhdsjlkafhdjsalfhdjsaklyweruieowqryeuwoqryeuwqoreyuwqoireyuwqoreywuqoreyuwqoreyuwqoryewuqoreywquoreywrueowqryeuwqoryeuwoqryeuwqoryeuwoqryeuwryeuwoiqryeuwqioryeuwqoryeuwoqiryeuwqoryeuwqoryeuwqoryeuwoqoryeuwqioryeuwqoiryeuwothweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenja;riuerioawuralfkdjsalkfejfklsad;jfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowv"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("본문은 1000자 미만이어야 합니다"));
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_이미_존재하는_제목_409")
+    void createTitleDuplicated() throws Exception {
+        String json = """
+                {
+                    "title":"중복제목",
+                    "content":"내용"
+                }
+                """;
+        String username = "tester";
+
+        given(boardService.create(any(), eq("tester"))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
+
+        mockMvc.perform(
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isConflict()) // 중복데이터가 있을 필요가 없음 mock 중복이야!라고 던진다고 가정
+                .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
+        verify(boardService).create(any(), eq("tester"));
+    }
 
     @Test
     @Timeout(5)
@@ -270,7 +395,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
                 .andExpect(jsonPath("$.data.content[0].userId").value(10))
                 .andExpect(jsonPath("$.data.content[0].title").value("제목"))
-//                .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10));
@@ -317,6 +441,7 @@ class BoardControllerTest {
         verify(boardService).update(any(), eq("tester"), eq(boardId));
     }
 
+    // 존재하지 않은 게시글
     @Test
     @DisplayName("게시글 삭제")
     void deleted() throws Exception {
