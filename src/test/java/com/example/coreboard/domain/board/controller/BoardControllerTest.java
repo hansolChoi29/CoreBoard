@@ -139,7 +139,7 @@ class BoardControllerTest {
                 .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
 
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", "ghost")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -168,7 +168,7 @@ class BoardControllerTest {
         // 4) eq(value) : 정확히 이 값일 때만 허용
         given(boardService.create(any(BoardCreateRequest.class), eq(username))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -192,7 +192,7 @@ class BoardControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -203,7 +203,7 @@ class BoardControllerTest {
     }
 
     // controller test 시 given을 사용하겠다란 말은
-    // 서비스를 호출하겠다라는 의미인데, 서비스 테스트에서 진행할 예정이라 never로 한다
+    // 서비스를 호출하겠다라는 의미인데, 입력값이 이미 비어있기 때문에 서비스까지 굳이 가지 않겠다 never()
     @Test
     @DisplayName("게시글_생성_제목과_본문_비어있음_400")
     void creatteTitleAndContentIsBlank() throws Exception {
@@ -214,7 +214,7 @@ class BoardControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", "tester")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -227,35 +227,36 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_생성_제목_400")
-    void createContentIsBlank() throws Exception{
-        String json= """
+    void createContentIsBlank() throws Exception {
+        String json = """
                 {
                     "title" : "dsa",
                     "content" : ""
                 }
                 """;
         mockMvc.perform(
-                post("/api/board")
-                        .requestAttr("username","tester")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
         verify(boardService, never()).create(any(), anyString());
     }
+
     @Test
     @DisplayName("게시글_생성_제목_400")
-    void createTitleOrContentIsBlank() throws Exception{
-        String json= """
+    void createTitleOrContentIsBlank() throws Exception {
+        String json = """
                 {
                     "title" : "",
                     "content" : "asda"
                 }
                 """;
         mockMvc.perform(
-                        post("/api/board")
-                                .requestAttr("username","tester")
+                        post(BASE)
+                                .requestAttr("username", "tester")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -266,7 +267,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_생성_제목_너무_김_400")
-    void createTitleToLong()throws Exception{
+    void createTitleToLong() throws Exception {
         String json = """
                 {
                     "title" :"jslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenja;riuerioawuralfkdjsalkfejfklsad;jfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowv",
@@ -274,11 +275,11 @@ class BoardControllerTest {
                 }
                 """;
         mockMvc.perform(
-                post("/api/board")
-                        .requestAttr("username", "tester")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 미만이어야 합니다"));
         verify(boardService, never()).create(any(), anyString());
@@ -286,7 +287,7 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_생성_본문_너무_김_400")
-    void createContentToLong()throws Exception{
+    void createContentToLong() throws Exception {
         String json = """
                 {
                     "title" :"jdsdsd",
@@ -294,7 +295,7 @@ class BoardControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post("/api/board")
+                        post(BASE)
                                 .requestAttr("username", "tester")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -306,7 +307,32 @@ class BoardControllerTest {
 
     // 존재하지 않은 게시글
     // 이미 사용 중인 제목
-    
+
+    @Test
+    @DisplayName("게시글_생성_이미_존재하는_제목_409")
+    void createTitleDuplicated() throws Exception {
+        String json = """
+                {
+                    "title":"중복제목",
+                    "content":"내용"
+                }
+                """;
+        String username = "tester";
+
+        given(boardService.create(any(), eq("tester"))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
+
+        mockMvc.perform(
+                post(BASE)
+                        .requestAttr("username","tester")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isConflict()) // 중복데이터가 있을 필요가 없음 mock 중복이야!라고 던진다고 가정
+                .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
+        verify(boardService).create(any(),eq("tester"));
+    }
+
+
     @Test
     @Timeout(5)
     @DisplayName("게시글 단건 조회 성공")
@@ -375,7 +401,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
                 .andExpect(jsonPath("$.data.content[0].userId").value(10))
                 .andExpect(jsonPath("$.data.content[0].title").value("제목"))
-//                .andExpect(jsonPath("$.data.content[0].contents").value("내용"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10));
