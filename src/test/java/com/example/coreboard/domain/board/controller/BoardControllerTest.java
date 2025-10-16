@@ -8,7 +8,6 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -305,9 +303,6 @@ class BoardControllerTest {
         verify(boardService, never()).create(any(), anyString());
     }
 
-    // 존재하지 않은 게시글
-    // 이미 사용 중인 제목
-
     @Test
     @DisplayName("게시글_생성_이미_존재하는_제목_409")
     void createTitleDuplicated() throws Exception {
@@ -322,16 +317,15 @@ class BoardControllerTest {
         given(boardService.create(any(), eq("tester"))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
 
         mockMvc.perform(
-                post(BASE)
-                        .requestAttr("username","tester")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE)
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isConflict()) // 중복데이터가 있을 필요가 없음 mock 중복이야!라고 던진다고 가정
                 .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
-        verify(boardService).create(any(),eq("tester"));
+        verify(boardService).create(any(), eq("tester"));
     }
-
 
     @Test
     @Timeout(5)
@@ -447,6 +441,7 @@ class BoardControllerTest {
         verify(boardService).update(any(), eq("tester"), eq(boardId));
     }
 
+    // 존재하지 않은 게시글
     @Test
     @DisplayName("게시글 삭제")
     void deleted() throws Exception {
