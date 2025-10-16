@@ -6,6 +6,9 @@ import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,6 +75,7 @@ class BoardControllerTest {
                 .standaloneSetup(boardController) // 테스트할 컨트롤러 1개만 독립적으로 올림
                 .setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외처리기 등록 (예외 → JSON 응답으로 변환)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter()) // JSON <-> 객체 변환기 등록(Jackson)
+                .addInterceptors(new AuthInterceptor()) // 진짜 인터셉터 재현
                 .build(); // 위 설정들로 MockMvc 인스턴스 생성
     }
 
@@ -179,6 +183,8 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_로그인_안함_401")
     void createUnauthorized() throws Exception {
+        // setup()에 인터셉터가 있어도/없어도 모두 401 통과되는 이유
+        // 컨트롤러에도 401예외처리가 구현되어있다.
         String json = """
                 {
                     "title" : "제목",
@@ -200,7 +206,30 @@ class BoardControllerTest {
     // 1. 제목 비어있음
     // 2. 내용 비어있음
     // 3. 제목/내용 너무 김
-    // 4. 잘못된 JSON
+
+    // controller test 시 given을 사용하겠다란 말은
+    // 서비스를 호출하겠다라는 의미인데, 서비스 테스트에서 진행할 예정이라 naver로 한다
+    @Test
+    @DisplayName("게시글_생성_제목_또는_본문_비어있음_400")
+    void creatteTitleOrContentIsBlank() throws Exception {
+        String json = """
+                {
+                    "title" : "",
+                    "content" :""
+                }
+                """;
+        mockMvc.perform(
+                        post("/api/board")
+                                .requestAttr("username", "tester")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
+        // 서비스가 단 한번도 호출되면 안 된다.
+        verify(boardService, never()).create(any(), anyString());
+    }
+
 
     @Test
     @Timeout(5)
