@@ -6,10 +6,11 @@ import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
@@ -23,9 +24,9 @@ public class BoardController {
 
     // 보드 생성
     @PostMapping
-    public ResponseEntity<ApiResponse<BoardCreateResponse>> createBoard(
+    public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
             @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
-            @RequestAttribute(name = "username", required = false) String username   // 인터셉터의 username 이용
+            @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
         if (username == null) {
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED); // 401
@@ -50,16 +51,23 @@ public class BoardController {
     public ResponseEntity<ApiResponse<PageResponse<BoardSummaryResponse>>> getAll(
             // RequestParam : ?paeg=0&size=10 바인딩 해주는 어노테이션
             @RequestParam(defaultValue = "0") int page, // 클라이언트 요청 page
-            @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
+            @RequestParam(defaultValue = "10") int size, // 클라이언트 요청 size
+            @RequestParam(defaultValue = "asc") String sort
     ) {
-        return ResponseEntity.ok(boardService.findAll(page,size));
+        // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
+        if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
+            throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
+        }
+
+        BoardValidation.pageableValication(page, size);
+        return ResponseEntity.ok(boardService.findAll(page, size, sort));
     }
 
     // 2) 보드 전체 조회 - Cursor
 
 
-    // 보드 수정
-    @PostMapping("/{id}")
+    // 보드 수정 - 멱등의 개념
+    @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
             @RequestBody BoardUpdateRequest updateRequestDto,
             @RequestAttribute("username") String username,
@@ -70,7 +78,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 
-    // 보드 삭제
+    // 보드 삭제 - TODO: 멱등하지 않다. (개선필요)
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardDeleteResponse>> delete(
             @RequestAttribute("username") String username,

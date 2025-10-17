@@ -3,6 +3,7 @@ package com.example.coreboard.domain.board.validation;
 import ch.qos.logback.core.util.StringUtil;
 import com.example.coreboard.domain.board.dto.BoardCreateRequest;
 import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
@@ -64,6 +65,15 @@ public class BoardValidation {
         }
         if (content.length() > 1000) {
             throw new BoardErrorException(CONTENT_TOO_LONG);
+        }
+    }
+
+    public static void pageableValication(int page, int size) {
+        if (page < 0) {
+            throw new BoardErrorException(BoardErrorCode.PAGE_NOT_INTEGER);
+        }
+        if (size < 1 || size > 10) {
+            throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }
     }
 }
