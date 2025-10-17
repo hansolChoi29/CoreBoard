@@ -12,7 +12,8 @@ public enum BoardErrorCode {
     TITLE_DUPLICATED(409, "이미 사용 중인 제목입니다."),
     PAGE_NOT_INTEGER(400, "page는 0이상이어야 합니다."),
     SIZE_TOO_LARGE(400, "zise는 최대 10이하이어야 합니다"),
-    SORT_DIRECTION_INVALID(400, "정렬 방향은 asc 또는 desc만 허용됩니다.");
+    SORT_DIRECTION_INVALID(400, "정렬 방향은 asc 또는 desc만 허용됩니다."),
+    POST_ISDELETE(404, "삭제된 게시글입니다.");
 
     private final int status;
     private final String message;
