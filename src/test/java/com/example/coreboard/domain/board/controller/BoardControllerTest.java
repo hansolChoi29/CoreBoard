@@ -286,7 +286,7 @@ class BoardControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("제목은 255자 미만이어야 합니다"));
+                .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
         verify(boardService, never()).create(any(), anyString());
     }
 
@@ -307,7 +307,7 @@ class BoardControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("본문은 1000자 미만이어야 합니다"));
+                .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
         verify(boardService, never()).create(any(), anyString());
     }
 
@@ -582,7 +582,30 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
+
     // $) 게시글 수정하려는데 타이틀 길이 초과 (400)
+    @Test
+    @DisplayName("게시글_수정_본문_길이_초과_400")
+    void updateContentTooLong() throws Exception {
+        long id = 1;
+        String username = "tester";
+        String title = "a".repeat(1001);
+        String json = String.format("""
+                {
+                    "title" : "fds",
+                    "content" : "%s"
+                }
+                """, title);
+        mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
+        verifyNoMoreInteractions(boardService);
+    }
     // 5) 게시글 수정하려는데 본문 길이 초과 (400)
     // 6) 게시글 수정하려는데 타이틀 또는 본문 같이 빈 값임 (400)
     // 7) 게시글 수정하려는데 타이틀만 빈값 (400)
