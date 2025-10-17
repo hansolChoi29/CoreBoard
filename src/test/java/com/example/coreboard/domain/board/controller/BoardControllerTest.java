@@ -271,7 +271,7 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_제목_너무_김_400")
     void createTitleToLong() throws Exception {
-        String longTitle="a".repeat(256);
+        String longTitle = "a".repeat(256);
         String json = String.format("""
                 {
                     "title" :"%s",
@@ -292,7 +292,7 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_본문_너무_김_400")
     void createContentToLong() throws Exception {
-        String longContent="a".repeat(1001);
+        String longContent = "a".repeat(1001);
         String json = String.format("""
                 {
                     "title" :"jdsdsd",
@@ -442,8 +442,22 @@ class BoardControllerTest {
         verifyNoMoreInteractions(boardService);
     }
     // 400, 정렬 방향은 asc 또는 desc만 허용됩니다.
-    // 400, 잘못된 요청 형식입니다. (page 또는 size가 int가 아닐경우)
     // 400, page는 0 이상이어야 합니다.
+
+    @Test
+    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_40")
+    void getAllInvalidSortDirection() throws Exception{
+        mockMvc.perform(
+                get(BASE)
+                        .param("page", "0")
+                        .param("size","10")
+                        .param("sort", "wrong")
+                        .accept(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+        verifyNoMoreInteractions(boardService);
+    }
 
     @Test
     @DisplayName("게시글 수정")

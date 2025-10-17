@@ -6,10 +6,11 @@ import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
@@ -50,10 +51,16 @@ public class BoardController {
     public ResponseEntity<ApiResponse<PageResponse<BoardSummaryResponse>>> getAll(
             // RequestParam : ?paeg=0&size=10 바인딩 해주는 어노테이션
             @RequestParam(defaultValue = "0") int page, // 클라이언트 요청 page
-            @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
+            @RequestParam(defaultValue = "10") int size, // 클라이언트 요청 size
+            @RequestParam(defaultValue = "asc") String sort
     ) {
+        // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
+        if(!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")){
+            throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
+        }
+
         PageResponse.pageableValication(page, size);
-        return ResponseEntity.ok(boardService.findAll(page,size));
+        return ResponseEntity.ok(boardService.findAll(page, size));
     }
 
     // 2) 보드 전체 조회 - Cursor
