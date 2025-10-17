@@ -67,7 +67,7 @@ public class BoardService {
                 board.getCreatedDate());
     }
 
-    // 보드 단건 조회
+    // 보드 단건 조회 - 멱등
     public BoardGetOneResponse findOne(
             Long id
     ) {
@@ -86,7 +86,7 @@ public class BoardService {
         );
     }
 
-    // 보드 전체 조회
+    // 보드 전체 조회 - 멱등
     public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());

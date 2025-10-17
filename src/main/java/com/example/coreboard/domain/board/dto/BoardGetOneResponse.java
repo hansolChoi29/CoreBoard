@@ -11,7 +11,6 @@ public class BoardGetOneResponse {
     private final LocalDateTime createdDate;
     private final LocalDateTime lastModifiedDate;
 
-
     public BoardGetOneResponse(
             Long id,
             long userId,

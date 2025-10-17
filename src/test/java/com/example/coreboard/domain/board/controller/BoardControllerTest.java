@@ -116,6 +116,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.content").value("본문"))
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
         verify(boardService).create(any(), eq("tester")); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
+        verifyNoMoreInteractions(boardService);
     }
 
     // Mockito 3대 기능
@@ -147,6 +148,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
 
         verify(boardService).create(any(BoardCreateRequest.class), eq("ghost"));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
@@ -176,6 +178,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
 
         verify(boardService).create(any(BoardCreateRequest.class), eq(username));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
@@ -198,6 +201,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
 
         verify(boardService, never()).create(any(BoardCreateRequest.class), anyString());
+        verifyNoMoreInteractions(boardService);
     }
 
     // controller test 시 given을 사용하겠다란 말은
@@ -221,6 +225,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
         // 서비스가 단 한번도 호출되면 안 된다.
         verify(boardService, never()).create(any(), anyString());
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
@@ -314,21 +319,21 @@ class BoardControllerTest {
                 """;
         String username = "tester";
 
-        given(boardService.create(any(), eq("tester"))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
+        given(boardService.create(any(), eq(username))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
 
         mockMvc.perform(
                         post(BASE)
-                                .requestAttr("username", "tester")
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
                 .andExpect(status().isConflict()) // 중복데이터가 있을 필요가 없음 mock 중복이야!라고 던진다고 가정
                 .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
-        verify(boardService).create(any(), eq("tester"));
+        verify(boardService).create(any(), eq(username));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
-    @Timeout(5)
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
         long id = 1;
@@ -344,16 +349,43 @@ class BoardControllerTest {
         given(boardService.findOne(eq(id))).willReturn(dummy);
 
         mockMvc.perform(
-                        get(BASE + "/{id}", 1L)
+                        get(BASE + "/{id}", id)
                                 .accept(MediaType.APPLICATION_JSON)
-
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"))
-                .andExpect(jsonPath("$.data.id").value(1));
+                .andExpect(jsonPath("$.data.id").value(id));
+        // verify 왜 필요한가?
+        // 응답만 보는 게 아니라 컨트롤러가 서비스 레이어를 올바르게 호출했는지도 확인해야 함
+        // HTTP 요청 -> Controller -> Service 호출의 연결이 잘 이루어졌는지 확인
         verify(boardService).findOne(eq(id));
+        // verifyNoMoreInteractions : 방금 findOne말고는 서비스에 다른 호출은 없어야 한다
+        // 왜 다른 호출은 없어야 하는가? -> 테스트의 목적은 딱 필요한 동작만 했는가
+        // 언제 쓰는 게 적절할까? -> 해당 엔드포인트가 서비스의 한 메서드만 호출해야 할 때
+        verifyNoMoreInteractions(boardService);
     }
+
+    @Test
+    @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
+    void getOneIsNotFoundBoard() throws Exception {
+        long id = 10;
+      
+        given(boardService.findOne(eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
+
+        mockMvc.perform(
+                        get(BASE+"/{id}", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
+                .andExpect(jsonPath("$.data").isEmpty());
+
+        verify(boardService).findOne(eq(id));
+        verifyNoMoreInteractions(boardService);
+    }
+
+    // 로그인 안 한 사용자 but 로그인한 다른 사람은 볼 수 있음
 
     @Test
     @DisplayName("게시글 전체 조회")
