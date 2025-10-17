@@ -82,7 +82,7 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성")
     void create() throws Exception {
-        String username="tester";
+        String username = "tester";
 
         BoardCreateResponse dummy = new BoardCreateResponse(
                 1L,
@@ -535,7 +535,33 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
         verifyNoMoreInteractions(boardService);
     }
+
     // 2) 게시글 수정하려는데 다른 사람 게시글임 (본인 글 아님 403)
+    @Test
+    @DisplayName("게시글_수정_존재하지_않는_게시글_404")
+    void updateNotFound() throws Exception {
+        long id = 1;
+        String username = "tester";
+        String json = """
+                {
+                    "title" : "제목",
+                    "content" : "본문"
+                }
+                """;
+
+        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
+
+        mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
+        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+    }
+
     // 3) 게시글 수정하려는데 존재하지 않는 게시글임 (404)
     // $) 게시글 수정하려는데 타이틀 길이 초과 (400)
     // 5) 게시글 수정하려는데 본문 길이 초과 (400)
