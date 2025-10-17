@@ -633,7 +633,26 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
         verifyNoMoreInteractions(boardService);
     }
-    // 7) 게시글 수정하려는데 타이틀만 빈값 (400)
+
+    @Test
+    @DisplayName("게시글_수정_제목_비어있음_400")
+    void updateContentIsBlank() throws Exception{
+        String json= """
+                {
+                    "title" : "",
+                    "content" : "sta"
+                }
+                """;
+        mockMvc.perform(
+                put(BASE+"/{id}", id)
+                        .requestAttr("username", username)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
+        verifyNoMoreInteractions(boardService);
+    }
     // 8) 게시글 수정하려는데 본문만 빈값 (400)
     // 9) 게시글 수정하려는데 이미 사용 중인 타이틀임 (409)
     // 10) 게시글 삭제하려는데 삭제된 게시글임 (404)
