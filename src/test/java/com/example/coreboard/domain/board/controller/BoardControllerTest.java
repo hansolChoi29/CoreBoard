@@ -156,13 +156,13 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_권한없음_403")
     void createForbidden() throws Exception {
+        String username = "tester";
         String json = """
                 {
                     "title" : "제목",
                     "content" : "내용"
                 }
                 """;
-        String username = "tester";
         // Mockito 타입별 매처
         // 1) any() : 아무 객체 허용
         // 2) anyString() : 아무 문자열 허용
@@ -512,8 +512,6 @@ class BoardControllerTest {
         verify(boardService).update(any(), eq("tester"), eq(boardId));
     }
 
-    // 게시글 수정 시 일어날 수 있는 시나리오
-    // 1) 게시글 수정하려는데 로그인 안 되어있음 (401)isUnauthorized
     @Test
     @DisplayName("게시글_수정_비로그인_401")
     void updateIsUnauthorized() throws Exception {
@@ -536,7 +534,6 @@ class BoardControllerTest {
         verifyNoMoreInteractions(boardService);
     }
 
-    // 2) 게시글 수정하려는데 다른 사람 게시글임 (본인 글 아님 403)
     @Test
     @DisplayName("게시글_수정_존재하지_않는_게시글_404")
     void updateNotFound() throws Exception {
@@ -562,7 +559,29 @@ class BoardControllerTest {
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
 
-    // 3) 게시글 수정하려는데 존재하지 않는 게시글임 (404)
+    @Test
+    @DisplayName("게시글_수정_403")
+    void updateForbidden() throws Exception {
+        String username = "tester";
+        long id = 1;
+        String json = """
+                {
+                    "title" : "제목",
+                    "content" : "본문"
+                }
+                """;
+        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+
+        mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
+        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+    }
     // $) 게시글 수정하려는데 타이틀 길이 초과 (400)
     // 5) 게시글 수정하려는데 본문 길이 초과 (400)
     // 6) 게시글 수정하려는데 타이틀 또는 본문 같이 빈 값임 (400)
