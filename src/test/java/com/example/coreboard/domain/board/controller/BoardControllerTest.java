@@ -271,12 +271,13 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_제목_너무_김_400")
     void createTitleToLong() throws Exception {
-        String json = """
+        String longTitle="a".repeat(256);
+        String json = String.format("""
                 {
-                    "title" :"jslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenja;riuerioawuralfkdjsalkfejfklsad;jfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowv",
+                    "title" :"%s",
                     "content" : "zx"
                 }
-                """;
+                """, longTitle);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", "tester")
@@ -291,12 +292,13 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_본문_너무_김_400")
     void createContentToLong() throws Exception {
-        String json = """
+        String longContent="a".repeat(1001);
+        String json = String.format("""
                 {
                     "title" :"jdsdsd",
-                     "content" : "slekrwjrwdjwklrjqoirwrkfjwejrlkawejrlaralrhlawerjkbhwriurhuisberh23iurhsaruiarh82rheurasajkfhfauiwfhb289rhwefahf289bfheskhfvawekfh2iufvesfjaklejfewklfjwelfweffahejkrhawekjfhasdkjfhasflehauwifhawueifvlahwfajkhfaklsioruviaowerwrktjqwelkrjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3erjtwlkrvjslekrwjrweioruviaowerwrktjqwelkrjtwlkrvjsaklrjewiornvjklsgajksfjweklr23yr32uirh2rui23rih2o3iurh2buirh23uri23iur23hri2u34y8914yruihfhjksfahlkfjehfkjhfdkjfhkjsfhdsjkfhdsjlkafhdjsalfhdjsaklyweruieowqryeuwoqryeuwqoreyuwqoireyuwqoreywuqoreyuwqoreyuwqoryewuqoreywquoreywrueowqryeuwqoryeuwoqryeuwqoryeuwoqryeuwryeuwoiqryeuwqioryeuwqoryeuwoqiryeuwqoryeuwqoryeuwqoryeuwoqoryeuwqioryeuwqoiryeuwothweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenjariuerioawuralfkdjsalkfejfklsadjfawilfdiowrjnafhwaiofhawiefhiwhiowvjsaklrjewiornvjklsgajksthweiotjwailtjnwaoptvjwalktjaslkgnashnglahwiorjwioeru2iorunsefjaklenja;riuerioawuralfkdjsalkfejfklsad;jfawilfdlskajf3eiowrjnafhwaiofhawiefhiwhiowv"
+                     "content" : "%s"
                 }
-                """;
+                """, longContent);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", "tester")
@@ -388,56 +390,61 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 전체 조회")
     void getAll() throws Exception {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
-
-        BoardSummaryResponse dummy = new BoardSummaryResponse(
-                1L,
-                10L,
-                "제목",
-                LocalDateTime.now()
+        BoardSummaryResponse item = new BoardSummaryResponse(
+                1L, 10L, "제목", LocalDateTime.now()
         );
 
-        List<BoardSummaryResponse> content = List.of(dummy);
+        // content는 목록이라 리스트인데, 테스트 시 목록 1건 흉내냄
+        PageResponse<BoardSummaryResponse> pageResponse = new PageResponse<>(List.of(item), 0, 10, 1L);
+        ApiResponse<PageResponse<BoardSummaryResponse>> body = ApiResponse.ok(pageResponse, "게시글 전체 조회!");
 
-        PageResponse<BoardSummaryResponse> pageResponse =
-                new PageResponse<>(
-                        content,   // content
-                        0,         // page
-                        10,        // size
-                        1L         // totalElements
-                );
-
-        ApiResponse<PageResponse<BoardSummaryResponse>> body =
-                ApiResponse.ok(pageResponse, "게시글 전체 조회!");
-
-        given(boardService.findAll(anyInt(), anyInt()))
-                .willReturn(body);
-
+        given(boardService.findAll(eq(0), eq(10))).willReturn(body);
         mockMvc.perform(
                         get(BASE)
                                 .param("page", "0")
                                 .param("size", "10")
-                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andDo(print())
+                // andExpect : HTTP 응답 내용을 검증 (상태코드, JSON 본문, 메시지, 필드 값 등)
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
                 .andExpect(jsonPath("$.data.content[0].userId").value(10))
                 .andExpect(jsonPath("$.data.content[0].title").value("제목"))
                 .andExpect(jsonPath("$.data.content[0].createdDate", notNullValue()))
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10));
-
-        verify(boardService).findAll(anyInt(), anyInt());
+        // verify : 컨트롤러가 mock서비스에게 어떤 호출을 했는지를 검증
+        verify(boardService).findAll(eq(0), eq(10));
     }
 
-    // 400, page는 0 이상이어야 합니다.
+    // 성공 테스트는 서비스가 필요한데 왜 예외 시 불필요한가?
+    // 테스트 시 진짜 서비스(DB)를 쓰지 않음
+    // 그래서 가짜 서비스(mock), 이런 데이터를 돌려준다고 약속(stub)해야 함 <= given
+
+    @Test
+    @DisplayName("게시글_전체_조회_Page_0_이상_400")
+    void getAllPageNegatice() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "-1")
+                                .param("size", "10")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+
+                // andExpect로 data를 다 검사해야 할까?
+                // 예외 시 보통 message와 상태코드가 핵심
+                // data는 대부분 null이거나 비어있음
+                // 그래서 메시지/상태코드 위주로 검증하면 충분
+
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("page는 0이상이어야 합니다."));
+        verifyNoMoreInteractions(boardService);
+    }
     // 400, 정렬 방향은 asc 또는 desc만 허용됩니다.
     // 400, 잘못된 요청 형식입니다. (page 또는 size가 int가 아닐경우)
     // 400, page는 0 이상이어야 합니다.
-    
-    
+
     @Test
     @DisplayName("게시글 수정")
     void update() throws Exception {

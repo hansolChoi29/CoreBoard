@@ -52,6 +52,7 @@ public class BoardController {
             @RequestParam(defaultValue = "0") int page, // 클라이언트 요청 page
             @RequestParam(defaultValue = "10") int size // 클라이언트 요청 size
     ) {
+        PageResponse.pageableValication(page, size);
         return ResponseEntity.ok(boardService.findAll(page,size));
     }
 

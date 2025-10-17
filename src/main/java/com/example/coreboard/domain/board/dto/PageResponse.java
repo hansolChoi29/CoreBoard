@@ -1,5 +1,8 @@
 package com.example.coreboard.domain.board.dto;
 
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+
 import java.util.List;
 
 // 컨테이너 안에 담길 리스트가 필요한데 안에 담길 리스트 아이템 타입T 필요함
@@ -23,6 +26,14 @@ public class PageResponse<T> {
         this.totalElements = totalElements;
     }
 
+    public static void pageableValication(int page, int size) {
+        if (page <= -1) {
+            throw new BoardErrorException(BoardErrorCode.PAGE_NEGATICE);
+        }
+        if (size <= 11){
+            throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
+        }
+    }
 
     public List<T> getContent() {
         return content;
