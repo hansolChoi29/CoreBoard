@@ -370,11 +370,11 @@ class BoardControllerTest {
     @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
     void getOneIsNotFoundBoard() throws Exception {
         long id = 10;
-      
+
         given(boardService.findOne(eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(
-                        get(BASE+"/{id}", id)
+                        get(BASE + "/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isNotFound())
@@ -384,8 +384,6 @@ class BoardControllerTest {
         verify(boardService).findOne(eq(id));
         verifyNoMoreInteractions(boardService);
     }
-
-    // 로그인 안 한 사용자 but 로그인한 다른 사람은 볼 수 있음
 
     @Test
     @DisplayName("게시글 전체 조회")
@@ -434,6 +432,12 @@ class BoardControllerTest {
         verify(boardService).findAll(anyInt(), anyInt());
     }
 
+    // 400, page는 0 이상이어야 합니다.
+    // 400, 정렬 방향은 asc 또는 desc만 허용됩니다.
+    // 400, 잘못된 요청 형식입니다. (page 또는 size가 int가 아닐경우)
+    // 400, page는 0 이상이어야 합니다.
+    
+    
     @Test
     @DisplayName("게시글 수정")
     void update() throws Exception {
