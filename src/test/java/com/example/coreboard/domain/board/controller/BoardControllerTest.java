@@ -58,7 +58,6 @@ class BoardControllerTest {
 
     MockMvc mockMvc; // 진짜 톰캣/스프링 컨텍스트 없이 컨트롤러만 올려서 웹 호출을 시뮬레이션하는 가짜 클라이언트
 
-
     // MockMvcBuilders: 가짜 스프링 웹 환경(가짜 HTTP 환경) 만들기
     // standaloneSetup : 테스트할 컨트롤러만 독립적으로 올리겠다
     // setControllerAdvice : 전역 예외처리기 등록
@@ -403,6 +402,7 @@ class BoardControllerTest {
                         get(BASE)
                                 .param("page", "0")
                                 .param("size", "10")
+                                .param("sort", "asc")
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 // andExpect : HTTP 응답 내용을 검증 (상태코드, JSON 본문, 메시지, 필드 값 등)
@@ -415,7 +415,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10));
         // verify : 컨트롤러가 mock서비스에게 어떤 호출을 했는지를 검증
-        verify(boardService).findAll(eq(0), eq(10),eq("asc"));
+        verify(boardService).findAll(eq(0), eq(10), eq("asc"));
     }
 
     // 성공 테스트는 서비스가 필요한데 왜 예외 시 불필요한가?
@@ -442,15 +442,30 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_40")
-    void getAllInvalidSortDirection() throws Exception{
+    @DisplayName("게시글_전체_조회_Size_10_이상_400")
+    void getAllSizeTooLonger() throws Exception {
         mockMvc.perform(
                 get(BASE)
-                        .param("page", "0")
-                        .param("size","10")
-                        .param("sort", "wrong")
-                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page","0")
+                        .param("size","11")
+                        .param("sort","asc")
         )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+        verifyNoMoreInteractions(boardService);
+    }
+
+    @Test
+    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_40")
+    void getAllInvalidSortDirection() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", "wrong")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
         verifyNoMoreInteractions(boardService);

@@ -55,11 +55,11 @@ public class BoardController {
             @RequestParam(defaultValue = "asc") String sort
     ) {
         // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
-        if(!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")){
+        if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
             throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
         }
 
-        PageResponse.pageableValication(page, size);
+        BoardValidation.pageableValication(page, size);
         return ResponseEntity.ok(boardService.findAll(page, size, sort));
     }
 
