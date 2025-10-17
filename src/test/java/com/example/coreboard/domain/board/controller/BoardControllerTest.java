@@ -42,9 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class) // JUnit5에 Mockito 기능을 꽂아줌(@Mock/@InjectMocks가 동작하도록
 @Import(GlobalExceptionHandler.class) // 글로벌핸들러 등록
 class BoardControllerTest {
-    // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
-
     private static final String BASE = "/api/board"; // 매핑
+    // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
+    String username = "tester";
+    long id = 1;
     // @MockBean <= 지원종료
     @Mock // 진짜 서비스 대신 가짜(테스트용) 서비스
             BoardService boardService; //DB 안 쓰고 빠르게 테스트
@@ -156,7 +157,6 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_생성_권한없음_403")
     void createForbidden() throws Exception {
-        String username = "tester";
         String json = """
                 {
                     "title" : "제목",
@@ -218,7 +218,7 @@ class BoardControllerTest {
                 """;
         mockMvc.perform(
                         post(BASE)
-                                .requestAttr("username", "tester")
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -240,7 +240,7 @@ class BoardControllerTest {
                 """;
         mockMvc.perform(
                         post(BASE)
-                                .requestAttr("username", "tester")
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -260,7 +260,7 @@ class BoardControllerTest {
                 """;
         mockMvc.perform(
                         post(BASE)
-                                .requestAttr("username", "tester")
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -281,7 +281,7 @@ class BoardControllerTest {
                 """, longTitle);
         mockMvc.perform(
                         post(BASE)
-                                .requestAttr("username", "tester")
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -320,7 +320,6 @@ class BoardControllerTest {
                     "content":"내용"
                 }
                 """;
-        String username = "tester";
 
         given(boardService.create(any(), eq(username))).willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
 
@@ -339,7 +338,6 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
-        long id = 1;
         BoardGetOneResponse dummy = new BoardGetOneResponse(
                 id,
                 10L,
@@ -372,7 +370,6 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
     void getOneIsNotFoundBoard() throws Exception {
-        long id = 10;
 
         given(boardService.findOne(eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
 
@@ -476,17 +473,13 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 수정")
     void update() throws Exception {
-        Long boardId = 1L;
-        long userId = 10L;
         BoardUpdateResponse dummy = new BoardUpdateResponse(
-                boardId,
-                userId,
+                id,
+                10L,
                 "제목",
                 "내용",
                 LocalDateTime.now()
         );
-        given(boardService.update(any(), eq("tester"), eq(boardId))).willReturn(dummy);
-
         String json = """
                 {
                     "title" : "제목",
@@ -494,9 +487,11 @@ class BoardControllerTest {
                 }
                 """;
 
+        given(boardService.update(any(), eq(username), eq(id))).willReturn(dummy);
+
         mockMvc.perform(
-                        put(BASE + "/{id}", boardId)
-                                .requestAttr("username", "tester")
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
 
@@ -505,18 +500,16 @@ class BoardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
                 .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.userId").value(10))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
-        verify(boardService).update(any(), eq("tester"), eq(boardId));
+        verify(boardService).update(any(), eq(username), eq(id));
     }
 
     @Test
     @DisplayName("게시글_수정_비로그인_401")
     void updateIsUnauthorized() throws Exception {
-        long id = 1;
-
         String json = """
                 {
                     "title" : "제목",
@@ -537,8 +530,6 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_수정_존재하지_않는_게시글_404")
     void updateNotFound() throws Exception {
-        long id = 1;
-        String username = "tester";
         String json = """
                 {
                     "title" : "제목",
@@ -562,8 +553,6 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_수정_403")
     void updateForbidden() throws Exception {
-        String username = "tester";
-        long id = 1;
         String json = """
                 {
                     "title" : "제목",
@@ -583,19 +572,16 @@ class BoardControllerTest {
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
 
-    // $) 게시글 수정하려는데 타이틀 길이 초과 (400)
     @Test
     @DisplayName("게시글_수정_본문_길이_초과_400")
     void updateContentTooLong() throws Exception {
-        long id = 1;
-        String username = "tester";
-        String title = "a".repeat(1001);
+        String content = "a".repeat(1001);
         String json = String.format("""
                 {
                     "title" : "fds",
                     "content" : "%s"
                 }
-                """, title);
+                """, content);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -606,7 +592,28 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
         verifyNoMoreInteractions(boardService);
     }
-    // 5) 게시글 수정하려는데 본문 길이 초과 (400)
+
+    @Test
+    @DisplayName("게시글_수정_제목_길이_초과_400")
+    void updateTitleTooLong() throws Exception {
+        String title = "a".repeat(256);
+        String json = String.format("""
+                {
+                    "title" : "%s",
+                    "content" : "tiae"
+                }
+                """, title);
+        mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
+        verifyNoMoreInteractions(boardService);
+    }
+
     // 6) 게시글 수정하려는데 타이틀 또는 본문 같이 빈 값임 (400)
     // 7) 게시글 수정하려는데 타이틀만 빈값 (400)
     // 8) 게시글 수정하려는데 본문만 빈값 (400)
@@ -617,24 +624,22 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 삭제")
     void deleted() throws Exception {
-        long boardId = 1;
         long userId = 1;
-
         // response에서 생성자 매개변수에 엔티티를 받고 있음
         Board board = mock(Board.class);
 
         // 삭제할 데이터 넣기
-        when(board.getId()).thenReturn(boardId);
+        when(board.getId()).thenReturn(id);
         when(board.getUserId()).thenReturn(userId);
         when(board.getTitle()).thenReturn("제목");
 
         BoardDeleteResponse dummy = new BoardDeleteResponse(board);
 
-        given(boardService.delete(eq("tester"), eq(userId))).willReturn(dummy);
+        given(boardService.delete(eq(username), eq(userId))).willReturn(dummy);
 
         mockMvc.perform(
-                        delete(BASE + "/{id}", boardId)
-                                .requestAttr("username", "tester")
+                        delete(BASE + "/{id}", id)
+                                .requestAttr("username", username)
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -642,6 +647,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(userId))
                 .andExpect(jsonPath("$.data.title").value("제목"));
-        verify(boardService).delete(eq("tester"), eq(userId));
+        verify(boardService).delete(eq(username), eq(userId));
     }
 }
