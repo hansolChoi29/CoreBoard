@@ -15,14 +15,12 @@ public class PageResponse<T> {
             int page,
             int size,
             long totalElements
-
     ) {
         this.content = content;
         this.page = page;
         this.size = size;
         this.totalElements = totalElements;
     }
-
 
     public List<T> getContent() {
         return content;

@@ -19,12 +19,15 @@ public class BoardUpdateRequest {
         this.title = title;
         this.content = content;
     }
+
     public Long getId(){
         return id;
     }
+
     public long getUserId(){
         return userId;
     }
+
     public String getTitle(){
         return title;
     }

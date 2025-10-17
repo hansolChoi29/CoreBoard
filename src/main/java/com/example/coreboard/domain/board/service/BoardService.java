@@ -67,7 +67,7 @@ public class BoardService {
                 board.getCreatedDate());
     }
 
-    // 보드 단건 조회
+    // 보드 단건 조회 - 멱등
     public BoardGetOneResponse findOne(
             Long id
     ) {
@@ -86,10 +86,14 @@ public class BoardService {
         );
     }
 
-    // 보드 전체 조회
-    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size
+    // 보드 전체 조회 - 멱등
+    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size, String sort
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
+        // Sort.Direction : Spring 전용 Enum(Sort.Direction.ASC, Sort.Direction.DESC)
+        Sort.Direction direction = sort.equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
 
         // Page<Board>타입의 result 즉 게시글 여러개를 페이지네이션해서 담고 있는 객체.
         Page<Board> result = boardRepository.findAll(pageable);
@@ -134,6 +138,11 @@ public class BoardService {
         // 권한 체크
         if (board.getUserId() != user.getUserId()) {
             throw new AuthErrorException(FORBIDDEN);
+        }
+
+        // 하드 삭제라, 이미 삭제된 게시글을 수정하는 건지를 알 수 없어서 추가함
+        if (board.isDeleted()) {
+            throw new BoardErrorException(POST_ISDELETE);
         }
 
         // 제목 중복 검사
