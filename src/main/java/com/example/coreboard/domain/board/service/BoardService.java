@@ -87,9 +87,13 @@ public class BoardService {
     }
 
     // 보드 전체 조회 - 멱등
-    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size
+    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size, String sort
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
+        // Sort.Direction : Spring 전용 Enum(Sort.Direction.ASC, Sort.Direction.DESC)
+        Sort.Direction direction = sort.equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
 
         // Page<Board>타입의 result 즉 게시글 여러개를 페이지네이션해서 담고 있는 객체.
         Page<Board> result = boardRepository.findAll(pageable);

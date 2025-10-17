@@ -60,7 +60,7 @@ public class BoardController {
         }
 
         PageResponse.pageableValication(page, size);
-        return ResponseEntity.ok(boardService.findAll(page, size));
+        return ResponseEntity.ok(boardService.findAll(page, size, sort));
     }
 
     // 2) 보드 전체 조회 - Cursor
