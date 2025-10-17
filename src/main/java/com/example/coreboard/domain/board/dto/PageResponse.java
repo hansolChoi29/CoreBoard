@@ -18,7 +18,6 @@ public class PageResponse<T> {
             int page,
             int size,
             long totalElements
-
     ) {
         this.content = content;
         this.page = page;
@@ -27,10 +26,10 @@ public class PageResponse<T> {
     }
 
     public static void pageableValication(int page, int size) {
-        if (page <= -1) {
-            throw new BoardErrorException(BoardErrorCode.PAGE_NEGATICE);
+        if (page < 0) {
+            throw new BoardErrorException(BoardErrorCode.PAGE_NOT_INTEGER);
         }
-        if (size <= 11){
+        if (size < 1 || size > 10) {
             throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }
     }
