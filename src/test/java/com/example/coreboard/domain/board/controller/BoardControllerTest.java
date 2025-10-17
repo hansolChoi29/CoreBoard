@@ -445,12 +445,12 @@ class BoardControllerTest {
     @DisplayName("게시글_전체_조회_Size_10_이상_400")
     void getAllSizeTooLonger() throws Exception {
         mockMvc.perform(
-                get(BASE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("page","0")
-                        .param("size","11")
-                        .param("sort","asc")
-        )
+                        get(BASE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page", "0")
+                                .param("size", "11")
+                                .param("sort", "asc")
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
         verifyNoMoreInteractions(boardService);
@@ -509,6 +509,18 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
         verify(boardService).update(any(), eq("tester"), eq(boardId));
     }
+
+    // 게시글 수정 시 일어날 수 있는 시나리오
+    // 1) 게시글 수정하려는데 로그인 안 되어있음 (401)
+    // 2) 게시글 수정하려는데 다른 사람 게시글임 (본인 글 아님 403)
+    // 3) 게시글 수정하려는데 존재하지 않는 게시글임 (404)
+    // $) 게시글 수정하려는데 타이틀 길이 초과 (400)
+    // 5) 게시글 수정하려는데 본문 길이 초과 (400)
+    // 6) 게시글 수정하려는데 타이틀 또는 본문 같이 빈 값임 (400)
+    // 7) 게시글 수정하려는데 타이틀만 빈값 (400)
+    // 8) 게시글 수정하려는데 본문만 빈값 (400)
+    // 9) 게시글 수정하려는데 이미 사용 중인 타이틀임 (409)
+    // 10) 게시글 삭제하려는데 삭제된 게시글임 (404)
 
     // 존재하지 않은 게시글
     @Test

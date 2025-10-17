@@ -66,8 +66,8 @@ public class BoardController {
     // 2) 보드 전체 조회 - Cursor
 
 
-    // 보드 수정
-    @PostMapping("/{id}")
+    // 보드 수정 - 멱등의 개념
+    @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
             @RequestBody BoardUpdateRequest updateRequestDto,
             @RequestAttribute("username") String username,
@@ -78,7 +78,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 
-    // 보드 삭제
+    // 보드 삭제 - TODO: 멱등하지 않다. (개선필요)
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardDeleteResponse>> delete(
             @RequestAttribute("username") String username,
