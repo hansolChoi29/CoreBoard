@@ -8,23 +8,21 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,14 +30,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -57,6 +53,7 @@ class BoardControllerTest {
     BoardController boardController;
 
     MockMvc mockMvc; // 진짜 톰캣/스프링 컨텍스트 없이 컨트롤러만 올려서 웹 호출을 시뮬레이션하는 가짜 클라이언트
+    MockMvc mockMvcWithInterceptor;
 
     // MockMvcBuilders: 가짜 스프링 웹 환경(가짜 HTTP 환경) 만들기
     // standaloneSetup : 테스트할 컨트롤러만 독립적으로 올리겠다
@@ -72,13 +69,20 @@ class BoardControllerTest {
                 .standaloneSetup(boardController) // 테스트할 컨트롤러 1개만 독립적으로 올림
                 .setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외처리기 등록 (예외 → JSON 응답으로 변환)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter()) // JSON <-> 객체 변환기 등록(Jackson)
-//                .addInterceptors(new AuthInterceptor()) // 진짜 인터셉터 재현
+                .build(); // 위 설정들로 MockMvc 인스턴스 생성
+
+        mockMvcWithInterceptor = MockMvcBuilders // MockMvc를 만들어주는 빌더(조립기) 시작
+                .standaloneSetup(boardController) // 테스트할 컨트롤러 1개만 독립적으로 올림
+                .setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외처리기 등록 (예외 → JSON 응답으로 변환)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter()) // JSON <-> 객체 변환기 등록(Jackson)
+                .addInterceptors(new AuthInterceptor()) // 진짜 인터셉터 재현
                 .build(); // 위 설정들로 MockMvc 인스턴스 생성
     }
 
     @Test
     @DisplayName("게시글_생성")
     void create() throws Exception {
+        String username="tester";
 
         BoardCreateResponse dummy = new BoardCreateResponse(
                 1L,
@@ -88,7 +92,7 @@ class BoardControllerTest {
                 LocalDateTime.now()
         );
         // any는 첫번째 인자(요청 dto), 두번째 인자 tester
-        given(boardService.create(any(), eq("tester"))).willReturn(dummy);
+        given(boardService.create(any(), eq(username))).willReturn(dummy);
 
         // HTTP 요청 시뮬
         String json = """
@@ -100,7 +104,7 @@ class BoardControllerTest {
 
         mockMvc.perform(
                         post(BASE) // /api/board로 POST 요청
-                                .requestAttr("username", "tester") // 인터셉터
+                                .requestAttr("username", username) // 인터셉터
                                 // contentType(JSON) + content(json) : 본문이 JSON이며, 이 문자열이 요청 바디라는 의미
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -114,8 +118,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("본문"))
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
-        verify(boardService).create(any(), eq("tester")); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
-        verifyNoMoreInteractions(boardService);
+        verify(boardService).create(any(), eq(username)); // 컨트롤러가 진짜로 서비스의 create()를 한 번 호출했는지 확인
     }
 
     // Mockito 3대 기능
@@ -191,7 +194,7 @@ class BoardControllerTest {
                     "content" : "내용"
                 }
                 """;
-        mockMvc.perform(
+        mockMvcWithInterceptor.perform(
                         post(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -199,7 +202,6 @@ class BoardControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
 
-        verify(boardService, never()).create(any(BoardCreateRequest.class), anyString());
         verifyNoMoreInteractions(boardService);
     }
 
@@ -493,7 +495,7 @@ class BoardControllerTest {
                 """;
 
         mockMvc.perform(
-                        post(BASE + "/{id}", boardId)
+                        put(BASE + "/{id}", boardId)
                                 .requestAttr("username", "tester")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
@@ -511,7 +513,28 @@ class BoardControllerTest {
     }
 
     // 게시글 수정 시 일어날 수 있는 시나리오
-    // 1) 게시글 수정하려는데 로그인 안 되어있음 (401)
+    // 1) 게시글 수정하려는데 로그인 안 되어있음 (401)isUnauthorized
+    @Test
+    @DisplayName("게시글_수정_비로그인_401")
+    void updateIsUnauthorized() throws Exception {
+        long id = 1;
+
+        String json = """
+                {
+                    "title" : "제목",
+                    "content" : "본문"
+                }
+                """;
+
+        mockMvcWithInterceptor.perform(
+                        put(BASE + "/{id}", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
+        verifyNoMoreInteractions(boardService);
+    }
     // 2) 게시글 수정하려는데 다른 사람 게시글임 (본인 글 아님 403)
     // 3) 게시글 수정하려는데 존재하지 않는 게시글임 (404)
     // $) 게시글 수정하려는데 타이틀 길이 초과 (400)

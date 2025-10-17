@@ -24,9 +24,9 @@ public class BoardController {
 
     // 보드 생성
     @PostMapping
-    public ResponseEntity<ApiResponse<BoardCreateResponse>> createBoard(
+    public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
             @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
-            @RequestAttribute(name = "username", required = false) String username   // 인터셉터의 username 이용
+            @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
         if (username == null) {
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED); // 401
