@@ -398,7 +398,7 @@ class BoardControllerTest {
         PageResponse<BoardSummaryResponse> pageResponse = new PageResponse<>(List.of(item), 0, 10, 1L);
         ApiResponse<PageResponse<BoardSummaryResponse>> body = ApiResponse.ok(pageResponse, "게시글 전체 조회!");
 
-        given(boardService.findAll(eq(0), eq(10))).willReturn(body);
+        given(boardService.findAll(eq(0), eq(10), eq("asc"))).willReturn(body);
         mockMvc.perform(
                         get(BASE)
                                 .param("page", "0")
@@ -415,13 +415,12 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10));
         // verify : 컨트롤러가 mock서비스에게 어떤 호출을 했는지를 검증
-        verify(boardService).findAll(eq(0), eq(10));
+        verify(boardService).findAll(eq(0), eq(10),eq("asc"));
     }
 
     // 성공 테스트는 서비스가 필요한데 왜 예외 시 불필요한가?
     // 테스트 시 진짜 서비스(DB)를 쓰지 않음
     // 그래서 가짜 서비스(mock), 이런 데이터를 돌려준다고 약속(stub)해야 함 <= given
-
     @Test
     @DisplayName("게시글_전체_조회_Page_0_이상_400")
     void getAllPageNegatice() throws Exception {
@@ -441,8 +440,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("page는 0이상이어야 합니다."));
         verifyNoMoreInteractions(boardService);
     }
-    // 400, 정렬 방향은 asc 또는 desc만 허용됩니다.
-    // 400, page는 0 이상이어야 합니다.
 
     @Test
     @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_40")
