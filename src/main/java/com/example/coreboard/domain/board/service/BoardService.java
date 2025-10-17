@@ -140,6 +140,11 @@ public class BoardService {
             throw new AuthErrorException(FORBIDDEN);
         }
 
+        // 하드 삭제라, 이미 삭제된 게시글을 수정하는 건지를 알 수 없어서 추가함
+        if (board.isDeleted()) {
+            throw new BoardErrorException(POST_ISDELETE);
+        }
+
         // 제목 중복 검사
         if (boardRepository.existsByTitle(boardupdateRequest.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);

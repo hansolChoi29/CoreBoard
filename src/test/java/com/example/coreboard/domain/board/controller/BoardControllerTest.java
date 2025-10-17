@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -616,19 +617,19 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_수정_제목과_본문_비어있음_400")
-    void updateTitleAndContentIsBlank() throws Exception{
-        String json= """
+    void updateTitleAndContentIsBlank() throws Exception {
+        String json = """
                 {
                     "titlie" : "",
                     "content" : ""
                 }
                 """;
         mockMvc.perform(
-                put(BASE + "/{id}", id)
-                        .requestAttr("username", username)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
         verifyNoMoreInteractions(boardService);
@@ -636,25 +637,66 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_수정_제목_비어있음_400")
-    void updateContentIsBlank() throws Exception{
-        String json= """
+    void updateContentIsBlank() throws Exception {
+        String json = """
                 {
                     "title" : "",
                     "content" : "sta"
                 }
                 """;
         mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
+        verifyNoMoreInteractions(boardService);
+    }
+
+    @Test
+    @DisplayName("게시글_수정_본문_비어있음_400")
+    void updateTitleIsBlank() throws Exception {
+        String json = """
+                {
+                    "title" : "dasda",
+                    "content" :""
+                }
+                """;
+        mockMvc.perform(
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
+        verifyNoMoreInteractions(boardService);
+    }
+
+    @Test
+    @DisplayName("게시글_수정_이미_삭제된_게시글")
+    void updateIsDelete() throws Exception{
+        String json = """
+                {
+                    "title" : "fd",
+                    "content" : "wef"
+                }
+                """;
+       given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_ISDELETE));
+
+        mockMvc.perform(
                 put(BASE+"/{id}", id)
                         .requestAttr("username", username)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
         )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
-        verifyNoMoreInteractions(boardService);
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("삭제된 게시글입니다."));
+        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
-    // 8) 게시글 수정하려는데 본문만 빈값 (400)
-    // 9) 게시글 수정하려는데 이미 사용 중인 타이틀임 (409)
+
     // 10) 게시글 삭제하려는데 삭제된 게시글임 (404)
 
     // 존재하지 않은 게시글

@@ -35,6 +35,8 @@ public class Board {
     @Column(updatable = false)
     private LocalDateTime lastModifiedDate;
 
+    private boolean isDeleted;
+
     protected Board() {
     }
 
