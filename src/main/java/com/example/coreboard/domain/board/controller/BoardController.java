@@ -71,7 +71,10 @@ public class BoardController {
             @PathVariable Long id
     ) {
         BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
-        BoardUpdateResponse responseDto = boardService.update(updateRequestDto, username, id);
+        Board board = boardService.update(updateRequestDto, username, id);
+        BoardUpdateResponse responseDto = new BoardUpdateResponse(
+                board.getId(), board.getUserId(), board.getTitle(), board.getContent(),board.getLastModifiedDate()
+        );
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 

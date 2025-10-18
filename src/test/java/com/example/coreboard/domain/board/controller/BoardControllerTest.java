@@ -49,7 +49,7 @@ class BoardControllerTest {
     long id = 1;
     // @MockBean <= 지원종료
     @Mock // 진짜 서비스 대신 가짜(테스트용) 서비스
-    BoardService boardService; //DB 안 쓰고 빠르게 테스트
+            BoardService boardService; //DB 안 쓰고 빠르게 테스트
 
     @InjectMocks // 가짜 서비스(@Mock)를 주입한 컨트롤러 인스턴스
     BoardController boardController;
@@ -473,11 +473,11 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 수정")
     void update() throws Exception {
-        BoardUpdateResponse dummy = new BoardUpdateResponse(
+        Board dummy = new Board(
                 id,
-                10L,
                 "제목",
                 "내용",
+                LocalDateTime.now(),
                 LocalDateTime.now()
         );
         String json = """
