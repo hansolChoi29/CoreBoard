@@ -711,7 +711,13 @@ class BoardControllerTest {
         when(board.getUserId()).thenReturn(userId);
         when(board.getTitle()).thenReturn("제목");
 
-        BoardDeleteResponse dummy = new BoardDeleteResponse(board);
+        Board dummy = new Board(
+                userId,
+                "제목",
+                "본문",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
 
         given(boardService.delete(eq(username), eq(userId))).willReturn(dummy);
 
