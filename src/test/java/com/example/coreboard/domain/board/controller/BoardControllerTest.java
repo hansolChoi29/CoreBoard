@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
 
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,6 +48,7 @@ class BoardControllerTest {
     // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
     String username = "tester";
     long id = 1;
+    long userId = 1;
     // @MockBean <= 지원종료
     @Mock // 진짜 서비스 대신 가짜(테스트용) 서비스
             BoardService boardService; //DB 안 쓰고 빠르게 테스트
@@ -335,7 +337,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 단건 조회 성공")
+    @DisplayName("게시글_단건_조회_성공")
     void getOne() throws Exception {
         Board dummy = new Board(
                 1L,
@@ -384,7 +386,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 전체 조회")
+    @DisplayName("게시글_전체_조회")
     void getAll() throws Exception {
         BoardSummaryResponse item = new BoardSummaryResponse(
                 1L, 10L, "제목", LocalDateTime.now()
@@ -469,7 +471,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 수정")
+    @DisplayName("게시글_수정")
     void update() throws Exception {
         Board dummy = new Board(
                 id,
@@ -691,23 +693,19 @@ class BoardControllerTest {
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
 
-
     // 존재하지 않은 게시글
     @Test
-    @DisplayName("게시글 삭제")
+    @DisplayName("게시글_삭제")
     void deleted() throws Exception {
-        long userId = 1;
         // response에서 생성자 매개변수에 엔티티를 받고 있음
-
         Board dummy = new Board(
                 userId,
                 "제목",
-                "본문",
+                "내용",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-
-        given(boardService.delete(eq(username), eq(userId))).willReturn(dummy);
+        given(boardService.delete(eq(username), eq(id))).willReturn(dummy);
 
         mockMvc.perform(
                         delete(BASE + "/{id}", id)
@@ -716,6 +714,22 @@ class BoardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 삭제완료!"));
-        verify(boardService).delete(eq(username), eq(userId));
+        verify(boardService).delete(eq(username), eq(id));
     }
+
+    // 시나리오
+    // 1) 로그인을 안 한 유저 401
+    @Test
+    @DisplayName("게시글_삭졔_로그인_안함_401")
+    void deleteUnauthorized() throws Exception{
+        mockMvcWithInterceptor.perform(
+                delete(BASE+"/{id}", id)
+        )
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
+            verifyNoMoreInteractions(boardService);
+    }
+
+    // 2) 다른 유저 403
+    // 3)
 }
