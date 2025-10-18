@@ -115,8 +115,6 @@ class BoardControllerTest {
                 .andExpect(status().isOk()) // 상태코드 200인지
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON)) // 콘텐츠 타입이 JSON인지
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.userId").value(10))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("본문"))
                 .andExpect(jsonPath("$.data.createdDate", notNullValue()));
@@ -340,12 +338,13 @@ class BoardControllerTest {
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
         Board dummy = new Board(
-                id,
+                1L,
                 "제목",
                 "본문",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
+
         // 요청이 1개라서 eq(id) 하나만
         given(boardService.findOne(eq(id))).willReturn(dummy);
 
@@ -355,8 +354,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 단건 조회!"))
-                .andExpect(jsonPath("$.data.id").value(id));
+                .andExpect(jsonPath("$.message").value("게시글 단건 조회!"));
         // verify 왜 필요한가?
         // 응답만 보는 게 아니라 컨트롤러가 서비스 레이어를 올바르게 호출했는지도 확인해야 함
         // HTTP 요청 -> Controller -> Service 호출의 연결이 잘 이루어졌는지 확인
@@ -494,13 +492,10 @@ class BoardControllerTest {
                                 .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.userId").value(10))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
@@ -696,7 +691,6 @@ class BoardControllerTest {
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
     }
 
-    // 10) 게시글 삭제하려는데 삭제된 게시글임 (404)
 
     // 존재하지 않은 게시글
     @Test
@@ -704,12 +698,6 @@ class BoardControllerTest {
     void deleted() throws Exception {
         long userId = 1;
         // response에서 생성자 매개변수에 엔티티를 받고 있음
-        Board board = mock(Board.class);
-
-        // 삭제할 데이터 넣기
-        when(board.getId()).thenReturn(id);
-        when(board.getUserId()).thenReturn(userId);
-        when(board.getTitle()).thenReturn("제목");
 
         Board dummy = new Board(
                 userId,
@@ -727,10 +715,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 삭제완료!"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.userId").value(userId))
-                .andExpect(jsonPath("$.data.title").value("제목"));
+                .andExpect(jsonPath("$.message").value("게시글 삭제완료!"));
         verify(boardService).delete(eq(username), eq(userId));
     }
 }

@@ -150,9 +150,7 @@ public class BoardService {
         if (board.getUserId() != user.getUserId()) { // 권한 체크
             throw new AuthErrorException(FORBIDDEN);
         }
-
         boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
-
         return board;
     }
 }
