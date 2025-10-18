@@ -43,13 +43,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class) // JUnit5에 Mockito 기능을 꽂아줌(@Mock/@InjectMocks가 동작하도록
 @Import(GlobalExceptionHandler.class) // 글로벌핸들러 등록
 class BoardControllerTest {
-    private static final String BASE = "/api/board"; // 매핑
+    private static final String BASE = "/board"; // 매핑
     // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
     String username = "tester";
     long id = 1;
     // @MockBean <= 지원종료
     @Mock // 진짜 서비스 대신 가짜(테스트용) 서비스
-            BoardService boardService; //DB 안 쓰고 빠르게 테스트
+    BoardService boardService; //DB 안 쓰고 빠르게 테스트
 
     @InjectMocks // 가짜 서비스(@Mock)를 주입한 컨트롤러 인스턴스
     BoardController boardController;
@@ -86,11 +86,11 @@ class BoardControllerTest {
     void create() throws Exception {
         String username = "tester";
 
-        BoardCreateResponse dummy = new BoardCreateResponse(
+        Board dummy = new Board(
                 1L,
-                10L,
                 "제목",
                 "본문",
+                LocalDateTime.now(),
                 LocalDateTime.now()
         );
         // any는 첫번째 인자(요청 dto), 두번째 인자 tester
@@ -395,7 +395,7 @@ class BoardControllerTest {
 
         // content는 목록이라 리스트인데, 테스트 시 목록 1건 흉내냄
         PageResponse<BoardSummaryResponse> pageResponse = new PageResponse<>(List.of(item), 0, 10, 1L);
-        ApiResponse<PageResponse<BoardSummaryResponse>> body = ApiResponse.ok(pageResponse, "게시글 전체 조회!");
+        PageResponse<BoardSummaryResponse> body = ApiResponse.ok(pageResponse, "게시글 전체 조회!").getData();
 
         given(boardService.findAll(eq(0), eq(10), eq("asc"))).willReturn(body);
         mockMvc.perform(
@@ -677,21 +677,21 @@ class BoardControllerTest {
 
     @Test
     @DisplayName("게시글_수정_이미_삭제된_게시글")
-    void updateIsDelete() throws Exception{
+    void updateIsDelete() throws Exception {
         String json = """
                 {
                     "title" : "fd",
                     "content" : "wef"
                 }
                 """;
-       given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_ISDELETE));
+        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_ISDELETE));
 
         mockMvc.perform(
-                put(BASE+"/{id}", id)
-                        .requestAttr("username", username)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        put(BASE + "/{id}", id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("삭제된 게시글입니다."));
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));

@@ -2,19 +2,16 @@ package com.example.coreboard.domain.board.controller;
 
 
 import com.example.coreboard.domain.board.dto.*;
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
-import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api/board")
+@RequestMapping("/board")
 public class BoardController {
     private final BoardService boardService;
 
@@ -28,13 +25,12 @@ public class BoardController {
             @RequestBody BoardCreateRequest boardRequestDto,      // JSON 데이터를 boardRequestDto로 받겠다.
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
-        if (username == null) {
-            throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED); // 401
-        }
-        BoardValidation.createValidation(boardRequestDto);
-        BoardCreateResponse responseDto = boardService.create(boardRequestDto, username); // title과 contents,
-        // uesrname 같이 응답하기 위함
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글이 성공적으로 생성되었습니다."));
+        BoardValidation.createValidation(boardRequestDto); // 유효성 검사
+        Board board = boardService.create(boardRequestDto, username); // 저장된 Board 객체가 반환되어 board로 들어감
+        BoardCreateResponse response = new BoardCreateResponse( // DB에 저장된 엔티티를 응답용으로 변환하여 return 세팅
+                board.getId(), board.getUserId(), board.getTitle(), board.getContent(),board.getCreatedDate()
+        );
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
     // 보드 단건조회
@@ -55,12 +51,10 @@ public class BoardController {
             @RequestParam(defaultValue = "asc") String sort
     ) {
         // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
-        if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
-            throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
-        }
-
+        BoardValidation.sortDirection(sort);
         BoardValidation.pageableValication(page, size);
-        return ResponseEntity.ok(boardService.findAll(page, size, sort));
+        PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
     // 2) 보드 전체 조회 - Cursor

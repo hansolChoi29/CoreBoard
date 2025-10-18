@@ -37,7 +37,7 @@ public class BoardService {
     }
 
     // 보드 생성
-    public BoardCreateResponse create(
+    public Board create(
             BoardCreateRequest boardRequestDto,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
@@ -58,13 +58,7 @@ public class BoardService {
         );
 
         boardRepository.save(board); // 저장
-
-        return new BoardCreateResponse(
-                board.getId(),
-                user.getUserId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getCreatedDate());
+        return board;
     }
 
     // 보드 단건 조회 - 멱등
@@ -87,7 +81,7 @@ public class BoardService {
     }
 
     // 보드 전체 조회 - 멱등
-    public ApiResponse<PageResponse<BoardSummaryResponse>> findAll(int page, int size, String sort
+    public PageResponse<BoardSummaryResponse> findAll(int page, int size, String sort
     ) {
         // Sort.Direction : Spring 전용 Enum(Sort.Direction.ASC, Sort.Direction.DESC)
         Sort.Direction direction = sort.equalsIgnoreCase("asc")
@@ -119,7 +113,7 @@ public class BoardService {
                 result.getTotalElements() // 전체 게시글 수
         );
 
-        return ApiResponse.ok(body, "게시글 전체 조회!");
+        return ApiResponse.ok(body, "게시글 전체 조회!").getData();
     }
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
@@ -138,16 +132,6 @@ public class BoardService {
         // 권한 체크
         if (board.getUserId() != user.getUserId()) {
             throw new AuthErrorException(FORBIDDEN);
-        }
-
-//        // 하드 삭제라, 이미 삭제된 게시글을 수정하는 건지를 알 수 없어서 추가함
-//        if (board.isDeleted()) {
-//            throw new BoardErrorException(POST_ISDELETE);
-//        }
-
-        // 제목 중복 검사
-        if (boardRepository.existsByTitle(boardupdateRequest.getTitle())) {
-            throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 저장

@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 인터셉터 만들기 : 체인에 끼워 넣어야 모든 요청이 들어오기 전에 가로챌 수 있음
         registry.addInterceptor(new AuthInterceptor())
                 // 기본적으로 api경로의 모든 요청 검사 - REST API 진입점은 api.
-                .addPathPatterns("/api/**")
+                .addPathPatterns("/**")
                 // auth과 에러는 예외 - 아직 토큰이 없거나 새로 발급 받아야 하는 구간이기 때문
                 .excludePathPatterns(
                         "/api/auth/**",

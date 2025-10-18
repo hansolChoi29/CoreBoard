@@ -76,4 +76,10 @@ public class BoardValidation {
             throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }
     }
+
+    public static void sortDirection(String sort){
+        if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
+            throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
+        }
+    }
 }
