@@ -28,7 +28,7 @@ public class BoardController {
         BoardValidation.createValidation(boardRequestDto); // 유효성 검사
         Board board = boardService.create(boardRequestDto, username); // 저장된 Board 객체가 반환되어 board로 들어감
         BoardCreateResponse response = new BoardCreateResponse( // DB에 저장된 엔티티를 응답용으로 변환하여 return 세팅
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(),board.getCreatedDate()
+                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate()
         );
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
@@ -38,9 +38,12 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable Long id                                        // 단건 조회라서 id 받게 함
     ) {
-        BoardGetOneResponse responseDto = boardService.findOne(id); // 유저id와 게시글id findOneBoard 실행하여
-        // 반환된 값 변수에 넣음
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 단건 조회!"));
+        Board board = boardService.findOne(id); // id 추출하여 board 반환
+        BoardGetOneResponse response = new BoardGetOneResponse( // 응답용 세팅
+                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate(),
+                board.getLastModifiedDate()
+        );
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
     @GetMapping

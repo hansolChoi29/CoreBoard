@@ -62,7 +62,7 @@ public class BoardService {
     }
 
     // 보드 단건 조회 - 멱등
-    public BoardGetOneResponse findOne(
+    public Board findOne(
             Long id
     ) {
 
@@ -70,14 +70,7 @@ public class BoardService {
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
-        return new BoardGetOneResponse(
-                board.getId(),
-                board.getUserId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getCreatedDate(),
-                board.getLastModifiedDate()
-        );
+        return board;
     }
 
     // 보드 전체 조회 - 멱등
