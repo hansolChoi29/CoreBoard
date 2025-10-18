@@ -339,9 +339,8 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글 단건 조회 성공")
     void getOne() throws Exception {
-        BoardGetOneResponse dummy = new BoardGetOneResponse(
+        Board dummy = new Board(
                 id,
-                10L,
                 "제목",
                 "본문",
                 LocalDateTime.now(),
