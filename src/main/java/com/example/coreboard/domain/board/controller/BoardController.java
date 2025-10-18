@@ -73,7 +73,7 @@ public class BoardController {
         BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
         Board board = boardService.update(updateRequestDto, username, id);
         BoardUpdateResponse responseDto = new BoardUpdateResponse(
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(),board.getLastModifiedDate()
+                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getLastModifiedDate()
         );
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
@@ -84,7 +84,9 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-        BoardDeleteResponse responseDto = boardService.delete(username, id);
+        Board board = boardService.delete(username, id);
+
+        BoardDeleteResponse responseDto = new BoardDeleteResponse(board);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 삭제완료!"));
     }
 }

@@ -137,7 +137,7 @@ public class BoardService {
     }
 
     // 보드 삭제
-    public BoardDeleteResponse delete(
+    public Board delete(
             String username,
             Long id
     ) {
@@ -153,8 +153,6 @@ public class BoardService {
 
         boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
 
-        return new BoardDeleteResponse(
-                board
-        );
+        return board;
     }
 }
