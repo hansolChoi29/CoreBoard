@@ -111,7 +111,7 @@ public class BoardService {
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
-    public BoardUpdateResponse update(
+    public Board update(
             BoardUpdateRequest boardupdateRequest,
             String username,
             Long id
@@ -133,13 +133,7 @@ public class BoardService {
                 boardupdateRequest.getContent()
         );
 
-        return new BoardUpdateResponse(
-                board.getId(),
-                user.getUserId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getLastModifiedDate()
-        );
+        return board;
     }
 
     // 보드 삭제
