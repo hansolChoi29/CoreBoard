@@ -457,7 +457,7 @@ class BoardControllerTest {
     }
 
     @Test
-    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_40")
+    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_404")
     void getAllInvalidSortDirection() throws Exception {
         mockMvc.perform(
                         get(BASE)
