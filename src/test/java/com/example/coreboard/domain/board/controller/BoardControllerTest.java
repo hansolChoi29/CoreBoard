@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +22,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
 
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,11 +43,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(GlobalExceptionHandler.class) // 글로벌핸들러 등록
 class BoardControllerTest {
     private static final String BASE = "/board"; // 매핑
-    // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
     String username = "tester";
     long id = 1;
     long userId = 1;
+
     // @MockBean <= 지원종료
+    // MockMvc : 진짜 톰캣이 없어도 컨트롤러를 테스트할 수 있게 해주는 가짜 브라우저/클라이언트
     @Mock // 진짜 서비스 대신 가짜(테스트용) 서비스
             BoardService boardService; //DB 안 쓰고 빠르게 테스트
 
@@ -203,7 +202,7 @@ class BoardControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
 
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     // controller test 시 given을 사용하겠다란 말은
@@ -226,8 +225,7 @@ class BoardControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
         // 서비스가 단 한번도 호출되면 안 된다.
-        verify(boardService, never()).create(any(), anyString());
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     @Test
@@ -247,7 +245,8 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
-        verify(boardService, never()).create(any(), anyString());
+
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     @Test
@@ -267,7 +266,8 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
-        verify(boardService, never()).create(any(), anyString());
+
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     @Test
@@ -288,7 +288,8 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
-        verify(boardService, never()).create(any(), anyString());
+
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     @Test
@@ -309,7 +310,8 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
-        verify(boardService, never()).create(any(), anyString());
+
+        verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
     @Test
@@ -332,8 +334,9 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isConflict()) // 중복데이터가 있을 필요가 없음 mock 중복이야!라고 던진다고 가정
                 .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
+
         verify(boardService).create(any(), eq(username));
-        verifyNoMoreInteractions(boardService);
+        verifyNoMoreInteractions(boardService); // create 말고는 호출되어선 안 된다.
     }
 
     @Test
@@ -415,6 +418,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.size").value(10));
         // verify : 컨트롤러가 mock서비스에게 어떤 호출을 했는지를 검증
         verify(boardService).findAll(eq(0), eq(10), eq("asc"));
+        verifyNoMoreInteractions(boardService);
     }
 
     // 성공 테스트는 서비스가 필요한데 왜 예외 시 불필요한가?
@@ -437,7 +441,7 @@ class BoardControllerTest {
 
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("page는 0이상이어야 합니다."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
     @Test
@@ -452,7 +456,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
     @Test
@@ -467,6 +471,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
         verifyNoMoreInteractions(boardService);
     }
 
@@ -502,6 +507,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.content").value("내용"))
                 .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
         verify(boardService).update(any(), eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
@@ -521,7 +527,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -545,6 +551,8 @@ class BoardControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
+
     }
 
     @Test
@@ -567,6 +575,7 @@ class BoardControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
@@ -587,7 +596,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -608,7 +617,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -628,7 +637,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -648,7 +657,8 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
-        verifyNoMoreInteractions(boardService);
+        // DTO 같은 객체, 로그인한 사용자명, 게시글 ID 어떤 인자 조합으로도 절대 호출되면 안 된다.
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -668,7 +678,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
     @Test
@@ -691,9 +701,9 @@ class BoardControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("삭제된 게시글입니다."));
         verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
     }
 
-    // 존재하지 않은 게시글
     @Test
     @DisplayName("게시글_삭제")
     void deleted() throws Exception {
@@ -715,10 +725,9 @@ class BoardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 삭제완료!"));
         verify(boardService).delete(eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
     }
 
-    // 시나리오
-    // 1) 로그인을 안 한 유저 401
     @Test
     @DisplayName("게시글_삭졔_로그인_안함_401")
     void deleteUnauthorized() throws Exception {
@@ -727,10 +736,9 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verifyNoMoreInteractions(boardService);
+        verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
-    // 2) 다른 유저 403
     @Test
     @DisplayName("게시글_삭제_다른_유저_403")
     void deleteForbidden() throws Exception {
@@ -746,5 +754,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."))
         ;
         verify(boardService).delete(eq(username), eq(id));
+        verifyNoMoreInteractions(boardService);
     }
 }
