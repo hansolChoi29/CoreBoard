@@ -721,15 +721,30 @@ class BoardControllerTest {
     // 1) 로그인을 안 한 유저 401
     @Test
     @DisplayName("게시글_삭졔_로그인_안함_401")
-    void deleteUnauthorized() throws Exception{
+    void deleteUnauthorized() throws Exception {
         mockMvcWithInterceptor.perform(
-                delete(BASE+"/{id}", id)
-        )
+                        delete(BASE + "/{id}", id)
+                )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-            verifyNoMoreInteractions(boardService);
+        verifyNoMoreInteractions(boardService);
     }
 
     // 2) 다른 유저 403
-    // 3)
+    @Test
+    @DisplayName("게시글_삭제_다른_유저_403")
+    void deleteForbidden() throws Exception {
+        String otherUser = "tester";
+        given(boardService.delete(eq(username), eq(id))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+
+        mockMvc.perform(
+                        delete(BASE + "/{id}", id)
+                                .requestAttr("username", otherUser)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."))
+        ;
+        verify(boardService).delete(eq(username), eq(id));
+    }
 }
