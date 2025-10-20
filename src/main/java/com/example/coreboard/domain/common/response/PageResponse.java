@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.board.dto;
+package com.example.coreboard.domain.common.response;
 
 import java.util.List;
 
