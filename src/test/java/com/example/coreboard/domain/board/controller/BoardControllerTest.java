@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 import org.springframework.test.web.servlet.MockMvc;
@@ -309,7 +310,7 @@ class BoardControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
+                .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
 
         verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
@@ -595,7 +596,7 @@ class BoardControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("본문은 1000자 이하여야 합니다."));
+                .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
         verify(boardService, never()).update(any(), anyString(), anyLong());
     }
 
@@ -708,14 +709,6 @@ class BoardControllerTest {
     @DisplayName("게시글_삭제")
     void deleted() throws Exception {
         // response에서 생성자 매개변수에 엔티티를 받고 있음
-        Board dummy = new Board(
-                userId,
-                "제목",
-                "내용",
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
-        given(boardService.delete(eq(username), eq(id))).willReturn(dummy);
 
         mockMvc.perform(
                         delete(BASE + "/{id}", id)
@@ -743,7 +736,13 @@ class BoardControllerTest {
     @DisplayName("게시글_삭제_다른_유저_403")
     void deleteForbidden() throws Exception {
         String otherUser = "tester";
-        given(boardService.delete(eq(username), eq(id))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+        // 트러블- 문법 오류
+        // delete가 void라서 Mockito는 내부적으로 이 메서드가 호출되면 예외를 반환값처럼 던져라라는 의미인데
+        // void메서드는 리턴값이 없어서 예외를 반환값처럼 등록할 수 없음
+        // given(boardService.delete(eq(username), eq(id))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+
+        willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN))
+                .given(boardService).delete(eq(otherUser), eq(id)); // 리턴값 없음
 
         mockMvc.perform(
                         delete(BASE + "/{id}", id)

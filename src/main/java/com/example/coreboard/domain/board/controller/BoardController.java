@@ -81,12 +81,12 @@ public class BoardController {
 
     // 보드 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<BoardDeleteResponse>> delete(
+    public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-        BoardDeleteResponse responseDto = boardService.delete(username, id);
-
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 삭제완료!"));
+         boardService.delete(username, id);
+         // 자원을 없앴으니 응답 바디에 실어줄 자원 데이터 자체가 존재하지 않음
+        return ResponseEntity.ok(ApiResponse.ok(null,"게시글 삭제완료!"));
     }
 }
