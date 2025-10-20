@@ -1,28 +1,33 @@
 package com.example.coreboard.domain.auth.controller;
 
+import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
 
-    private static final String BASE ="/auth";
-    String username="tester";
+    private static final String BASE = "/auth";
+    String username = "tester";
 
     @Mock
     AuthService authService;
@@ -32,14 +37,14 @@ class AuthControllerTest {
     MockMvc mockMvc;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         // MockMvc를 만들려면
         // 1. 컨트롤러
         // 2. 전역 예외처리기
         // 3. JSON<->객체 변환기
         // 4. 위 설정들로 MockMvc 인스턴스 생성하겠다.
 
-        mockMvc= MockMvcBuilders
+        mockMvc = MockMvcBuilders
                 .standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
@@ -48,8 +53,29 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입_성공")
-    void signUp() {
-
+    void signUp() throws Exception {
+        SignUpResponse dummy = new SignUpResponse(
+                username
+        );
+        String json = """
+                    {
+                        "username":"user03",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """;
+        given(authService.signup(any())).willReturn(dummy);
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("회원가입 성공"));
+        verify(authService).signup(any());
     }
     // 회원가입 시 비밀번호 확인 불일치 400
     // 회원가입 시 이미 가입한 계정 409
