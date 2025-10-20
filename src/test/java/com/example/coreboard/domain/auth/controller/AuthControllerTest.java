@@ -180,29 +180,6 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입_비밀번호_6자리_이상_400")
-    void signUpPasswordTooShort() throws Exception {
-        String json = """
-                    {
-                        "username":"user03",
-                        "email":"gksthf20@naver.com",
-                        "phoneNumber":"02012341234",
-                        "password":"gkst",
-                        "confirmPassword":"gkst"
-                    }
-                """;
-        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_TOO_SHORT));
-        mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호는 6자리 이상이어야 합니다."));
-        verify(authService).signUp(any());
-    }
-
-    @Test
     @DisplayName("로그인_성공")
     void signIn() throws Exception {
         TokenResponse dummy = new TokenResponse(

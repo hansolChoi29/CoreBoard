@@ -11,6 +11,7 @@ import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,6 +81,7 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("회원가입_성공")
     void signUp() {
         // given
         // 이런 일이 일어날 때, 이렇게 하라고 미리 설정
@@ -118,6 +120,72 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("회원가입_비밀번호_불일치_400")
+    void signUp_IsMisMatch() {
+        AuthErrorException passwordMismatch = assertThrows(
+                AuthErrorException.class,
+                () -> authService.signUp(new SignUpRequest(
+                        "tester",
+                        "password",
+                        "pa",
+                        "email@naver.com",
+                        "01012341234"
+                ))
+        );
+        assertEquals(400, passwordMismatch.getStatus());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_null_400")
+    void signUp_IsPasswordNull() {
+        AuthErrorException passwordNull = assertThrows(
+                AuthErrorException.class,
+                () -> authService.signUp(new SignUpRequest(
+                        "tester",
+                        null,
+                        "password",
+                        "email@naver.com",
+                        "01012341234"
+                ))
+        );
+        assertEquals(400, passwordNull.getStatus());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호확인_null_400")
+    void signUp_IsConfirmPasswordNull() {
+        AuthErrorException confirmPasswordNull = assertThrows(
+                AuthErrorException.class,
+                () -> authService.signUp(new SignUpRequest(
+                        "tester",
+                        "password",
+                        null,
+                        "email@naver.com",
+                        "01012341234"
+                ))
+        );
+        assertEquals(400, confirmPasswordNull.getStatus());
+    }
+
+    @Test
+    @DisplayName("회원가입_존재_유저_409")
+    void signUp_IsConflict() {
+        given(usersRepository.existsByUsername("tester")).willReturn(true);
+
+        AuthErrorException usernameIsConflict = assertThrows(AuthErrorException.class,
+                () -> authService.signUp(new SignUpRequest(
+                        "tester",
+                        "password",
+                        "password",
+                        "email@naver.com",
+                        "01012341234"
+                )));
+        assertEquals(409, usernameIsConflict.getStatus());
+        verify(usersRepository).existsByUsername("tester");
+    }
+
+    @Test
+    @DisplayName("로그인_성공")
     void signIn() {
         // given : 상황세팅
         // verify : 실제 호출 확인(검증)
@@ -172,7 +240,8 @@ class AuthServiceTest {
     }
 
     @Test
-    void signIn_빈값_BadRequest() {
+    @DisplayName("로그인_필드_null_400")
+    void signIn_IsBadRequest() {
         // username blank
         AuthErrorException usernameIsBlank = assertThrows(AuthErrorException.class,
                 () -> authService.signIn(new SignInRequest(" ", "password")));
@@ -186,5 +255,48 @@ class AuthServiceTest {
         AuthErrorException usernameAndPasswordIsBlank = assertThrows(AuthErrorException.class,
                 () -> authService.signIn(new SignInRequest(" ", " ")));
         assertEquals(400, usernameAndPasswordIsBlank.getStatus());
+    }
+
+    @Test
+    @DisplayName("로그인_존재하지_않는_사용자")
+    void signIn_isNotFound() {
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.empty());
+
+        AuthErrorException usernameNotFound = assertThrows(
+                AuthErrorException.class,
+                () -> authService.signIn(new SignInRequest(
+                        "tester",
+                        "password"
+                )));
+        assertEquals(404, usernameNotFound.getStatus());
+        verify(usersRepository).findByUsername("tester");
+    }
+
+    @Test
+    @DisplayName("로그인_비번_불일치_401")
+    void signIn_isUnAuthorized() {
+        Users dummy = new Users(
+                "tester",
+                "encodedPassword",
+                "email@naver.com",
+                "01012341234"
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(dummy));
+        given(passwordEncode.matches("password", "encodedPassword")).willReturn(false);
+
+        // authService.signIn 실행 중 AuthErrorException 에러를 던져야 한다.
+        AuthErrorException passwordUnAuthorized = assertThrows(
+                AuthErrorException.class,
+                () -> authService.signIn(new SignInRequest(
+                        "tester",
+                        "password"
+                )));
+
+        // 기대한 값과 실제값이 같아야 한다.(기대, 실제)
+        assertEquals(401, passwordUnAuthorized.getStatus());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(passwordEncode).matches("password", "encodedPassword");
     }
 }
