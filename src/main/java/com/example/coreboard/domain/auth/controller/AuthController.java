@@ -10,7 +10,7 @@ import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RestController
 public class AuthController {
     private final AuthService authService;
@@ -20,7 +20,7 @@ public class AuthController {
     }
 
     // 트러블 : @RequestBody 누락 - 자바 객체로 변환 (httpMessageConverter)
-    @PostMapping("/sign-up")
+    @PostMapping("/users")
     public ResponseEntity<ApiResponse<AuthApiResponse>> signUp(@RequestBody SignUpRequest request) {
         // 요청의 JSON데이터를 SignUpResponse 객체로 바꿔서 받음 <= @RequestBody
         // 응답은 ApiResponse<SignUpResponse> 형태로 감싸서 반환(공통 응답 포맷)
@@ -30,7 +30,7 @@ public class AuthController {
         // ApiResponse.ok는 공통 응답 포맷으로, 성공응답코드임
     }
 
-    @PostMapping("/sign-in")
+    @PostMapping("/token")
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(
             @RequestBody SignInRequest request
     ) {
