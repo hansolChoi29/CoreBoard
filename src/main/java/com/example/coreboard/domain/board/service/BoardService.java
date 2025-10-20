@@ -6,7 +6,6 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.PageResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -17,14 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
-import static org.springframework.data.util.ClassUtils.ifPresent;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BoardService {
@@ -109,8 +106,7 @@ public class BoardService {
                 result.getTotalElements() // 전체 게시글 수
         );
 
-        // TODO : 서비스 계층에서 공통포맷을 반환하는 것은 레이어 위반
-        return ApiResponse.ok(body, "게시글 전체 조회!").getData();
+        return body;
     }
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
@@ -150,13 +146,17 @@ public class BoardService {
 
         // 보드 1로 삭제 1번째 : 성공
         // 보드 1로 삭제 2번째 : board가 존재하지 않음 - 비멱등 (따라서 삭제 성공 계속 보내야 함)
-        boardRepository.findById(id)
-                .filter(board -> {
+        boardRepository.findById(id) // Optional이라 null 허용되게 함
+                .filter(board -> { // false면 Optional.empty()로 바꿈
                     if (!board.getUserId().equals(user.getUserId())) {
                         throw new AuthErrorException(FORBIDDEN);
                     }
-                    return true;
+                    return true; // 권한 있으면 Optional 유지하여
                 })
                 .ifPresent(boardRepository::delete);
+                //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
+                // ifPresent()는 Optional 안에 값이 존재할 경우 실행
+                // 게시글이 존재한다 : baordRepository(board) 호출하고
+                // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
     }
 }
