@@ -22,7 +22,6 @@ public class SignInRequest {
         return password;
     }
 
-    // JSON -> 객체로 넣어줄 통로가 필요함
     public void setPassword(String password) {
         this.password = password;
     }
