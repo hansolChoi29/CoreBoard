@@ -140,7 +140,7 @@ public class BoardService {
         return board;
     }
 
-    // 보드 삭제 - TODO : 삭제는 Board를 반환하도록 설계하는 것은 비권장(성공 여부 끝냄)
+    // 보드 삭제
     public void delete(
             String username,
             Long id
@@ -150,14 +150,13 @@ public class BoardService {
 
         // 보드 1로 삭제 1번째 : 성공
         // 보드 1로 삭제 2번째 : board가 존재하지 않음 - 비멱등 (따라서 삭제 성공 계속 보내야 함)
-//        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
-//                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
-
-
-//        if (board.getUserId() != user.getUserId()) { // 권한 체크
-//            throw new AuthErrorException(FORBIDDEN);
-//        }
-//        boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
-        return board.getId();
+        boardRepository.findById(id)
+                .filter(board -> {
+                    if (!board.getUserId().equals(user.getUserId())) {
+                        throw new AuthErrorException(FORBIDDEN);
+                    }
+                    return true;
+                })
+                .ifPresent(boardRepository::delete);
     }
 }
