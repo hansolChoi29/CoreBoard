@@ -6,6 +6,7 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.board.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.domain.common.response.PageResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,15 +79,14 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
     }
 
-    // 보드 삭제 - TODO: 멱등하지 않다. (개선필요)
+    // 보드 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardDeleteResponse>> delete(
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-        Board board = boardService.delete(username, id);
+        BoardDeleteResponse responseDto = boardService.delete(username, id);
 
-        BoardDeleteResponse responseDto = new BoardDeleteResponse(board);
         return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 삭제완료!"));
     }
 }

@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
     // 오프셋
@@ -13,6 +15,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     // LIMIT : 한 페이지에 몇 개 보여줄지
     // OFFSET : 몇 개 건너뛸지 계산 (page * size)
     // COUNT : 전체 데이터 개수 계산
+    Optional<Board> findById(Long id);
 
     Page<Board> findAll(Pageable pageable); // JPA가 제공하는 Pageable 이용하여 PageRequest 기반 오프셋 만들기
     boolean existsByTitle(String title);

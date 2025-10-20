@@ -7,6 +7,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.domain.common.response.PageResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -16,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
+import static org.springframework.data.util.ClassUtils.ifPresent;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BoardService {
@@ -106,6 +109,7 @@ public class BoardService {
                 result.getTotalElements() // 전체 게시글 수
         );
 
+        // TODO : 서비스 계층에서 공통포맷을 반환하는 것은 레이어 위반
         return ApiResponse.ok(body, "게시글 전체 조회!").getData();
     }
 
@@ -136,21 +140,24 @@ public class BoardService {
         return board;
     }
 
-    // 보드 삭제
-    public Board delete(
+    // 보드 삭제 - TODO : 삭제는 Board를 반환하도록 설계하는 것은 비권장(성공 여부 끝냄)
+    public void delete(
             String username,
             Long id
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
+        // 보드 1로 삭제 1번째 : 성공
+        // 보드 1로 삭제 2번째 : board가 존재하지 않음 - 비멱등 (따라서 삭제 성공 계속 보내야 함)
+//        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
+//                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
-        if (board.getUserId() != user.getUserId()) { // 권한 체크
-            throw new AuthErrorException(FORBIDDEN);
-        }
-        boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
-        return board;
+
+//        if (board.getUserId() != user.getUserId()) { // 권한 체크
+//            throw new AuthErrorException(FORBIDDEN);
+//        }
+//        boardRepository.delete(board); // 스프링에서 제공되는 삭제 메서드
+        return board.getId();
     }
 }
