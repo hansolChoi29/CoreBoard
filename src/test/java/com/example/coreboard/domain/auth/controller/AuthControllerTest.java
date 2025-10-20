@@ -135,7 +135,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입_이메일_누락_400")
-    void signUpEmailRequierd() throws Exception {
+    void signUpEmailRequired() throws Exception {
         String json = """
                     {
                         "username":"user03",
@@ -158,7 +158,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입_비밀번호_누락_400")
-    void signUpPasswordRequierd() throws Exception {
+    void signUpPasswordRequired() throws Exception {
         String json = """
                     {
                         "username":"qwer1",
@@ -168,43 +168,20 @@ class AuthControllerTest {
                         "confirmPassword":""
                     }
                 """;
-        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.ID_REQUIRED));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_REQUIRED));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
-        verify(authService).signUp(any());
-    }
-
-    @Test
-    @DisplayName("회원가입_비밀번호_6자리_이상_400")
-    void signUpPasswordTooShort() throws Exception {
-        String json = """
-                    {
-                        "username":"user03",
-                        "email":"gksthf20@naver.com",
-                        "phoneNumber":"02012341234",
-                        "password":"gkst",
-                        "confirmPassword":"gkst"
-                    }
-                """;
-        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_TOO_SHORT));
-        mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호는 6자리 이상이어야 합니다."));
+                .andExpect(jsonPath("$.message").value("비밀번호는 필수입니다."));
         verify(authService).signUp(any());
     }
 
     @Test
     @DisplayName("로그인_성공")
-    void signIn() throws Exception{
+    void signIn() throws Exception {
         TokenResponse dummy = new TokenResponse(
                 "accessToken",
                 "refreshToken"
@@ -217,33 +194,34 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                post(BASE+"/token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE + "/token")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("로그인 성공!"));
+                .andExpect(jsonPath("$.message").value("로그인 성공!"))
+                .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
+                .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
         verify(authService).signIn(any());
-
     }
-    
+
     //로그인 시나리오 (컨트롤러는 요청 응답 메시지용, 진짜 검증은 서비스test에서)
     @Test
     @DisplayName("로그인_존재하지_않는_사용자_404")
-    void signInNotFound() throws Exception{
+    void signInNotFound() throws Exception {
 
         given(authService.signIn(any())).willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
-        String json= """
+        String json = """
                  {
                     "username" : "qwer1",
                     "password" : "qwer1"
                 }
                 """;
         mockMvc.perform(
-                post(BASE+"/token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE + "/token")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
         verify(authService).signIn(any());
@@ -251,7 +229,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인_아이디_또는_비밀번호_불일치")
-    void signInIdOrPasswordMismatch() throws Exception{
+    void signInIdOrPasswordMismatch() throws Exception {
         String json = """
                 {
                     "username" : "username",
@@ -260,10 +238,10 @@ class AuthControllerTest {
                 """;
         given(authService.signIn(any())).willThrow(new AuthErrorException(AuthErrorCode.BAD_REQUEST));
         mockMvc.perform(
-                post(BASE+"/token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE + "/token")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
         verify(authService).signIn(any());

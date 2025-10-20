@@ -10,9 +10,8 @@ public enum AuthErrorCode {
     PASSWORD_CONFIRM_MISMATCH(400, "비밀번호 확인이 일치하지 않습니다."),
     CONFLICT(409, "이미 가입한 계정입니다."),
     EMAIL_REQUIRED(400,"이메일은 필수입니다."),
-    ID_REQUIRED(400,"이메일은 필수입니다."),
-    PASSWORD_REQUIRED(400,"비밀번호는 필수입니다."),
-    PASSWORD_TOO_SHORT(400,"비밀번호는 6자리 이상이어야 합니다.");
+    ID_REQUIRED(400,"아이디는 필수입니다."),
+    PASSWORD_REQUIRED(400,"비밀번호는 필수입니다.");
 
     private final int status;
     private final String message;
