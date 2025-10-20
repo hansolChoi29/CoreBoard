@@ -2,7 +2,6 @@ package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.SignInRequest;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
 import com.example.coreboard.domain.common.config.PasswordEncode;
@@ -29,7 +28,7 @@ public class AuthService {
     }
 
     // 회원가입
-    public Users signup(SignUpRequest signUpRequest) { // AuthResponse :  객체 형태로 반환한다는 의미
+    public Users signUp(SignUpRequest signUpRequest) { // AuthResponse :  객체 형태로 반환한다는 의미
         // 1) 비밀번호 확인
         if (signUpRequest.getPassword() == null || !signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
             throw new AuthErrorException(PASSWORD_CONFIRM_MISMATCH); // 비밀번호 확인 불일치

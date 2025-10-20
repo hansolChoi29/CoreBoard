@@ -6,8 +6,6 @@ import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
-import com.example.coreboard.domain.common.config.PasswordEncode;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +28,7 @@ public class AuthController {
 
         // 요청의 JSON데이터를 SignUpResponse 객체로 바꿔서 받음 <= @RequestBody
         // 응답은 ApiResponse<SignUpResponse> 형태로 감싸서 반환(공통 응답 포맷)
-        Users users = authService.signup(request);
+        Users users = authService.signUp(request);
         SignUpResponse response =new SignUpResponse(
                 users.getUsername()
         );

@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.auth.controller;
 
+import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -17,7 +18,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import javax.print.attribute.standard.Media;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
@@ -64,6 +64,7 @@ class AuthControllerTest {
                 "qwer29@naver.com",
                 "01012341234"
         );
+        given(authService.signUp(any())).willReturn(dummy);
         String json = """
                     {
                         "username":"user03",
@@ -73,16 +74,14 @@ class AuthControllerTest {
                         "confirmPassword":"gkst"
                     }
                 """;
-        given(authService.signup(any())).willReturn(dummy);
         mockMvc.perform(
                         post(BASE + "/users")
-                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("회원가입 성공"));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
     @Test
@@ -95,10 +94,11 @@ class AuthControllerTest {
                         "email":"gksthf20@naver.com",
                         "phoneNumber":"02012341234",
                         "password":"gkst",
-                        "confirmPassword":"gkst"
+                        "confirmPassword":"wmleporujq32109"
                     }
                 """; // 컨트롤러 테스트라서 비밀번호 검증은 serviceTest에서 하겠음
-        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
+
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -106,7 +106,7 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
     // 회원가입 시 비밀번호 확인 불일치 400
@@ -122,7 +122,7 @@ class AuthControllerTest {
                         "confirmPassword":"gkst"
                     }
                 """;
-        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -130,7 +130,7 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("이미 가입한 계정입니다."));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
     @Test
@@ -139,13 +139,13 @@ class AuthControllerTest {
         String json = """
                     {
                         "username":"user03",
-                        "email":"gksthf20@naver.com",
+                        "email":"",
                         "phoneNumber":"02012341234",
                         "password":"gkst",
                         "confirmPassword":"gkst"
                     }
                 """;
-        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.EMAIL_REQUIRED));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.EMAIL_REQUIRED));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .content(json)
@@ -153,7 +153,7 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
     @Test
@@ -168,7 +168,7 @@ class AuthControllerTest {
                         "confirmPassword":""
                     }
                 """;
-        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.ID_REQUIRED));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.ID_REQUIRED));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -176,11 +176,11 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
     @Test
-    @DisplayName("회원가입_비밀번호_6자리_이상")
+    @DisplayName("회원가입_비밀번호_6자리_이상_400")
     void signUpPasswordTooShort() throws Exception {
         String json = """
                     {
@@ -191,7 +191,7 @@ class AuthControllerTest {
                         "confirmPassword":"gkst"
                     }
                 """;
-        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_TOO_SHORT));
+        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_TOO_SHORT));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -199,11 +199,73 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호는 6자리 이상이어야 합니다."));
-        verify(authService).signup(any());
+        verify(authService).signUp(any());
     }
 
+    @Test
+    @DisplayName("로그인_성공")
+    void signIn() throws Exception{
+        TokenResponse dummy = new TokenResponse(
+                "accessToken",
+                "refreshToken"
+        );
+        given(authService.signIn(any())).willReturn(dummy);
+        String json = """
+                {
+                    "username" : "qwer1",
+                    "password" : "qwer1"
+                }
+                """;
+        mockMvc.perform(
+                post(BASE+"/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("로그인 성공!"));
+        verify(authService).signIn(any());
+
+    }
+    
+    //로그인 시나리오 (컨트롤러는 요청 응답 메시지용, 진짜 검증은 서비스test에서)
+    @Test
+    @DisplayName("로그인_존재하지_않는_사용자_404")
+    void signInNotFound() throws Exception{
+
+        given(authService.signIn(any())).willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        String json= """
+                 {
+                    "username" : "qwer1",
+                    "password" : "qwer1"
+                }
+                """;
+        mockMvc.perform(
+                post(BASE+"/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
+        verify(authService).signIn(any());
+    }
 
     @Test
-    void signIn() {
+    @DisplayName("로그인_아이디_또는_비밀번호_불일치")
+    void signInIdOrPasswordMismatch() throws Exception{
+        String json = """
+                {
+                    "username" : "username",
+                    "password" : "password"
+                }
+                """;
+        given(authService.signIn(any())).willThrow(new AuthErrorException(AuthErrorCode.BAD_REQUEST));
+        mockMvc.perform(
+                post(BASE+"/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
+        verify(authService).signIn(any());
     }
 }
