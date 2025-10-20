@@ -101,7 +101,6 @@ class AuthControllerTest {
         given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
         mockMvc.perform(
                         post(BASE + "/users")
-                                .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -109,10 +108,11 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
         verify(authService).signup(any());
     }
+
     // 회원가입 시 비밀번호 확인 불일치 400
     @Test
     @DisplayName("회원가입_이미_가입한_계정_409")
-    void signUpConflict() throws Exception{
+    void signUpConflict() throws Exception {
         String json = """
                     {
                         "username":"user03",
@@ -124,21 +124,83 @@ class AuthControllerTest {
                 """;
         given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
         mockMvc.perform(
-                post(BASE+"/users")
-                        .requestAttr("username", username)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("이미 가입한 계정입니다."));
         verify(authService).signup(any());
     }
-    // 회원가입 시 이미 가입한 계정 409
 
-    // 회원가입 시 이메일 누락 400
-    // 회원가입 시 아이디 누락 400
-    // 회원가입 시 비밀번호 누락 400
-    // 회원가입 시 비밀번호 6자리 이상
+    @Test
+    @DisplayName("회원가입_이메일_누락_400")
+    void signUpEmailRequierd() throws Exception {
+        String json = """
+                    {
+                        "username":"user03",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """;
+        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.EMAIL_REQUIRED));
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .content(json)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
+        verify(authService).signup(any());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_누락_400")
+    void signUpPasswordRequierd() throws Exception {
+        String json = """
+                    {
+                        "username":"qwer1",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"",
+                        "confirmPassword":""
+                    }
+                """;
+        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.ID_REQUIRED));
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
+        verify(authService).signup(any());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_6자리_이상")
+    void signUpPasswordTooShort() throws Exception {
+        String json = """
+                    {
+                        "username":"user03",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """;
+        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_TOO_SHORT));
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호는 6자리 이상이어야 합니다."));
+        verify(authService).signup(any());
+    }
 
 
     @Test
