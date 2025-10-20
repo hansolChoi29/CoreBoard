@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 // auth과 에러는 예외 - 아직 토큰이 없거나 새로 발급 받아야 하는 구간이기 때문
                 .excludePathPatterns(
-                        "/api/auth/**",
+                        "/auth/**",
                         "/error"
                 );
     }
