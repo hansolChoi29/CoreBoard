@@ -3,6 +3,9 @@ package com.example.coreboard.domain.auth.controller;
 import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.users.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,8 +57,11 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_성공")
     void signUp() throws Exception {
-        SignUpResponse dummy = new SignUpResponse(
-                username
+        Users dummy = new Users(
+                username,
+                "qwerqweqr1",
+                "qwer29@naver.com",
+                "01012341234"
         );
         String json = """
                     {
@@ -75,6 +81,31 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("회원가입 성공"));
+        verify(authService).signup(any());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_확인_불일치_400")
+    void signUpConfirmMismatch() throws Exception {
+        // 요청 바디에 넣을 json
+        String json = """
+                    {
+                        "username":"user03",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """; // 컨트롤러 테스트라서 비밀번호 검증은 serviceTest에서 하겠음
+        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
         verify(authService).signup(any());
     }
     // 회원가입 시 비밀번호 확인 불일치 400
