@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.auth.controller;
 
-import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -17,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import javax.print.attribute.standard.Media;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
@@ -109,7 +110,31 @@ class AuthControllerTest {
         verify(authService).signup(any());
     }
     // 회원가입 시 비밀번호 확인 불일치 400
+    @Test
+    @DisplayName("회원가입_이미_가입한_계정_409")
+    void signUpConflict() throws Exception{
+        String json = """
+                    {
+                        "username":"user03",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """;
+        given(authService.signup(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
+        mockMvc.perform(
+                post(BASE+"/users")
+                        .requestAttr("username", username)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("이미 가입한 계정입니다."));
+        verify(authService).signup(any());
+    }
     // 회원가입 시 이미 가입한 계정 409
+
     // 회원가입 시 이메일 누락 400
     // 회원가입 시 아이디 누락 400
     // 회원가입 시 비밀번호 누락 400
