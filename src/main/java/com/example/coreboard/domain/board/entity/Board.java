@@ -25,8 +25,11 @@ public class Board {
     private String content;
 
     @Column(nullable = false)
-    private long userId;
+    private Long userId;
 
+    // long vs Long
+    // 기본형은 null 불가능하기 때문에 equals 할 수 없음
+    
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;
@@ -34,8 +37,6 @@ public class Board {
     @LastModifiedDate
     @Column(updatable = false)
     private LocalDateTime lastModifiedDate;
-
-    private boolean isDeleted;
 
     protected Board() {
     }
@@ -87,7 +88,7 @@ public class Board {
         return content;
     }
 
-    public long getUserId() {
+    public Long getUserId() {
         return userId;
     }
 

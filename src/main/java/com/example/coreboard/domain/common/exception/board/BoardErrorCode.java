@@ -7,7 +7,7 @@ public enum BoardErrorCode {
     NOT_TITLE(400, "제목은 필수입니다."),
     NOT_CONTENT(400, "내용은 필수입니다."),
     TITLE_TOO_LONG(400, "제목은 255자 이하여야 합니다."),
-    CONTENT_TOO_LONG(400, "본문은 1000자 이하여야 합니다."),
+    CONTENT_TOO_LONG(400, "내용은 1000자 이하여야 합니다."),
     POST_NOT_FOUND(404, "존재하지 않는 게시글입니다."),
     TITLE_DUPLICATED(409, "이미 사용 중인 제목입니다."),
     PAGE_NOT_INTEGER(400, "page는 0이상이어야 합니다."),
