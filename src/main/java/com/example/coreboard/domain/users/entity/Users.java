@@ -46,6 +46,10 @@ public class Users {
         this.email = email;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
@@ -58,11 +62,11 @@ public class Users {
         return password;
     }
 
-    public String GetEmail(){
-        return email;
-    }
-
     public Long getUserId() {
         return userId;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }
