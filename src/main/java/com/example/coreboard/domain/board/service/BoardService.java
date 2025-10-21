@@ -57,8 +57,7 @@ public class BoardService {
                 boardRequestDto.getContent()
         );
 
-        boardRepository.save(board); // 저장
-        return board;
+        return boardRepository.save(board);
     }
 
     // 보드 단건 조회 - 멱등
