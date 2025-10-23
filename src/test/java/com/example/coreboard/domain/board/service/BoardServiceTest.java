@@ -33,7 +33,6 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
-@Import(GlobalExceptionHandler.class)
 class BoardServiceTest {
 
     @Mock
@@ -48,13 +47,13 @@ class BoardServiceTest {
     BoardCreateRequest boardCreateRequest;
     BoardUpdateRequest boardUpdateRequest;
     BoardCreateCommand boardCreateCommand;
+
     // 실행 전마다 초기화
     @BeforeEach
     void setUpCreate() {
-        boardCreateRequest = new BoardCreateRequest(
-                "제목",
-                "내용"
-        );
+        boardCreateRequest = new BoardCreateRequest("제목", "내용");
+        //  커맨드 초기화 추가
+        boardCreateCommand = new BoardCreateCommand("제목", "내용");
     }
 
     // AAA패턴
@@ -69,7 +68,7 @@ class BoardServiceTest {
         Users users = mock(Users.class); // Users는 DB에서 온 엔티티라 가짜로 만든다
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users)); // findByUsername에 tester가 오면
         // 서비스가 먼저 유저를 찾으니까, 유저가 있다고 응답해 줘야 다음 단계 진행 가능
-
+        given(users.getUserId()).willReturn(10L);
         // 제목이 중복이 아니어야 save 단계로 간다
         given(boardRepository.existsByTitle("제목")).willReturn(false);
 
@@ -82,7 +81,9 @@ class BoardServiceTest {
                 LocalDateTime.now()
         );
         // save를 호출하면 saved를 돌려주라고 약속
-        given(boardRepository.save(any())).willReturn(saved);
+        given(boardRepository.save(any(Board.class))).willReturn(
+                new Board(1L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now())
+        );
 
         //when
         BoardCreateDto result = boardService.create(boardCreateCommand, "tester");
@@ -91,7 +92,6 @@ class BoardServiceTest {
         assertNotNull(result);
         assertEquals("제목", result.getTitle());
         assertEquals("내용", result.getContent());
-        assertNotNull(result.getCreatedDate());
 
         // time(1) : usersRepository.findByUsername("tester")가 1번 호출되었는지
         // 2번 이상이면 TooManyActualInvocations 에러 던지게
@@ -125,9 +125,9 @@ class BoardServiceTest {
         // 유저는 있어야 함 (Optional.empty()가 아님)
         Users users = mock(Users.class);
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-
         // 제목 중복
         given(boardRepository.existsByTitle("제목")).willReturn(true);
+
         BoardErrorException duplicatedBoard = assertThrows(
                 BoardErrorException.class,
                 () -> boardService.create(

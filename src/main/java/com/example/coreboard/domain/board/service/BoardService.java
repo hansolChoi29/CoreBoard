@@ -56,13 +56,14 @@ public class BoardService {
                 boardCreateCommand.getTitle(),
                 boardCreateCommand.getContent()
         );
-        boardRepository.save(board);
+        Board saved = boardRepository.save(board);
+
         return new BoardCreateDto(
-                board.getId(),
-                board.getUserId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getCreatedDate()
+                saved.getId(),
+                saved.getUserId(),
+                saved.getTitle(),
+                saved.getContent(),
+                saved.getCreatedDate()
         );
     }
 
