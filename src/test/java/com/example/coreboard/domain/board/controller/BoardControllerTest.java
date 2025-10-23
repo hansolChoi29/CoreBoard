@@ -479,12 +479,8 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_수정")
     void update() throws Exception {
-        Board dummy = new Board(
-                id,
-                "제목",
-                "내용",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+        BoardUpdatedDto dummy = new BoardUpdatedDto(
+                id
         );
         String json = """
                 {
@@ -493,7 +489,7 @@ class BoardControllerTest {
                 }
                 """;
 
-        given(boardService.update(any(), eq(username), eq(id))).willReturn(dummy);
+        given(boardService.update(any())).willReturn(dummy);
 
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -503,11 +499,9 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 수정 완료!"))
-                .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.content").value("내용"))
-                .andExpect(jsonPath("$.data.lastModifiedDate", notNullValue()));
-        verify(boardService).update(any(), eq(username), eq(id));
+                .andExpect(jsonPath("$.message").value("게시글 수정 완료!"));
+
+        verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
     }
 
@@ -528,7 +522,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -541,7 +535,7 @@ class BoardControllerTest {
                 }
                 """;
 
-        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
+        given(boardService.update(any())).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -551,7 +545,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
-        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
 
     }
@@ -565,7 +559,7 @@ class BoardControllerTest {
                     "content" : "본문"
                 }
                 """;
-        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+        given(boardService.update(any())).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
 
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -575,7 +569,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
-        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
     }
 
@@ -597,7 +591,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -618,7 +612,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -638,7 +632,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -659,7 +653,7 @@ class BoardControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
         // DTO 같은 객체, 로그인한 사용자명, 게시글 ID 어떤 인자 조합으로도 절대 호출되면 안 된다.
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -679,7 +673,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
@@ -691,7 +685,7 @@ class BoardControllerTest {
                     "content" : "wef"
                 }
                 """;
-        given(boardService.update(any(BoardUpdateRequest.class), eq(username), eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_ISDELETE));
+        given(boardService.update(any())).willThrow(new BoardErrorException(BoardErrorCode.POST_ISDELETE));
 
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -701,7 +695,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("삭제된 게시글입니다."));
-        verify(boardService).update(any(BoardUpdateRequest.class), eq(username), eq(id));
+        verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
     }
 
@@ -729,7 +723,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verify(boardService, never()).update(any(), anyString(), anyLong());
+        verify(boardService, never()).update(any());
     }
 
     @Test
