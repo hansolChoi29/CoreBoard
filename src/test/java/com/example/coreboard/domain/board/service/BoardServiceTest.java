@@ -6,10 +6,7 @@ import com.example.coreboard.domain.board.dto.BoardCreateRequest;
 import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -20,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Import;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -45,7 +41,6 @@ class BoardServiceTest {
     BoardService boardService;
 
     BoardCreateRequest boardCreateRequest;
-    BoardUpdateRequest boardUpdateRequest;
     BoardCreateCommand boardCreateCommand;
 
     // 실행 전마다 초기화

@@ -40,10 +40,14 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable Long id                                        // 단건 조회라서 id 받게 함
     ) {
-        Board board = boardService.findOne(id); // id 추출하여 board 반환
+        // command로 받아서 Dto로 받고 response로 return
+        BoardGetOneCommand board = new BoardGetOneCommand(
+                id
+        );
+        BoardGetOneDto out = boardService.findOne(board);
         BoardGetOneResponse response = new BoardGetOneResponse( // 응답용 세팅
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate(),
-                board.getLastModifiedDate()
+                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
+                out.getLastModifiedDate()
         );
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
