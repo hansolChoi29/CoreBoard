@@ -1,9 +1,6 @@
 package com.example.coreboard.domain.board.service;
 
-import com.example.coreboard.domain.board.dto.BoardCreateCommand;
-import com.example.coreboard.domain.board.dto.BoardCreateDto;
-import com.example.coreboard.domain.board.dto.BoardCreateRequest;
-import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
+import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
@@ -23,6 +20,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -70,6 +68,7 @@ class BoardServiceTest {
         // save가 돌려줄 '저장된 엔티티' 준비
         Board saved = new Board(
                 1L,
+                10L,
                 "제목",
                 "내용",
                 LocalDateTime.now(),
@@ -77,7 +76,7 @@ class BoardServiceTest {
         );
         // save를 호출하면 saved를 돌려주라고 약속
         given(boardRepository.save(any(Board.class))).willReturn(
-                new Board(1L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now())
+                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now())
         );
 
         //when
@@ -141,15 +140,28 @@ class BoardServiceTest {
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
         Long id = 1L;
-        Board board = mock(Board.class);// Board는 DB에서 온 엔티티라 가짜로 만든다
-        given(board.getId()).willReturn(id); // board.getId()가 호출되었을 때 id 반환
-        given(boardRepository.findById(id)).willReturn(Optional.of(board));
-        // 유저 필요없음
-        // id 추출해서 조회
-        Board result = boardService.findOne(id);
-        assertNotNull(result);
-        assertEquals(id, result.getId()); // ??????? 왜 0임?? 저장이안되는듯
-        verify(boardRepository, times(1)).findById(1L);
+        Board entity = new Board(
+                1L,
+                10L,
+                "제목",
+                "본문",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        given(boardRepository.findById(id)).willReturn(Optional.of(entity));
+
+        BoardGetOneCommand boardGetOneCommand = new BoardGetOneCommand(id);
+
+        BoardGetOneDto out = boardService.findOne(boardGetOneCommand);
+
+        assertNotNull(out);
+        assertEquals(id, out.getId());
+        assertEquals("제목", out.getTitle());
+        assertEquals("본문", out.getContent());
+        assertNotNull(out.getCreatedDate());
+
+        verify(boardRepository, times(1)).findById(id);
+        verifyNoMoreInteractions(boardRepository);
     }
 
     // 예외처리 - 존재하지 않는 게시글

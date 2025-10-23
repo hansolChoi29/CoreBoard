@@ -42,12 +42,14 @@ public class Board {
     }
 
     public Board(
+            Long id,
             Long userId,
             String title,
             String content,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
+        this.id=id;
         this.title = title;
         this.content = content;
         this.userId = userId;
