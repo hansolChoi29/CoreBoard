@@ -1,13 +1,13 @@
 package com.example.coreboard.domain.board.dto;
 
 
-public class BoardUpdateCommandDto {
+public class BoardUpdateCommand {
     private final Long id;
     private final String username;
     private final String title;
     private final String content;
 
-    public BoardUpdateCommandDto(
+    public BoardUpdateCommand(
             String username,
             Long id,
             String title,
