@@ -71,12 +71,15 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
+        // commandDto는 컨트롤러 -> 서비스
+        // Dto(resultDto)는 서비스 -> 컨트롤러
         BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
-        Board board = boardService.update(updateRequestDto, username, id);
-        BoardUpdateResponse responseDto = new BoardUpdateResponse(
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getLastModifiedDate()
-        );
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
+        BoardUpdateCommandDto board = new BoardUpdateCommandDto(username, id, updateRequestDto.getTitle(),
+                updateRequestDto.getContent());
+
+        BoardUpdatedDto out = boardService.update(board);
+        BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
     }
 
     // 보드 삭제
@@ -85,8 +88,8 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-         boardService.delete(username, id);
-         // 자원을 없앴으니 응답 바디에 실어줄 자원 데이터 자체가 존재하지 않음
-        return ResponseEntity.ok(ApiResponse.ok(null,"게시글 삭제완료!"));
+        boardService.delete(username, id);
+        // 자원을 없앴으니 응답 바디에 실어줄 자원 데이터 자체가 존재하지 않음
+        return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
     }
 }

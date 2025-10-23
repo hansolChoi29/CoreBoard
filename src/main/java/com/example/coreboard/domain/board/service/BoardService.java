@@ -110,15 +110,17 @@ public class BoardService {
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
-    public Board update(
-            BoardUpdateRequest boardupdateRequest,
-            String username,
-            Long id
-    ) {
-        Users user = usersRepository.findByUsername(username)
+    public BoardUpdatedDto update(
+//            BoardUpdateRequest boardupdateRequest,
+//            String username,
+//            Long id
+//            BoardUpdateCommandDto boardUpdateCommand
+            BoardUpdateCommandDto boardUpdatedCommad
+            ) {
+        Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(boardUpdatedCommad.getId()) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         // 권한 체크
@@ -128,11 +130,12 @@ public class BoardService {
 
         // 저장
         board.update(
-                boardupdateRequest.getTitle(),
-                boardupdateRequest.getContent()
+                boardUpdatedCommad.getTitle(),
+                boardUpdatedCommad.getContent()
         );
-
-        return board;
+        return new BoardUpdatedDto(
+                board.getId()
+        );
     }
 
     // 보드 삭제
