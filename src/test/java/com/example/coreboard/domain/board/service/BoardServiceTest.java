@@ -26,7 +26,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class) // 모키토 준비 완료!
 class BoardServiceTest {
 
     @Mock
@@ -35,7 +35,7 @@ class BoardServiceTest {
     @Mock
     UsersRepository usersRepository;
 
-    @InjectMocks
+    @InjectMocks // 테스트할 대상
     BoardService boardService;
 
     BoardCreateRequest boardCreateRequest;
@@ -103,7 +103,7 @@ class BoardServiceTest {
         AuthErrorException notFoundUser = assertThrows(
                 AuthErrorException.class,
                 () -> boardService.create(
-                        boardCreateCommand,
+                        boardCreateCommand, // 인스턴스화 안 해도 통과되는 이유 : findByUsername(username).orElseThrow 없으면 걍 에러던짐
                         "tester"
                 )
         );
@@ -168,7 +168,16 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_단건_조회_미존재_404")
     void findOnNotFound() {
-
+        Long id = 1L;
+        given(boardRepository.findById(id)).willReturn(Optional.empty());
+        BoardGetOneCommand command = new BoardGetOneCommand(id); // 인스턴스화 해줘야 하는 이유 : findById(boardGetOneCommand
+        // .getId()).orElseThrow 에러 던지기 전에 NEP 발생
+        BoardErrorException findOneNotFound = assertThrows( 
+                BoardErrorException.class,
+                () -> boardService.findOne(command)
+        );
+        assertEquals(404, findOneNotFound.getStatus());
+        verify(boardRepository).findById(id);
     }
 
     @Test

@@ -69,10 +69,10 @@ public class BoardService {
 
     // 보드 단건 조회 - 멱등
     public BoardGetOneDto findOne(
-           BoardGetOneCommand boardGetOneCommand
+            BoardGetOneCommand boardGetOneCommand
     ) {
 
-        Board  board = boardRepository.findById(boardGetOneCommand.getId()) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(boardGetOneCommand.getId()) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
@@ -120,7 +120,7 @@ public class BoardService {
     @Transactional
     public BoardUpdatedDto update(
             BoardUpdateCommand boardUpdatedCommad
-            ) {
+    ) {
         Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
@@ -160,9 +160,9 @@ public class BoardService {
                     return true; // 권한 있으면 Optional 유지하여
                 })
                 .ifPresent(boardRepository::delete);
-                //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
-                // ifPresent()는 Optional 안에 값이 존재할 경우 실행
-                // 게시글이 존재한다 : baordRepository(board) 호출하고
-                // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
+        //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
+        // ifPresent()는 Optional 안에 값이 존재할 경우 실행
+        // 게시글이 존재한다 : baordRepository(board) 호출하고
+        // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
     }
 }
