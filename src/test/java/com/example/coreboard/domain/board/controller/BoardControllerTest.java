@@ -343,8 +343,9 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void getOne() throws Exception {
-        Board dummy = new Board(
-                1L,
+        BoardGetOneDto dummy = new BoardGetOneDto(
+                id,
+                userId,
                 "제목",
                 "본문",
                 LocalDateTime.now(),
@@ -352,7 +353,7 @@ class BoardControllerTest {
         );
 
         // 요청이 1개라서 eq(id) 하나만
-        given(boardService.findOne(eq(id))).willReturn(dummy);
+        given(boardService.findOne(any(BoardGetOneCommand.class))).willReturn(dummy);
 
         mockMvc.perform(
                         get(BASE + "/{id}", id)
@@ -364,7 +365,7 @@ class BoardControllerTest {
         // verify 왜 필요한가?
         // 응답만 보는 게 아니라 컨트롤러가 서비스 레이어를 올바르게 호출했는지도 확인해야 함
         // HTTP 요청 -> Controller -> Service 호출의 연결이 잘 이루어졌는지 확인
-        verify(boardService).findOne(eq(id));
+        verify(boardService).findOne(any(BoardGetOneCommand.class));
         // verifyNoMoreInteractions : 방금 findOne말고는 서비스에 다른 호출은 없어야 한다
         // 왜 다른 호출은 없어야 하는가? -> 테스트의 목적은 딱 필요한 동작만 했는가
         // 언제 쓰는 게 적절할까? -> 해당 엔드포인트가 서비스의 한 메서드만 호출해야 할 때
@@ -375,7 +376,7 @@ class BoardControllerTest {
     @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
     void getOneIsNotFoundBoard() throws Exception {
 
-        given(boardService.findOne(eq(id))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
+        given(boardService.findOne(any(BoardGetOneCommand.class))).willThrow(new BoardErrorException(BoardErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(
                         get(BASE + "/{id}", id)
@@ -385,7 +386,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
                 .andExpect(jsonPath("$.data").isEmpty());
 
-        verify(boardService).findOne(eq(id));
+        verify(boardService).findOne(any(BoardGetOneCommand.class));
         verifyNoMoreInteractions(boardService);
     }
 
