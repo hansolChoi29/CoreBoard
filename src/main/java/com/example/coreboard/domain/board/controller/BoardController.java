@@ -27,9 +27,10 @@ public class BoardController {
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
         BoardValidation.createValidation(boardRequestDto); // 유효성 검사
-        Board board = boardService.create(boardRequestDto, username); // 저장된 Board 객체가 반환되어 board로 들어감
+        BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.getTitle(), boardRequestDto.getContent());
+        BoardCreateDto out = boardService.create(board, username);
         BoardCreateResponse response = new BoardCreateResponse( // DB에 저장된 엔티티를 응답용으로 변환하여 return 세팅
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate()
+                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate()
         );
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
@@ -74,7 +75,8 @@ public class BoardController {
         // commandDto는 컨트롤러 -> 서비스
         // Dto(resultDto)는 서비스 -> 컨트롤러
         BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
-        BoardUpdateCommandDto board = new BoardUpdateCommandDto(username, id, updateRequestDto.getTitle(),
+
+        BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.getTitle(),
                 updateRequestDto.getContent());
 
         BoardUpdatedDto out = boardService.update(board);

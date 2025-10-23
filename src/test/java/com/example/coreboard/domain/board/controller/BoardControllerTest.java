@@ -88,11 +88,11 @@ class BoardControllerTest {
     void create() throws Exception {
         String username = "tester";
 
-        Board dummy = new Board(
-                1L,
+        BoardCreateDto dummy = new BoardCreateDto(
+                id,
+                userId,
                 "제목",
                 "본문",
-                LocalDateTime.now(),
                 LocalDateTime.now()
         );
         // any는 첫번째 인자(요청 dto), 두번째 인자 tester
@@ -138,7 +138,7 @@ class BoardControllerTest {
                 }
                 """;
 
-        given(boardService.create(any(BoardCreateRequest.class), eq("ghost")))
+        given(boardService.create(any(), eq("ghost")))
                 .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
 
         mockMvc.perform(
@@ -151,7 +151,7 @@ class BoardControllerTest {
                 .andExpect(status().isNotFound()) // 기대 결과
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
 
-        verify(boardService).create(any(BoardCreateRequest.class), eq("ghost"));
+        verify(boardService).create(any(), eq("ghost"));
         verifyNoMoreInteractions(boardService);
     }
 
@@ -169,7 +169,7 @@ class BoardControllerTest {
         // 2) anyString() : 아무 문자열 허용
         // 3) anyInt() : 아무 int 허용
         // 4) eq(value) : 정확히 이 값일 때만 허용
-        given(boardService.create(any(BoardCreateRequest.class), eq(username))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
+        given(boardService.create(any(), eq(username))).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -180,7 +180,7 @@ class BoardControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
 
-        verify(boardService).create(any(BoardCreateRequest.class), eq(username));
+        verify(boardService).create(any(), eq(username));
         verifyNoMoreInteractions(boardService);
     }
 

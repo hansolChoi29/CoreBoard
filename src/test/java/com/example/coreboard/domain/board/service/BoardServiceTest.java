@@ -1,5 +1,7 @@
 package com.example.coreboard.domain.board.service;
 
+import com.example.coreboard.domain.board.dto.BoardCreateCommand;
+import com.example.coreboard.domain.board.dto.BoardCreateDto;
 import com.example.coreboard.domain.board.dto.BoardCreateRequest;
 import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
 import com.example.coreboard.domain.board.entity.Board;
@@ -45,7 +47,7 @@ class BoardServiceTest {
 
     BoardCreateRequest boardCreateRequest;
     BoardUpdateRequest boardUpdateRequest;
-
+    BoardCreateCommand boardCreateCommand;
     // 실행 전마다 초기화
     @BeforeEach
     void setUpCreate() {
@@ -73,24 +75,23 @@ class BoardServiceTest {
 
         // save가 돌려줄 '저장된 엔티티' 준비
         Board saved = new Board(
-                10L,
+                1L,
                 "제목",
                 "내용",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         // save를 호출하면 saved를 돌려주라고 약속
-        given(boardRepository.save(any(Board.class))).willReturn(saved);
+        given(boardRepository.save(any())).willReturn(saved);
 
         //when
-        Board result = boardService.create(boardCreateRequest, "tester");
+        BoardCreateDto result = boardService.create(boardCreateCommand, "tester");
 
         // then 1. assert는 리턴값을 검증, 2. verify는 메서드 호출자체를 검증
         assertNotNull(result);
         assertEquals("제목", result.getTitle());
         assertEquals("내용", result.getContent());
         assertNotNull(result.getCreatedDate());
-        assertNotNull(result.getLastModifiedDate());
 
         // time(1) : usersRepository.findByUsername("tester")가 1번 호출되었는지
         // 2번 이상이면 TooManyActualInvocations 에러 던지게
@@ -108,7 +109,7 @@ class BoardServiceTest {
         AuthErrorException notFoundUser = assertThrows(
                 AuthErrorException.class,
                 () -> boardService.create(
-                        boardCreateRequest,
+                        boardCreateCommand,
                         "tester"
                 )
         );
@@ -130,7 +131,7 @@ class BoardServiceTest {
         BoardErrorException duplicatedBoard = assertThrows(
                 BoardErrorException.class,
                 () -> boardService.create(
-                        boardCreateRequest,
+                        boardCreateCommand,
                         "tester"
                 )
         );
@@ -144,7 +145,7 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
-        Long id=1L;
+        Long id = 1L;
         Board board = mock(Board.class);// Board는 DB에서 온 엔티티라 가짜로 만든다
         given(board.getId()).willReturn(id); // board.getId()가 호출되었을 때 id 반환
         given(boardRepository.findById(id)).willReturn(Optional.of(board));
@@ -155,10 +156,11 @@ class BoardServiceTest {
         assertEquals(id, result.getId()); // ??????? 왜 0임?? 저장이안되는듯
         verify(boardRepository, times(1)).findById(1L);
     }
+
     // 예외처리 - 존재하지 않는 게시글
     @Test
     @DisplayName("게시글_단건_조회_미존재_404")
-    void findOnNotFound(){
+    void findOnNotFound() {
 
     }
 

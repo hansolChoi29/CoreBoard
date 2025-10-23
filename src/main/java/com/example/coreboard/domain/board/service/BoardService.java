@@ -37,8 +37,8 @@ public class BoardService {
     }
 
     // 보드 생성
-    public Board create(
-            BoardCreateRequest boardRequestDto,
+    public BoardCreateDto create(
+            BoardCreateCommand boardCreateCommand,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
         // users 테이블의 username이 들어있으면 값을 user에 담는다. (반환용)
@@ -46,18 +46,24 @@ public class BoardService {
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         // 제목 중복 검사
-        if (boardRepository.existsByTitle(boardRequestDto.getTitle())) {
+        if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 보드 저장할 것들 세팅
         Board board = Board.create(
                 user.getUserId(),
-                boardRequestDto.getTitle(),
-                boardRequestDto.getContent()
+                boardCreateCommand.getTitle(),
+                boardCreateCommand.getContent()
         );
-
-        return boardRepository.save(board);
+        boardRepository.save(board);
+        return new BoardCreateDto(
+                board.getId(),
+                board.getUserId(),
+                board.getTitle(),
+                board.getContent(),
+                board.getCreatedDate()
+        );
     }
 
     // 보드 단건 조회 - 멱등
@@ -111,11 +117,7 @@ public class BoardService {
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
     public BoardUpdatedDto update(
-//            BoardUpdateRequest boardupdateRequest,
-//            String username,
-//            Long id
-//            BoardUpdateCommandDto boardUpdateCommand
-            BoardUpdateCommandDto boardUpdatedCommad
+            BoardUpdateCommand boardUpdatedCommad
             ) {
         Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
