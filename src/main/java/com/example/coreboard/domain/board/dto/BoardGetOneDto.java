@@ -1,38 +1,47 @@
 package com.example.coreboard.domain.board.dto;
 
-public class BoardUpdateRequest {
-    // 기존 데이터라는 점에서 생성 요청 DTO와 별도로 분리하여 사용해야 함
+import java.time.LocalDateTime;
 
+public class BoardGetOneDto {
     private final Long id;
     private final long userId;
     private final String title;
     private final String content;
+    private final LocalDateTime createdDate;
+    private final LocalDateTime lastModifiedDate;
 
-    public BoardUpdateRequest(
+    public BoardGetOneDto(
             Long id,
             long userId,
             String title,
-            String content
+            String content,
+            LocalDateTime createdDate,
+            LocalDateTime lastModifiedDate
     ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
         this.content = content;
+        this.createdDate = createdDate;
+        this.lastModifiedDate = lastModifiedDate;
     }
-
-    // TODO : test 추가
     public Long getId(){
         return id;
     }
-    // TODO : test 추가
     public long getUserId(){
-        return userId;
+        return id;
     }
-
     public String getTitle(){
         return title;
     }
     public String getContent(){
         return content;
     }
+    public LocalDateTime getCreatedDate(){
+        return createdDate;
+    }
+    public LocalDateTime getLastModifiedDate(){
+        return lastModifiedDate;
+    }
+
 }
