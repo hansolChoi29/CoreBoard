@@ -19,6 +19,7 @@ class PasswordEncodeTest {
     @DisplayName("같은_입력값_다른_해시")
     void encrypt() {
         PasswordEncode encoder = new PasswordEncode();
+        // 같은 입력을 두 번 암호화하면 salt가 다르므로 결과 달라야 함
         String hash1 = encoder.encrypt("1234zcv");
         String hash2 = encoder.encrypt("qwer098");
 
@@ -34,5 +35,19 @@ class PasswordEncodeTest {
 
         assertTrue(encoder.matches(password, encoded)); // 맞으면 true
         assertFalse(encoder.matches("wrong", encoded)); // 틀리면 false
+    }
+
+    @Test
+    @DisplayName("스토어해시_널_false")
+    void matchesNullHash() {
+        PasswordEncode encodr = new PasswordEncode();
+        assertFalse(encodr.matches("qwe", null));
+    }
+
+    @Test
+    @DisplayName("스토어해시_빈문자열_false")
+    void matchesEmptyHash() {
+        PasswordEncode encodr = new PasswordEncode();
+        assertFalse(encodr.matches("qwe", ""));
     }
 }
