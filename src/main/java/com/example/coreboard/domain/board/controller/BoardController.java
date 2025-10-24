@@ -4,7 +4,7 @@ package com.example.coreboard.domain.board.controller;
 import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
-import com.example.coreboard.domain.board.validation.BoardValidation;
+import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.PageResponse;
 import org.springframework.http.ResponseEntity;

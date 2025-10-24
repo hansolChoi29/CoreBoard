@@ -57,14 +57,7 @@ public class AuthService {
 
     public TokenResponse signIn(SignInRequest signInRequset) {
         // 빈 값 방지용
-        if (
-                signInRequset.getUsername() == null
-                        || signInRequset.getUsername().isBlank()
-                        || signInRequset.getPassword() == null
-                        || signInRequset.getPassword().isBlank()
-        ) {
-            throw new AuthErrorException(BAD_REQUEST);
-        }
+
 
         // 사용자 조회
         Users users =
@@ -75,7 +68,6 @@ public class AuthService {
         if (!passwordEncoder.matches(signInRequset.getPassword(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
-
         // 토큰 발급
         String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
         String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
