@@ -229,6 +229,8 @@ class BoardControllerTest {
         verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
+    // TODO : 자바는 null에 취약하기 때문에 예외처리 해줘야 한다.
+
     @Test
     @DisplayName("게시글_생성_제목_400")
     void createContentIsBlank() throws Exception {

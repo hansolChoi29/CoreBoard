@@ -316,6 +316,37 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_수정_권한없음_403")
+    void updateFobiddern() {
+        Users users = mock(Users.class);
+        Board board = mock(Board.class); //껍데기를 만들어서
+
+        BoardUpdateCommand cmd = new BoardUpdateCommand( // 이렇게 세팅
+                "tester",
+                1L,
+                "title",
+                "content"
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        // userId의도적으로다르게 -> 권한없는 상황 만들기
+        given(users.getUserId()).willReturn(10L);
+        given(board.getUserId()).willReturn(98L);
+
+        AuthErrorException forbiddern = assertThrows(
+                AuthErrorException.class,
+                () -> boardService.update(cmd)
+        );
+
+        assertEquals(403, forbiddern.getStatus());
+
+        // verify(가짜 객체, 몇 번 호출, 메서드(인자))
+        verify(board, never()).update(anyString(), anyString());
+    }
+
+    @Test
     void delete() {
     }
 }
