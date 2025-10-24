@@ -13,7 +13,7 @@ public class SignInRequest {
         return username;
     }
 
-    // JSON -> 객체로 넣어줄 통로가 필요함
+    //
     public void setUsername(String username) {
         this.username = username;
     }

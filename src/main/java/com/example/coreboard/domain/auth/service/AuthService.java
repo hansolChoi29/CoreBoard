@@ -56,9 +56,6 @@ public class AuthService {
 
 
     public TokenResponse signIn(SignInRequest signInRequset) {
-        // 빈 값 방지용
-
-
         // 사용자 조회
         Users users =
                 usersRepository.findByUsername(signInRequset.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));  // Optional 객체에서 값을 꺼내 오는 메서드(값이 존재하는 경우 해당 값
