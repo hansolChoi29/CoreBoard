@@ -42,12 +42,14 @@ public class Board {
     }
 
     public Board(
+            Long id,
             Long userId,
             String title,
             String content,
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
+        this.id=id;
         this.title = title;
         this.content = content;
         this.userId = userId;
@@ -68,6 +70,8 @@ public class Board {
             String newContent
 
     ) {
+        // 내부 규칙이기 때문에 유효성검사가 아님
+        // TODO : test 추가
         if (newTitle != null && !newTitle.isBlank()) {
             this.title = newTitle;
         }

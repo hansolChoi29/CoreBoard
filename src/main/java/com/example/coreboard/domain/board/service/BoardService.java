@@ -37,8 +37,8 @@ public class BoardService {
     }
 
     // 보드 생성
-    public Board create(
-            BoardCreateRequest boardRequestDto,
+    public BoardCreateDto create(
+            BoardCreateCommand boardCreateCommand,
             String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
     ) {
         // users 테이블의 username이 들어있으면 값을 user에 담는다. (반환용)
@@ -46,31 +46,38 @@ public class BoardService {
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
         // 제목 중복 검사
-        if (boardRepository.existsByTitle(boardRequestDto.getTitle())) {
+        if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
         // 보드 저장할 것들 세팅
         Board board = Board.create(
                 user.getUserId(),
-                boardRequestDto.getTitle(),
-                boardRequestDto.getContent()
+                boardCreateCommand.getTitle(),
+                boardCreateCommand.getContent()
         );
+        Board saved = boardRepository.save(board);
 
-        boardRepository.save(board); // 저장
-        return board;
+        return new BoardCreateDto(
+                saved.getId(),
+                saved.getUserId(),
+                saved.getTitle(),
+                saved.getContent(),
+                saved.getCreatedDate()
+        );
     }
 
     // 보드 단건 조회 - 멱등
-    public Board findOne(
-            Long id
+    public BoardGetOneDto findOne(
+            BoardGetOneCommand boardGetOneCommand
     ) {
 
-        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(boardGetOneCommand.getId()) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
-        return board;
+        return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
+                board.getCreatedDate(), board.getLastModifiedDate());
     }
 
     // 보드 전체 조회 - 멱등
@@ -111,15 +118,13 @@ public class BoardService {
 
     // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
-    public Board update(
-            BoardUpdateRequest boardupdateRequest,
-            String username,
-            Long id
+    public BoardUpdatedDto update(
+            BoardUpdateCommand boardUpdatedCommad
     ) {
-        Users user = usersRepository.findByUsername(username)
+        Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Board board = boardRepository.findById(id) // id 추출하는 메서드 이용해서
+        Board board = boardRepository.findById(boardUpdatedCommad.getId()) // id 추출하는 메서드 이용해서
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
 
         // 권한 체크
@@ -129,11 +134,12 @@ public class BoardService {
 
         // 저장
         board.update(
-                boardupdateRequest.getTitle(),
-                boardupdateRequest.getContent()
+                boardUpdatedCommad.getTitle(),
+                boardUpdatedCommad.getContent()
         );
-
-        return board;
+        return new BoardUpdatedDto(
+                board.getId()
+        );
     }
 
     // 보드 삭제
@@ -154,9 +160,9 @@ public class BoardService {
                     return true; // 권한 있으면 Optional 유지하여
                 })
                 .ifPresent(boardRepository::delete);
-                //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
-                // ifPresent()는 Optional 안에 값이 존재할 경우 실행
-                // 게시글이 존재한다 : baordRepository(board) 호출하고
-                // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
+        //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
+        // ifPresent()는 Optional 안에 값이 존재할 경우 실행
+        // 게시글이 존재한다 : baordRepository(board) 호출하고
+        // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
     }
 }
