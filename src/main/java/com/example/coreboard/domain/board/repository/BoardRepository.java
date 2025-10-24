@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
+    // Spring Data JPA가 실행 시점에 자동으로 Impl를 만들어서 등록해줌
 
     // 오프셋
     // page가 커질수록 OFFSET이 커져서 느려짐 (대용량 테이블에서 비효율)

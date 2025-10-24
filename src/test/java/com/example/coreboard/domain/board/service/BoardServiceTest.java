@@ -5,17 +5,21 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.response.PageResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,6 +32,11 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // 모키토 준비 완료!
 class BoardServiceTest {
+    // 목표 : 서비스 내부에서 레포지토리에게 무엇을 요청햇는지, 그 결과를 받아 어떻게 처리했는지를 확인
+
+    // 왜 레포지토리를 가짜로 할까? : DB에 의존하면 느려지고 실패원인이 DB/네트워크/데이터 상태로 섞여 버림
+    // 스텁 : 레포지토리 반환값을 내가 스크립트함
+    // 검증 : 서비스가 정확한 인자로 레포를 불렀는지, 딱 그만큼만 불렀는지 확인
 
     @Mock
     BoardRepository boardRepository;
@@ -38,6 +47,7 @@ class BoardServiceTest {
     @InjectMocks // 테스트할 대상
     BoardService boardService;
 
+    // 어노테이션 없는 이유 : 내부 필드가 초기화 안됨 그래서 진짜 값(new)이 필요하기 때문
     BoardCreateRequest boardCreateRequest;
     BoardCreateCommand boardCreateCommand;
 
@@ -58,25 +68,22 @@ class BoardServiceTest {
     @DisplayName("게시글_생성")
     void create() {
         // given
-        Users users = mock(Users.class); // Users는 DB에서 온 엔티티라 가짜로 만든다
-        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users)); // findByUsername에 tester가 오면
-        // 서비스가 먼저 유저를 찾으니까, 유저가 있다고 응답해 줘야 다음 단계 진행 가능
+        Users users = mock(Users.class); // 빈껍데기 - 생성이니깐 가짜 객체 써야 함
+        // Users users = new Users("tester", "encodePassword", "email@naver.com", "phoneNumber"); // 진짜 객체면 안됨
+        // 모키토가 진짜 객체라고 에러 던짐
+
+        // findByUsername에 tester가 오면 서비스가 먼저 유저를 찾으니까, 유저가 있다고 응답해 줘야 다음 단계 진행 가능
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+
+        // mock(Users.class) 쓸 거면, 같이 써야 하는 이유: 빈 껍데기기 때문에 id가 null이기 때문에 10L 스텁해야 함
         given(users.getUserId()).willReturn(10L);
+
         // 제목이 중복이 아니어야 save 단계로 간다
         given(boardRepository.existsByTitle("제목")).willReturn(false);
 
-        // save가 돌려줄 '저장된 엔티티' 준비
-        Board saved = new Board(
-                1L,
-                10L,
-                "제목",
-                "내용",
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
-        // save를 호출하면 saved를 돌려주라고 약속
-        given(boardRepository.save(any(Board.class))).willReturn(
-                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now())
+        // save를 호출되면 DB저장말고 내가 정해준 Board 객체에 넣어라
+        given(boardRepository.save(any(Board.class))).willReturn( // 레포의 save 호출될 때 빈 껍데기 Board가 들어오면 반환해라
+                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now()) // 인스턴스한 Board를, 필드에 데이터 채워서
         );
 
         //when
@@ -172,17 +179,67 @@ class BoardServiceTest {
         given(boardRepository.findById(id)).willReturn(Optional.empty());
         BoardGetOneCommand command = new BoardGetOneCommand(id); // 인스턴스화 해줘야 하는 이유 : findById(boardGetOneCommand
         // .getId()).orElseThrow 에러 던지기 전에 NEP 발생
-        BoardErrorException findOneNotFound = assertThrows( 
+        BoardErrorException findOneNotFound = assertThrows(
                 BoardErrorException.class,
                 () -> boardService.findOne(command)
         );
         assertEquals(404, findOneNotFound.getStatus());
-        verify(boardRepository).findById(id);
+        verify(boardRepository, times(1)).findById(id);
+        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
+    @DisplayName("게시글_전체조회_성공")
     void findAll() {
+        // 입력 파라미터 준비 : 서비스 메서드가 받는 것과 같은 모양
+        int page = 0;
+        int size = 10;
+        String sort = "asc";
+
+        // given : 입력값
+        // Pageable pageable = mock(Pageable.class);
+
+        // (page,size, sort)
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title"));
+
+        // 가짜 리스트 만들기 - ArgumanetCaptor로 실제 서비스가 만든 Pagealbe 잡아서 페이지/크기/정렬 값이 맞는지 비교하려고 기준값 만듦
+        List<Board> boards = List.of( // List한 이유는 PageImpl 만들기 위함
+                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
+                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
+                new Board(3L, 10L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now())
+        );
+
+        // PageImpl : 테스트에서 가짜 Page 만들려고 쓰는 구현체임 (서비스단에는 없음)
+        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
+        // 서비스가 repo.findAll(any Pageable) 부르면 pageResult를 돌려줘!
+        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
+
+        // when : 메서드
+        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
+
+        // then : 1) 페이징 검즘 : Page -> PageResponse로 제대로 포장했는지 (API응답 형식)
+        assertEquals(page, result.getPage());
+        assertEquals(size, result.getSize());
+        assertEquals(boards.size(), result.getTotalElements());
+        assertEquals(boards.size(), result.getContent().size());
+        // then : 2) 매핑 검증 : 첫 번째 entity -> DTO로 잘 변환 됐는지
+        Board firstEntity = boards.get(0);
+        BoardSummaryResponse firstDto = result.getContent().get(0);
+        assertEquals(firstEntity.getId(), firstDto.getId());
+        assertEquals(firstEntity.getUserId(), firstDto.getUserId());
+        assertEquals(firstEntity.getTitle(), firstDto.getTitle());
+        // then : 3) 인자 검증 : 정말로 올바른 Pageable로 호출했는지
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(boardRepository, times(1)).findAll(captor.capture());
+        Pageable used = captor.getValue();
+        assertEquals(page, used.getPageNumber());
+        assertEquals(size, used.getPageSize());
+        assertEquals(Sort.by(Sort.Direction.ASC, "title"), used.getSort());
+
+        verifyNoMoreInteractions(boardRepository);
     }
+
+
 
     @Test
     void update() {
