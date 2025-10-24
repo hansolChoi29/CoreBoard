@@ -27,11 +27,15 @@ public class BoardController {
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
         BoardValidation.createValidation(boardRequestDto); // 유효성 검사
+
         BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.getTitle(), boardRequestDto.getContent());
+
         BoardCreateDto out = boardService.create(board, username);
+
         BoardCreateResponse response = new BoardCreateResponse( // DB에 저장된 엔티티를 응답용으로 변환하여 return 세팅
                 out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate()
         );
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
@@ -44,11 +48,14 @@ public class BoardController {
         BoardGetOneCommand board = new BoardGetOneCommand(
                 id
         );
+
         BoardGetOneDto out = boardService.findOne(board);
+
         BoardGetOneResponse response = new BoardGetOneResponse( // 응답용 세팅
                 out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
                 out.getLastModifiedDate()
         );
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
@@ -61,8 +68,11 @@ public class BoardController {
     ) {
         // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
         BoardValidation.sortDirection(sort);
+
         BoardValidation.pageableValication(page, size);
+
         PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
@@ -84,7 +94,9 @@ public class BoardController {
                 updateRequestDto.getContent());
 
         BoardUpdatedDto out = boardService.update(board);
+
         BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
     }
 
