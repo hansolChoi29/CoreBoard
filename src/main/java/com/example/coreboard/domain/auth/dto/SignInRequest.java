@@ -4,6 +4,10 @@ public class SignInRequest {
     String username;
     String password;
 
+    // test
+    public SignInRequest() {
+    }
+
     public SignInRequest(String username, String password) {
         this.username = username;
         this.password = password;
@@ -13,7 +17,7 @@ public class SignInRequest {
         return username;
     }
 
-    // JSON -> 객체로 넣어줄 통로가 필요함
+    // TODO : test
     public void setUsername(String username) {
         this.username = username;
     }
@@ -21,7 +25,7 @@ public class SignInRequest {
     public String getPassword() {
         return password;
     }
-
+    // TODO : test
     public void setPassword(String password) {
         this.password = password;
     }

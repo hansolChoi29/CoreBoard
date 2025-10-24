@@ -6,10 +6,14 @@ import com.example.coreboard.domain.auth.dto.SignUpResponse;
 import com.example.coreboard.domain.auth.dto.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.auth.dto.SignUpRequest;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.domain.common.validation.AuthValidation;
 import com.example.coreboard.domain.users.entity.Users;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.BAD_REQUEST;
 
 @RequestMapping("/auth")
 @RestController
@@ -41,6 +45,9 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(
             @RequestBody SignInRequest request
     ) {
+        // TODO : TEST
+        AuthValidation.signInValidation(request);
+
         TokenResponse tokenResponse = authService.signIn(request);
         return ResponseEntity.ok(ApiResponse.ok(tokenResponse, "로그인 성공!")); // 도메인 로그인 토큰 넣어야 해서 응답바디에 반환되게 함
     }
