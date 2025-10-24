@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 // 테스트 안에서만 임시로 환경설정
 // @SpringBootTest(properties = { "키=값" }) , yml 임시 주입
 @SpringBootTest(properties = {
-        "aes.secret.key=1234567890ABCDEF" // 16바이트 키 (AES-128용)
+        "aes.secret.key=1234567890ABCDEF" // 16바이트 키 (AES-128용),
 })
 @ContextConfiguration(classes = EmailPhoneNumberEncode.class) // 이 빈만 등록
 @ExtendWith(SpringExtension.class)
@@ -52,5 +52,19 @@ class EmailPhoneNumberEncodeTest {
         String encrypt2 = encoder.encrypt(plain);
 
         assertNotEquals(encrypt1, encrypt2); // 결과가 서로 달라야 함
+    }
+
+    @Test
+    @DisplayName("복호화_불가한_문자열")
+    void decryptException() {
+        String invalidCipher = "이건진짜암호문아님";
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> encoder.decrypt(invalidCipher)
+        );
+        // assertTrue(조건식) : JUnit 에서 제공하는 검증메서드 중 하나, 괄호 안의 true 여야 테스트 통과
+        // contains : 문자열 안에 특정 단어가 들어있는지 확인하는 메서드
+        // 메시지에 복호화 실패가 포함되어있는지 확인
+        assertTrue(exception.getMessage().contains("복호화 실패"));
     }
 }
