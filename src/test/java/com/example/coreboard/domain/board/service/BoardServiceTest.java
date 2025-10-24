@@ -360,17 +360,20 @@ class BoardServiceTest {
         Long id = 1L;
 
         // given
+        // Unnecessary stubbings detected : 불필요한 given 좀 치워라
+        // => 364번째 줄은 올바른 코드인데 다른 스텁(사용 안 하는 스텁)을 지우니 에러가 사라진 이유,
+        // 각 테스트가 끝난 직후(afterEach)에 사용 안 된 스텁이 있는지 검사한다.
+        // @ExtendWith (MockitoExtension.class)) 때문.
+        // 왜? afterEach (테스트 끝난 직후) <- 지금 문제의 핵심 (사용 안 된 스텁 존재 시 UnnecessaryStubbingException 던짐)
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
         given(boardRepository.findById(id)).willReturn(Optional.of(board));
 
         // 권한 있어야함
         given(users.getUserId()).willReturn(10L);
         given(board.getUserId()).willReturn(10L);
-        // Unnecessary stubbings detected : 불필요한 given 좀 치워라
 
         //when
         boardService.delete(username, id);
-
 
         // then
         verify(usersRepository, times(1)).findByUsername(username);
