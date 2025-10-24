@@ -56,26 +56,15 @@ public class AuthService {
 
 
     public TokenResponse signIn(SignInRequest signInRequset) {
-        // 빈 값 방지용
-        if (
-                signInRequset.getUsername() == null
-                        || signInRequset.getUsername().isBlank()
-                        || signInRequset.getPassword() == null
-                        || signInRequset.getPassword().isBlank()
-        ) {
-            throw new AuthErrorException(BAD_REQUEST);
-        }
-
         // 사용자 조회
         Users users =
+                // TODO : test
                 usersRepository.findByUsername(signInRequset.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));  // Optional 객체에서 값을 꺼내 오는 메서드(값이 존재하는 경우 해당 값
         // 반환, 없는 경우 예외 발생)
-
         // 비밀번호 검증
         if (!passwordEncoder.matches(signInRequset.getPassword(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
-
         // 토큰 발급
         String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
         String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());

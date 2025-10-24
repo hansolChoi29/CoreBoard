@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.board.validation;
+package com.example.coreboard.domain.common.validation;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.example.coreboard.domain.board.dto.BoardCreateRequest;

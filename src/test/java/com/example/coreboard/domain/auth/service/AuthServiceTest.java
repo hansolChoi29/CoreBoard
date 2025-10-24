@@ -240,24 +240,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인_필드_null_400")
-    void signIn_IsBadRequest() {
-        // username blank
-        AuthErrorException usernameIsBlank = assertThrows(AuthErrorException.class,
-                () -> authService.signIn(new SignInRequest(" ", "password")));
-        assertEquals(400, usernameIsBlank.getStatus());
-
-        // password blank
-        AuthErrorException passwordIsBlank = assertThrows(AuthErrorException.class,
-                () -> authService.signIn(new SignInRequest("tester", " ")));
-        assertEquals(400, passwordIsBlank.getStatus());
-
-        AuthErrorException usernameAndPasswordIsBlank = assertThrows(AuthErrorException.class,
-                () -> authService.signIn(new SignInRequest(" ", " ")));
-        assertEquals(400, usernameAndPasswordIsBlank.getStatus());
-    }
-
-    @Test
     @DisplayName("로그인_존재하지_않는_사용자")
     void signIn_isNotFound() {
         given(usersRepository.findByUsername("tester")).willReturn(Optional.empty());
