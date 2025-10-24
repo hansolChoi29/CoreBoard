@@ -26,7 +26,7 @@ class EmailPhoneNumberEncodeTest {
 
     @Test
     @DisplayName("암호화를_복호화하여_원본_텍스트_반환")
-    void encrypt() {
+    void encryptThenDecrpty() {
         // encrypt() -> decrypt() 원본이 복원이 되는가?
 
         //given
@@ -44,6 +44,13 @@ class EmailPhoneNumberEncodeTest {
     }
 
     @Test
-    void decrypt() {
+    @DisplayName("동일한_입력_두_번_결과_다른_암호문")
+    void encryptSameInputTwice() {
+        // 같은 값을 두 번 암호화해도 결과가 달라야 정상
+        String plain = "0101341234"; // 평문
+        String encrypt1 = encoder.encrypt(plain);
+        String encrypt2 = encoder.encrypt(plain);
+
+        assertNotEquals(encrypt1, encrypt2); // 결과가 서로 달라야 함
     }
 }
