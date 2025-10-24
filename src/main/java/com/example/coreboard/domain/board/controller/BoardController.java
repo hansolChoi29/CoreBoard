@@ -27,10 +27,15 @@ public class BoardController {
             @RequestAttribute("username") String username   // 인터셉터의 username 이용
     ) {
         BoardValidation.createValidation(boardRequestDto); // 유효성 검사
-        Board board = boardService.create(boardRequestDto, username); // 저장된 Board 객체가 반환되어 board로 들어감
+
+        BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.getTitle(), boardRequestDto.getContent());
+
+        BoardCreateDto out = boardService.create(board, username);
+
         BoardCreateResponse response = new BoardCreateResponse( // DB에 저장된 엔티티를 응답용으로 변환하여 return 세팅
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate()
+                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate()
         );
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
@@ -39,11 +44,18 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable Long id                                        // 단건 조회라서 id 받게 함
     ) {
-        Board board = boardService.findOne(id); // id 추출하여 board 반환
-        BoardGetOneResponse response = new BoardGetOneResponse( // 응답용 세팅
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getCreatedDate(),
-                board.getLastModifiedDate()
+        // command로 받아서 Dto로 받고 response로 return
+        BoardGetOneCommand board = new BoardGetOneCommand(
+                id
         );
+
+        BoardGetOneDto out = boardService.findOne(board);
+
+        BoardGetOneResponse response = new BoardGetOneResponse( // 응답용 세팅
+                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
+                out.getLastModifiedDate()
+        );
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
@@ -56,8 +68,11 @@ public class BoardController {
     ) {
         // equalsIgnoreCase : 문자열 비교 (대소문자를 구분하지 않고 비교)
         BoardValidation.sortDirection(sort);
+
         BoardValidation.pageableValication(page, size);
+
         PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
@@ -71,12 +86,18 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
+        // commandDto는 컨트롤러 -> 서비스
+        // Dto(resultDto)는 서비스 -> 컨트롤러
         BoardValidation.updateValidation(updateRequestDto);  // 유효성 검사
-        Board board = boardService.update(updateRequestDto, username, id);
-        BoardUpdateResponse responseDto = new BoardUpdateResponse(
-                board.getId(), board.getUserId(), board.getTitle(), board.getContent(), board.getLastModifiedDate()
-        );
-        return ResponseEntity.ok(ApiResponse.ok(responseDto, "게시글 수정 완료!"));
+
+        BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.getTitle(),
+                updateRequestDto.getContent());
+
+        BoardUpdatedDto out = boardService.update(board);
+
+        BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
+
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
     }
 
     // 보드 삭제
@@ -85,8 +106,8 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-         boardService.delete(username, id);
-         // 자원을 없앴으니 응답 바디에 실어줄 자원 데이터 자체가 존재하지 않음
-        return ResponseEntity.ok(ApiResponse.ok(null,"게시글 삭제완료!"));
+        boardService.delete(username, id);
+        // 자원을 없앴으니 응답 바디에 실어줄 자원 데이터 자체가 존재하지 않음
+        return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
     }
 }
