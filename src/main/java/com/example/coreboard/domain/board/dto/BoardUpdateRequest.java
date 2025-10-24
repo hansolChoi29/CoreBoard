@@ -20,10 +20,11 @@ public class BoardUpdateRequest {
         this.content = content;
     }
 
+    // TODO : test 추가
     public Long getId(){
         return id;
     }
-
+    // TODO : test 추가
     public long getUserId(){
         return userId;
     }

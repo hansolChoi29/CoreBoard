@@ -286,6 +286,7 @@ class BoardServiceTest {
         verifyNoMoreInteractions(boardRepository);
     }
 
+
     @Test
     @DisplayName("게시글_수정_성공")
     void update() {
@@ -348,5 +349,32 @@ class BoardServiceTest {
 
     @Test
     void delete() {
+        // 1) username으로 유저 찾고 (없으면 404)
+        // 2) id로 게시글 찾고
+        // 3) 권한 확인 (userId 다르면 403)
+        // 4) 있으면 delete 하고
+        // 5) 없으면 그냥 조용히 끝 (두 번째 삭제도 OK)
+        Users users = mock(Users.class);
+        Board board = mock(Board.class);
+        String username = "tester";
+        Long id = 1L;
+
+        // given
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
+        given(boardRepository.findById(id)).willReturn(Optional.of(board));
+
+        // 권한 있어야함
+        given(users.getUserId()).willReturn(10L);
+        given(board.getUserId()).willReturn(10L);
+        // Unnecessary stubbings detected : 불필요한 given 좀 치워라
+
+        //when
+        boardService.delete(username, id);
+
+
+        // then
+        verify(usersRepository, times(1)).findByUsername(username);
+        verify(boardRepository, times(1)).findById(id);
+
     }
 }

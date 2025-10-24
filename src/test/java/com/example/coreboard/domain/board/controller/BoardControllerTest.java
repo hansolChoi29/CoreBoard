@@ -463,6 +463,10 @@ class BoardControllerTest {
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
+    // TODO : 시나리오 - 전체조회
+    // 1) 정렬이 asc 아닐 때
+    // 2) size가 1보다 작거나 10보다 클 때 - 400 BoardValidation.sortDirection() 확인할 것
+
     @Test
     @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_404")
     void getAllInvalidSortDirection() throws Exception {
