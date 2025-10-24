@@ -348,6 +348,7 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_삭제_성공")
     void delete() {
         // 1) username으로 유저 찾고 (없으면 404)
         // 2) id로 게시글 찾고
@@ -378,6 +379,31 @@ class BoardServiceTest {
         // then
         verify(usersRepository, times(1)).findByUsername(username);
         verify(boardRepository, times(1)).findById(id);
-
     }
+
+    @Test
+    @DisplayName("게시글_삭제_권한없음_403")
+    void deleteFobiddern(){
+        Users users = mock(Users.class);
+        Board board = mock(Board.class);
+        String username = "tester";
+        // empty()는 404
+        // 403은 권한을 다르게 해야 한다.
+        // given(usersRepository.findByUsername("tester")).willReturn(Optional.empty());
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        given(users.getUserId()).willReturn(10L);
+        given(board.getUserId()).willReturn(98L);
+
+        AuthErrorException fodibbern = assertThrows(
+                AuthErrorException.class,
+                ()-> boardService.delete("tester", 1L)
+        );
+        assertEquals(403, fodibbern.getStatus());
+
+        verify(usersRepository, times(1)).findByUsername("tester");
+        verify(boardRepository, times(1)).findById(1L);
+    }
+
 }
