@@ -7,9 +7,10 @@ import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.B
 
 public class AuthValidation {
 
-    private AuthValidation(){}
+    private AuthValidation() {
+    }
 
-    public static void signInValidation(SignInRequest request){
+    public static void signInValidation(SignInRequest request) {
         if (
                 request.getUsername() == null
                         || request.getUsername().isBlank()
