@@ -59,7 +59,7 @@ class BoardServiceTest {
         boardCreateCommand = new BoardCreateCommand("제목", "내용");
     }
 
-    // AAA패턴
+    // AAA 패턴
     // given : 상황이 이렇다(조건 주입) (가짜데이터, mock 설정)
     // when : 이걸 실행했을 때(행동주입) (실제로 메서드를 호출)
     // then : 결과는 이렇게 나와야 한다(기대결과) (검증, verify, assert)
@@ -75,7 +75,7 @@ class BoardServiceTest {
         // findByUsername에 tester가 오면 서비스가 먼저 유저를 찾으니까, 유저가 있다고 응답해 줘야 다음 단계 진행 가능
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
 
-        // mock(Users.class) 쓸 거면, 같이 써야 하는 이유: 빈 껍데기기 때문에 id가 null이기 때문에 10L 스텁해야 함
+        // mock(Users.class) 쓸 거면, 같이 써야 하는 이유: 빈 껍데기기 때문에 id가 null 이기 때문에 10L 스텁해야 함
         given(users.getUserId()).willReturn(10L);
 
         // 제목이 중복이 아니어야 save 단계로 간다
@@ -228,7 +228,12 @@ class BoardServiceTest {
         assertEquals(firstEntity.getId(), firstDto.getId());
         assertEquals(firstEntity.getUserId(), firstDto.getUserId());
         assertEquals(firstEntity.getTitle(), firstDto.getTitle());
+
         // then : 3) 인자 검증 : 정말로 올바른 Pageable로 호출했는지
+        // ArgumentCaptor : 전달된 값을 나중에 비교하기 위해 잠깐 저장
+        // forClass : 어떤 타입을 담을지
+        // capture() : 전달된 값을 상자에 저장
+        // getValue() : 실제 전달된 값 확인
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         verify(boardRepository, times(1)).findAll(captor.capture());
         Pageable used = captor.getValue();
@@ -239,10 +244,75 @@ class BoardServiceTest {
         verifyNoMoreInteractions(boardRepository);
     }
 
+    @Test
+    @DisplayName("게시글_전체_조회_desc_성공")
+    void findAllDesc() {
+        // given
+        int page = 0;
+        int size = 10;
+        String sort = "desc";
 
+        // 정렬방향 desc 기대
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "title"));
+
+        List<Board> boards = List.of(
+                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
+                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
+                new Board(3L, 30L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now())
+        );
+
+        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
+        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
+
+        // when
+        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
+
+        // then 1) 페이징 래핑 검증
+        assertEquals(page, result.getPage());
+        assertEquals(size, result.getSize());
+        assertEquals(boards.size(), result.getTotalElements());
+        assertEquals(boards.size(), result.getContent().size());
+
+        // then 2) 인자 검증
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(boardRepository, times(1)).findAll(captor.capture());
+        Pageable used = captor.getValue();
+
+        // then 3) Pageable 인자 검증
+        assertEquals(page, used.getPageNumber());
+        assertEquals(size, used.getPageSize());
+        assertEquals(Sort.by(Sort.Direction.DESC, "title"), used.getSort());
+
+        verifyNoMoreInteractions(boardRepository);
+    }
 
     @Test
+    @DisplayName("게시글_수정_성공")
     void update() {
+        Long id = 1L;
+        Users users = mock(Users.class);
+        Board board = mock(Board.class);
+        BoardUpdateCommand cmd = new BoardUpdateCommand( // 입력된 값과 시제 테스트 할 데이터 값이 일치해야 함
+                "tester",
+                id,
+                "새제목",
+                "새본문"
+        );
+        // given
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users)); // 유저 조회 성공하도록 
+        given(boardRepository.findById(id)).willReturn(Optional.of(board)); // 게시글 조회 성공하도록 세팅
+        // 권한 검사에 필요한 값들
+        given(users.getUserId()).willReturn(10L); // 요청 보낸 사람의 userId
+        given(board.getUserId()).willReturn(10L); // 게시글 주인 userId 같게
+        //id
+        given(board.getId()).willReturn(id);
+
+        // when
+        BoardUpdatedDto result = boardService.update(cmd);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        verify(board).update("새제목", "새본문");
     }
 
     @Test
