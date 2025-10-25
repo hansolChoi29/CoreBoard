@@ -3,10 +3,20 @@ package com.example.coreboard.domain.common.interceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.method.HandlerMethod;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthInterceptorTest {
+    @InjectMocks
+    AuthInterceptor authInterceptor;
+
+    MockHttpServletRequest mockHttpServletRequest;
+    MockHttpServletResponse mockHttpServletResponse;
+    HandlerMethod handlerMethod;
 
     // 컨트롤러 실행 전에 preHandle()이 제대로 동작하는지 확인
     // 즉, HTTP 요청을 가짜(MockHttpServletRequest)로 만들어서 
@@ -23,22 +33,29 @@ class AuthInterceptorTest {
     // 유효하지 않은 토큰이면 예외 발생하는지
     // 유효한 토큰이면 username이 request에 저장되는지
 
-    @BeforeEach // 병렬 실행일 수도 있고 인텔리제이는 순서를 보장하지 않기 때문에 지정해야 함
+    @BeforeEach
+        // 병렬 실행일 수도 있고 인텔리제이는 순서를 보장하지 않기 때문에 지정해야 함
         // 초기화 : 모든 테스트 메서드가 실행되기 전 반드시 한 번씩 실행!
     void setUp() throws NoSuchMethodException {
         // 테스트할 대상 직접 생성 - AuthInterceptor 인스턴스
-
+        authInterceptor = new AuthInterceptor();
         // 가짜 요청 객제 - 헤더, url, 메서드 등?
         // MockHttpServletRequest : 실제 HTTP 요청처럼 헤더, 메서드, url 세팅할 수 있는 객체
-
+        mockHttpServletRequest = new MockHttpServletRequest();
         // 가짜 응답 객체 - 상태코드
         // MockHttpServletResponse : 실제 HTTP 응답처럼 상태코드, 바디를 확인할 수 있는 객체
+        mockHttpServletResponse = new MockHttpServletResponse();
 
-        //스프링이 컨트롤러 대신 넘겨주도록 (흉내내기)
+        // 이 테스트 파일 자기 자신 안에 있는 setUp()이라는 메서드를 가짜로 꺼내서
+        // 스프링이 넘겨주는 컨트롤러 정보인 척하기 위함
         // HandlerMethod
-        // 원래는 스프링이 이 요청을 처리할 컨트롤러의 메서드 정보를 넣어줌
-        // 테스트는 컨트롤러가 없으니 임시로 아무 메서드 하나 지정하는 거임
-
+        handlerMethod = new HandlerMethod(
+                this, // 이 테스트 클래스 자기 자신
+                this.getClass().getDeclaredMethod("setUp")
+        );
+        // 위 코드가 필요한 이유: 인터셉터는 원래 스프링이 실행해주는 거라서
+        // 스프링이 자동으로 handler라는 정보를 넘겨줌
+        // 테스트는 스프링 없이 실행해야 하니까 흉내내는 코드가 handlerMethod임
     }
 
     @Test
