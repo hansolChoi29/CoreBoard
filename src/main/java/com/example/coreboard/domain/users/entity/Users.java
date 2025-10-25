@@ -41,7 +41,7 @@ public class Users {
     ) {
         return new Users(username, encodedPassword, email, phoneNumber);
     }
-
+    // TODO : test 추가
     public void setEmail(String email) {
         this.email = email;
     }
@@ -49,7 +49,7 @@ public class Users {
     public String getPhoneNumber() {
         return phoneNumber;
     }
-
+    // TODO : test 추가
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }

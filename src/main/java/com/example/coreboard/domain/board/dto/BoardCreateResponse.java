@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 public class BoardCreateResponse {
     // private final : 값을 한 번만 저장하고 절대 바꾸지 않겠다.
+    // 컨트롤러에서 클라이언트에게 보내는 응답값, 바뀔 일 없으니 final
+
     private final Long id;
     private final long userId;
     private final String title;
