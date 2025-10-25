@@ -108,7 +108,6 @@ class AuthControllerTest {
         verify(authService).signUp(any());
     }
 
-    // 회원가입 시 비밀번호 확인 불일치 400
     @Test
     @DisplayName("회원가입_이미_가입한_계정_409")
     void signUpConflict() throws Exception {
@@ -144,7 +143,6 @@ class AuthControllerTest {
                         "confirmPassword":"gkst"
                     }
                 """;
-        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.EMAIL_REQUIRED));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .content(json)
@@ -152,7 +150,71 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
-        verify(authService).signUp(any());
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("회원가입_이메일_null_400")
+    void signUpEmailNull() throws Exception {
+        String json = """
+                {
+                    "username":"user03",
+                    "phoneNumber":"02012341234",
+                    "password":"gkst",
+                    "confirmPassword":"gkst"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("회원가입_Username_누락_400")
+    void signUpUsernameRequired() throws Exception {
+        String json = """
+                    {
+                        "username":"",
+                        "email":"user03@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"gkst",
+                        "confirmPassword":"gkst"
+                    }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .content(json)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("아이디는 필수입니다."));
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("회원가입_Username_null_400")
+    void signUpUsernameNull() throws Exception {
+        String json = """
+                {
+                    "email":"user03@naver.com",
+                    "phoneNumber":"02012341234",
+                    "password":"gkst",
+                    "confirmPassword":"gkst"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("아이디는 필수입니다."));
+        verifyNoInteractions(authService);
     }
 
     @Test
@@ -167,7 +229,6 @@ class AuthControllerTest {
                         "confirmPassword":""
                     }
                 """;
-        given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_REQUIRED));
         mockMvc.perform(
                         post(BASE + "/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -175,7 +236,111 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호는 필수입니다."));
-        verify(authService).signUp(any());
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_null_400")
+    void signUpPasswordNull() throws Exception {
+        String json = """
+                {
+                    "username" : "user03",
+                    "email":"user03@naver.com",
+                    "phoneNumber":"02012341234",
+                    "confirmPassword":"gkst"
+                }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호는 필수입니다."));
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_확인_누락_400")
+    void signUpConfirmPasswordRequired() throws Exception {
+        String json = """
+                    {
+                        "username":"qwer1",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"qwer1",
+                        "confirmPassword":""
+                    }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("회원가입_비밀번호_확인_null_400")
+    void signUpConfirmPasswordNull() throws Exception {
+        String json = """
+                    {
+                        "username":"qwer1",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"02012341234",
+                        "password":"qwer1"
+                    }
+                """;
+        mockMvc.perform(
+                        post(BASE + "/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("회원가입_전화번호_누락_400")
+    void signUpPhoneNumberRequired() throws Exception{
+        String json = """
+                    {
+                        "username":"qwer1",
+                        "email":"gksthf20@naver.com",
+                        "phoneNumber":"",
+                        "password":"qwer1",
+                        "confirmPassword":"qwer1"
+                    }
+                """;
+        mockMvc.perform(
+                post(BASE+"/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("전화번호는 필수입니다."));
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("회원가입_전화번호_null_400")
+    void signUpPhoneNumberNull() throws Exception{
+        String json = """
+                    {
+                        "username":"qwer1",
+                        "email":"gksthf20@naver.com",
+                        "password":"qwer1",
+                        "confirmPassword":"qwer1"
+                    }
+                """;
+        mockMvc.perform(
+                        post(BASE+"/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("전화번호는 필수입니다."));
+        verifyNoInteractions(authService);
     }
 
     @Test
@@ -261,7 +426,7 @@ class AuthControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
+                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
     }
 
@@ -280,7 +445,7 @@ class AuthControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
+                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
     }
 
@@ -298,7 +463,7 @@ class AuthControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
+                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
     }
 
@@ -316,7 +481,7 @@ class AuthControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
+                .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
     }
 }
