@@ -75,6 +75,7 @@ public class Board {
         if (newTitle != null && !newTitle.isBlank()) {
             this.title = newTitle;
         }
+        // TODO : test 추가
         if (newContent != null && !newContent.isBlank()) {
             this.content = newContent;
         }
