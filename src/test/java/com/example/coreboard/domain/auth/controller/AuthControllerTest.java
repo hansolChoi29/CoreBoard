@@ -33,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
 
+    // 시큐리티를 사용하지 않고 직접 구현했으며 filter 사용 대신 인터셉터를 사용했어서 requestAttr()를 씀
+    // 만약, 시큐리티(SecurityFilterChain)를 썼다면 @WithMockUser(username = "tester") 하면 됨
+
     private static final String BASE = "/auth";
     String username = "tester";
 
