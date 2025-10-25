@@ -1,11 +1,11 @@
 package com.example.coreboard.domain.common.interceptor;
 
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.util.JwtUtil;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.method.HandlerMethod;
@@ -32,6 +32,11 @@ class AuthInterceptorTest {
     // Authorization 헤더가 없으면 예외 발생하는지
     // 유효하지 않은 토큰이면 예외 발생하는지
     // 유효한 토큰이면 username이 request에 저장되는지
+
+    @BeforeAll
+    static void setUpJwt() {
+        JwtUtil.init("jwtjwtjwtVeryVeryVeryVeryVeryVeryLongTooLongLongLongLongLongjwtVeryLong");
+    }
 
     @BeforeEach
         // 병렬 실행일 수도 있고 인텔리제이는 순서를 보장하지 않기 때문에 지정해야 함
@@ -91,7 +96,18 @@ class AuthInterceptorTest {
     @Test
     @DisplayName("유효하지_않은_토큰_예외발생")
     void invalidToken_fali() {
+        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.addHeader("Authorization", "Bearer " + "badToken");
 
+        assertThrows(
+                AuthErrorException.class, () -> {
+                    authInterceptor.preHandle(
+                            mockHttpServletRequest,
+                            mockHttpServletResponse,
+                            handlerMethod
+                    );
+                }
+        );
     }
 
     @Test
@@ -101,5 +117,16 @@ class AuthInterceptorTest {
         // 차이점
         // throws Exceptio : 예외가 터질 수도 있음 (가능성)
         // try-catch : 예외를 직접 잡아서 처리
+        String token = JwtUtil.createAccessToken(10L, "tester");
+        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
+
+        boolean result = authInterceptor.preHandle(
+                mockHttpServletRequest,
+                mockHttpServletResponse,
+                handlerMethod);
+
+        assertTrue(result);
+        assertEquals("tester", mockHttpServletRequest.getAttribute("username"));
     }
 }
