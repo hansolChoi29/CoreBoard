@@ -1,5 +1,7 @@
 package com.example.coreboard.domain.common.interceptor;
 
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +76,16 @@ class AuthInterceptorTest {
     @Test
     @DisplayName("Authorization_헤더_없음_POST예외")
     void noHeader_postRequest_fail() {
-
+        mockHttpServletRequest.setMethod("POST");
+        assertThrows(
+                AuthErrorException.class, () -> {
+                    authInterceptor.preHandle(
+                            mockHttpServletRequest,
+                            mockHttpServletResponse,
+                            handlerMethod
+                    );
+                }
+        );
     }
 
     @Test
