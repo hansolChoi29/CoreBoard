@@ -30,19 +30,9 @@ public class ApiResponse<T> {
         // 세 번째 인자 : 데이터 페이로드 data:{}
     }
 
-    // 서버 에러 (500)
-    public static <T> ApiResponse<Object> error(String message) {   // ApiResponse 생성자를 호출하여 에러 상태의 응답 객체를
-        // 만들어서 반환한다, Void로 하면 데이터가 null로 나오므로 Object로 수정함
-        return new ApiResponse<>(message, Collections.emptyMap());
-        // 두 번째 인자 : 메시지
-        // 세 번째 인자 : 데이터 페이로드 data:{}
-    }
-    // 사용 예시 : return ApiResponse.error("예상치 못한 어쩌고 에러발생");
-
     public T getData() {
         return data;
     }
-
     public String getMessage() {
         return message;
     }
