@@ -72,14 +72,12 @@ public class BoardValidation {
         if (page < 0) {
             throw new BoardErrorException(BoardErrorCode.PAGE_NOT_INTEGER);
         }
-        // TODO : test 추가
         if (size < 1 || size > 10) {
             throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }
     }
 
     public static void sortDirection(String sort){
-        // TODO : test 추가
         if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
             throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
         }
