@@ -1,10 +1,11 @@
 package com.example.coreboard.domain.auth.dto;
 
-public class SignInRequest {
+public class AuthSignInCommand {
     String username;
     String password;
 
-    public SignInRequest(String username, String password) {
+
+    public AuthSignInCommand(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -22,6 +23,7 @@ public class SignInRequest {
         return password;
     }
     public void setPassword(String password) {
+        // TODO : test
         this.password = password;
     }
 }

@@ -1,7 +1,6 @@
 package com.example.coreboard.domain.auth.controller;
 
-import com.example.coreboard.domain.auth.dto.SignInRequest;
-import com.example.coreboard.domain.auth.dto.TokenResponse;
+import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -64,11 +63,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_성공")
     void signUp() throws Exception {
-        Users dummy = new Users(
-                username,
-                "qwerqweqr1",
-                "qwer29@naver.com",
-                "01012341234"
+        SignUpDto dummy = new SignUpDto(
+                username
         );
         given(authService.signUp(any())).willReturn(dummy);
         String json = """
@@ -188,7 +184,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그인_성공")
     void signIn() throws Exception {
-        TokenResponse dummy = new TokenResponse(
+        AuthSignInDto dummy = new AuthSignInDto(
                 "accessToken",
                 "refreshToken"
         );
@@ -255,7 +251,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인_필드_null_400")
-    void signIn_IsBadRequest() throws Exception{
+    void signIn_IsBadRequest() throws Exception {
         String json = """
                 {
                  "username" : "",
@@ -271,9 +267,10 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
         verify(authService, never()).signIn(any());
     }
+
     @Test
     @DisplayName("로그인_필드_passowrd_null_400")
-    void signIn_password_IsBadRequest() throws Exception{
+    void signIn_password_IsBadRequest() throws Exception {
         String json = """
                 {
                  "username" : "fdsa",
@@ -292,31 +289,32 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인_password_isBlank")
-    void signIn_password_isBlank() throws Exception{
+    void signIn_password_isBlank() throws Exception {
         String json = """
                 {
                     "username":"fds"
                 }
                 """;
         mockMvc.perform(
-                post(BASE+"/token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        post(BASE + "/token")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
         verify(authService, never()).signIn(any());
     }
+
     @Test
     @DisplayName("로그인_username_isBlank")
-    void signIn_username_isBlank() throws Exception{
+    void signIn_username_isBlank() throws Exception {
         String json = """
                 {
                     "password":"fds"
                 }
                 """;
         mockMvc.perform(
-                        post(BASE+"/token")
+                        post(BASE + "/token")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )

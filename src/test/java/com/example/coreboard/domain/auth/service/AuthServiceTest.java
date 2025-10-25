@@ -1,8 +1,6 @@
 package com.example.coreboard.domain.auth.service;
 
-import com.example.coreboard.domain.auth.dto.SignInRequest;
-import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.auth.dto.TokenResponse;
+import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
 import com.example.coreboard.domain.common.config.PasswordEncode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
@@ -90,28 +88,35 @@ class AuthServiceTest {
         given(passwordEncode.encrypt("password")).willReturn("encodedPassword"); // 암호화된 비번 반환
         given(emailPhoneNumberEncode.encrypt("email@naver.com")).willReturn("encEmail"); // 암호화된 이메일로 반환
         given(emailPhoneNumberEncode.encrypt("01012341234")).willReturn("encPhoneNumber"); // 암호화된 번호 반환
-
-        // stup : 가짜 객체(Mock)에 미리 짜둔 응답 데이터 준비
-        Users saved = new Users(
+        Users savedUser = new Users(
                 "tester",
                 "encodedPassword",
                 "encEmail",
                 "encPhoneNumber"
+        );
+        given(usersRepository.save(any(Users.class))).willReturn(savedUser); // 파라미터로 들어온 Users 객체가 무엇이든 상관없이
+        // stup : 가짜 객체(Mock)에 미리 짜둔 응답 데이터 준비
+        SignUpCommand command = new SignUpCommand(
+                "tester",
+                "password",
+                "password",
+                "email@naver.com",
+                "01012341234"
         ); // given에서 설정해준대로 Users에 담기
 
         // when
-        given(usersRepository.save(any(Users.class))).willReturn(saved); // 파라미터로 들어온 Users 객체가 무엇이든 상관없이
         // usersRepository.save 호출이 발생했을 때 saved를 리턴해라
-        Users result = authService.signUp(request); // result 안에 saved 객체가 그대로 들어감
+        SignUpDto result = authService.signUp(command); // result 안에 saved 객체가 그대로 들어감
 
         // then(검증) : 실제 실행 결과
         assertNotNull(result); // result는 null이 아니어야 한다.
         assertEquals("tester", result.getUsername()); // result 안에 들어있는 username값이 tester와 같아야 한다.
         // 진짜 암호화가 된 결과를 비교하는 게 아니라, 가짜 암호화 결과를 미리 정해두고 그 값이 들어갔는지 확인하는 테스트
-        assertEquals("encodedPassword", result.getPassword()); // result 안에 들어있는 password값이 encodedPassword와 같아야 한다.
-        assertEquals("encEmail", result.getEmail()); // result 안에 들어있는 email값이 encEmail와 같아야 한다.
-        assertEquals("encPhoneNumber", result.getPhoneNumber()); // result 안에 들어있는 phoneNumber값이 encPhoneNumber와 같아야 한다.
-
+        Users user = new Users("tester", "encodedPassword", "encEmail", "encPhoneNumber");
+        assertEquals("encEmail", user.getEmail());
+        assertEquals("encPhoneNumber", user.getPhoneNumber());
+        result.setUsername("renamedUser");
+        assertEquals("renamedUser", result.getUsername());
         verify(usersRepository).existsByUsername("tester");
         // 암호화 검증
         verify(passwordEncode).encrypt("password");
@@ -124,7 +129,7 @@ class AuthServiceTest {
     void signUp_IsMisMatch() {
         AuthErrorException passwordMismatch = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signUp(new SignUpRequest(
+                () -> authService.signUp(new SignUpCommand(
                         "tester",
                         "password",
                         "pa",
@@ -140,7 +145,7 @@ class AuthServiceTest {
     void signUp_IsPasswordNull() {
         AuthErrorException passwordNull = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signUp(new SignUpRequest(
+                () -> authService.signUp(new SignUpCommand(
                         "tester",
                         null,
                         "password",
@@ -156,7 +161,7 @@ class AuthServiceTest {
     void signUp_IsConfirmPasswordNull() {
         AuthErrorException confirmPasswordNull = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signUp(new SignUpRequest(
+                () -> authService.signUp(new SignUpCommand(
                         "tester",
                         "password",
                         null,
@@ -173,7 +178,7 @@ class AuthServiceTest {
         given(usersRepository.existsByUsername("tester")).willReturn(true);
 
         AuthErrorException usernameIsConflict = assertThrows(AuthErrorException.class,
-                () -> authService.signUp(new SignUpRequest(
+                () -> authService.signUp(new SignUpCommand(
                         "tester",
                         "password",
                         "password",
@@ -212,8 +217,8 @@ class AuthServiceTest {
 
         // when 실행단계
         // 실제로 테스트 대상을 호출함 : result = accessToken, refreshToken 담은 응답 DTO
-        TokenResponse result = authService.signIn(
-                new SignInRequest("tester", "password") // 아아디/비번
+        AuthSignInDto result = authService.signIn(
+                new AuthSignInCommand("tester", "password") // 아아디/비번
         );
 
         // then 검증 단계: 결과가 기대한 값인지 확인하는 구간
@@ -246,7 +251,7 @@ class AuthServiceTest {
 
         AuthErrorException usernameNotFound = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signIn(new SignInRequest(
+                () -> authService.signIn(new AuthSignInCommand(
                         "tester",
                         "password"
                 )));
@@ -270,7 +275,7 @@ class AuthServiceTest {
         // authService.signIn 실행 중 AuthErrorException 에러를 던져야 한다.
         AuthErrorException passwordUnAuthorized = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signIn(new SignInRequest(
+                () -> authService.signIn(new AuthSignInCommand(
                         "tester",
                         "password"
                 )));
@@ -280,5 +285,25 @@ class AuthServiceTest {
 
         verify(usersRepository).findByUsername("tester");
         verify(passwordEncode).matches("password", "encodedPassword");
+    }
+
+    @Test
+    @DisplayName("로그인_DTO_옮겨갈_때")
+    void signIn_flow_mapping() {
+        SignInRequest request = new SignInRequest("tester", "123ps");
+
+        request.setUsername("tester");
+        request.setPassword("1234ps");
+
+        AuthSignInCommand command = new AuthSignInCommand(
+                request.getUsername(),
+                request.getPassword()
+        );
+
+        command.setUsername(command.getUsername());
+        command.setPassword(command.getPassword());
+
+        assertEquals("tester", command.getUsername());
+        assertEquals("1234ps", command.getPassword());
     }
 }
