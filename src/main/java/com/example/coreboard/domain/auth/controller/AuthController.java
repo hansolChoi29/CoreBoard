@@ -25,6 +25,8 @@ public class AuthController {
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) {
         // 요청의 JSON데이터를 SignUpResponse 객체로 바꿔서 받음 <= @RequestBody
         // 응답은 ApiResponse<SignUpResponse> 형태로 감싸서 반환(공통 응답 포맷)
+        AuthValidation.signUpValidation(request);
+
         SignUpCommand users = new SignUpCommand(
                 request.getUsername(),
                 request.getPassword(),
@@ -32,7 +34,9 @@ public class AuthController {
                 request.getEmail(),
                 request.getPhoneNumber()
         );
+
         SignUpDto out = authService.signUp(users);
+
         SignUpResponse response = new SignUpResponse(
                 out.getUsername()
         );
@@ -52,11 +56,13 @@ public class AuthController {
     ) {
 
         AuthValidation.signInValidation(request);
-        AuthSignInCommand users = new AuthSignInCommand(
+
+        SignInCommand users = new SignInCommand(
                 request.getUsername(),
                 request.getPassword()
         );
-        AuthSignInDto out = authService.signIn(users);
+
+        TokenDto out = authService.signIn(users);
         // 클라이언트->컨트롤러 : request
         // 컨트롤러->서비스 : command
         // 서비스->컨트롤러 : result
@@ -65,6 +71,7 @@ public class AuthController {
                 out.getAccessToken(),
                 out.getRefreshToken()
         );
+
         return ResponseEntity.ok(ApiResponse.ok(response, "로그인 성공!")); // 도메인 로그인 토큰 넣어야 해서 응답바디에 반환되게 함
     }
 }

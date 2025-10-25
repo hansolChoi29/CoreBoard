@@ -1,11 +1,11 @@
 package com.example.coreboard.domain.auth.dto;
 
-public class AuthSignInCommand {
+public class SignInCommand {
     String username;
     String password;
 
 
-    public AuthSignInCommand(String username, String password) {
+    public SignInCommand(String username, String password) {
         this.username = username;
         this.password = password;
     }

@@ -181,7 +181,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그인_성공")
     void signIn() throws Exception {
-        AuthSignInDto dummy = new AuthSignInDto(
+        TokenDto dummy = new TokenDto(
                 "accessToken",
                 "refreshToken"
         );

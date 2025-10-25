@@ -18,8 +18,11 @@ public class AuthService {
     private final PasswordEncode passwordEncoder;
     private final EmailPhoneNumberEncode emailPhoneNumberEncode;
 
-    public AuthService(PasswordEncode passwordEncoder, UsersRepository usersRepository,
-                       EmailPhoneNumberEncode emailPhoneNumberEncode) {
+    public AuthService(
+            PasswordEncode passwordEncoder,
+            UsersRepository usersRepository,
+            EmailPhoneNumberEncode emailPhoneNumberEncode
+    ) {
         this.passwordEncoder = passwordEncoder;
         this.usersRepository = usersRepository;
         this.emailPhoneNumberEncode = emailPhoneNumberEncode;
@@ -57,7 +60,7 @@ public class AuthService {
     }
 
 
-    public AuthSignInDto signIn(AuthSignInCommand authSignInCommand) {
+    public TokenDto signIn(SignInCommand authSignInCommand) {
         // 사용자 조회
         Users users =
                 usersRepository.findByUsername(authSignInCommand.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));  // Optional 객체에서 값을 꺼내 오는 메서드(값이 존재하는 경우 해당 값
@@ -71,6 +74,6 @@ public class AuthService {
         String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
 
         // 토큰 반환
-        return new AuthSignInDto(accessToken, refreshToken);
+        return new TokenDto(accessToken, refreshToken);
     }
 }
