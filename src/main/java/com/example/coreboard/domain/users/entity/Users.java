@@ -42,7 +42,6 @@ public class Users {
         return new Users(username, encodedPassword, email, phoneNumber);
     }
 
-    // TODO : test
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -59,7 +58,6 @@ public class Users {
         return userId;
     }
 
-    // TODO : test
     public String getEmail() {
         return email;
     }

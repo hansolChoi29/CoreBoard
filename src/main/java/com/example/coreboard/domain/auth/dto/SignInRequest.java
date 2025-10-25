@@ -14,7 +14,6 @@ public class SignInRequest {
     }
 
     public void setUsername(String username) {
-        // TODO : test
         this.username = username;
     }
 

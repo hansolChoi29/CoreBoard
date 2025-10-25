@@ -15,7 +15,6 @@ public class AuthSignInCommand {
     }
 
     public void setUsername(String username) {
-        // TODO : test
         this.username = username;
     }
 
@@ -23,7 +22,6 @@ public class AuthSignInCommand {
         return password;
     }
     public void setPassword(String password) {
-        // TODO : test
         this.password = password;
     }
 }
