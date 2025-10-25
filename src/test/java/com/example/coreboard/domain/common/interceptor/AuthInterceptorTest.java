@@ -2,6 +2,9 @@ package com.example.coreboard.domain.common.interceptor;
 
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,13 +13,17 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.method.HandlerMethod;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthInterceptorTest {
+    private static final String TEST_SECRET = "jwtjwtjwtVeryVeryVeryVeryVeryVeryLongTooLongLongLongLongLongjwtVeryLong";
+    private static SecretKey localTestKey;
     AuthInterceptor authInterceptor;
     MockHttpServletRequest mockHttpServletRequest;
-    MockHttpServletResponse mockHttpServletResponse;
-    HandlerMethod handlerMethod;
 
     // 컨트롤러 실행 전에 preHandle()이 제대로 동작하는지 확인
     // 즉, HTTP 요청을 가짜(MockHttpServletRequest)로 만들어서 
@@ -27,15 +34,17 @@ class AuthInterceptorTest {
     // 테스트 시점 : 컨트롤러 진입 전
     // 토큰 검증과 인증 통과 여부 확인
     // interceptor.preHandle()로 실행
-
+    MockHttpServletResponse mockHttpServletResponse;
     // 목료 3가지
     // Authorization 헤더가 없으면 예외 발생하는지
     // 유효하지 않은 토큰이면 예외 발생하는지
     // 유효한 토큰이면 username이 request에 저장되는지
+    HandlerMethod handlerMethod;
 
     @BeforeAll
     static void setUpJwt() {
-        JwtUtil.init("jwtjwtjwtVeryVeryVeryVeryVeryVeryLongTooLongLongLongLongLongjwtVeryLong");
+        JwtUtil.init(TEST_SECRET);
+        localTestKey = Keys.hmacShaKeyFor(TEST_SECRET.getBytes(StandardCharsets.UTF_8));
     }
 
     @BeforeEach
@@ -66,14 +75,13 @@ class AuthInterceptorTest {
     @Test
     @DisplayName("Authorization_헤더_없음_GET통과")
     void noHeader_getRequestIsPass() {
-
-        // GET이면 true
-        mockHttpServletRequest.setMethod("GET");
+        mockHttpServletRequest.setMethod("GET"); // 테스트 요청의 HTTP 메서드는 GET으로 설정한다
         // assertDoesNotThrow : 예외 없이 정상 실행되어야 한다는 걸 테스트
-        assertDoesNotThrow(() -> authInterceptor.preHandle(
-                        mockHttpServletRequest,
-                        mockHttpServletResponse,
-                        handlerMethod
+        assertDoesNotThrow(
+                () -> authInterceptor.preHandle( // 인터셉터의 preHandle()을 직접 실행한다.
+                        mockHttpServletRequest, // 가짜 HTTP 요청 정보
+                        mockHttpServletResponse, // 가짜 HTTP 응답 정보
+                        handlerMethod // 이 요청이 어떤 컨트롤러 메서드로 향하고 있는지에 대한 정보
                 )
         );
     }
@@ -81,16 +89,44 @@ class AuthInterceptorTest {
     @Test
     @DisplayName("Authorization_헤더_없음_POST예외")
     void noHeader_postRequest_fail() {
-        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.setMethod("POST");  // 테스트 요청의 HTTP 메서드를 POST로 설정한다
+        // 에러를 의도적으로 발생시켜서 인터셉터가 인증 실패 상황을 정상적으로 감지하고
+        // 예외를 던지는 테스트
         assertThrows(
-                AuthErrorException.class, () -> {
-                    authInterceptor.preHandle(
-                            mockHttpServletRequest,
-                            mockHttpServletResponse,
-                            handlerMethod
+                AuthErrorException.class, () -> {  // 이 예외가 반드시 터져야 한다
+                    authInterceptor.preHandle(     // 인터셉터의 preHandle()을 직접 실행한다
+                            mockHttpServletRequest, // 가짜 HTTP 요청 정보
+                            mockHttpServletResponse, // 가짜 HTTP 응답 정보
+                            handlerMethod // 이 요청이 어떤 컨트롤러 메서드로 향하고 있는지에 대한 정보
                     );
+                    // 인터셉터는 요청과 응답, 어떤 메서드로 갈지 
+                    // 이 세가지 정보를 가지고 인증 로직을 수행하는데
+                    // 진짜 서버가 없어서 mock 객체로 가짜 환경을 만들어서 
+                    // preHadle() 직접 실행하는 것
                 }
         );
+    }
+
+    @Test
+    @DisplayName("토큰_만료")
+    void noHeader_tokenEnd() {
+        String token = Jwts.builder()
+                .setSubject("tester") // 토큰 내부 세팅 01
+                .claim("userId", 10L) // 토큰 내부 세팅 02
+                .claim("type", "refresh") // 토큰 내부 세팅 03
+                .setExpiration(new Date(System.currentTimeMillis() - 1000))
+                .signWith(localTestKey, SignatureAlgorithm.HS256)
+                .compact();
+        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
+
+        assertThrows(AuthErrorException.class, () -> {
+            authInterceptor.preHandle(
+                    mockHttpServletRequest,
+                    mockHttpServletResponse,
+                    handlerMethod
+            );
+        });
     }
 
     @Test
@@ -112,7 +148,7 @@ class AuthInterceptorTest {
 
     @Test
     @DisplayName("유효한_토큰_username저장")
-    void validToken_success() throws Exception {
+    void validToken_success() {
         // 참고로 throws Exceptio 대신 try-catch 써도 됨
         // 차이점
         // throws Exceptio : 예외가 터질 수도 있음 (가능성)

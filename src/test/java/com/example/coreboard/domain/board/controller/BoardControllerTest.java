@@ -229,7 +229,6 @@ class BoardControllerTest {
         verify(boardService, never()).create(any(), anyString()); // 단 한 번도 호출되어선 안 된다.
     }
 
-    // TODO : 자바는 null에 취약하기 때문에 예외처리 해줘야 한다.
 
     @Test
     @DisplayName("게시글_생성_제목_400")
@@ -463,9 +462,52 @@ class BoardControllerTest {
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
-    // TODO : 시나리오 - 전체조회
-    // 1) 정렬이 asc 아닐 때
-    // 2) size가 1보다 작거나 10보다 클 때 - 400 BoardValidation.sortDirection() 확인할 것
+    @Test
+    @DisplayName("게시글_전체조회_size_0")
+    void getAllShortSize()throws Exception{
+        mockMvc.perform(
+                get(BASE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page","0")
+                        .param("size","0")
+                        .param("sort","asc")
+
+        )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_size_11")
+    void getAllTooLongsize()throws Exception{
+        mockMvc.perform(
+                        get(BASE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page","0")
+                                .param("size","11")
+                                .param("sort","asc")
+
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_sort_not_asc")
+    void getAllNotAsc()throws Exception{
+        mockMvc.perform(
+                        get(BASE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page","0")
+                                .param("size","10")
+                                .param("sort","aaa")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+        verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
+    }
 
     @Test
     @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_404")
