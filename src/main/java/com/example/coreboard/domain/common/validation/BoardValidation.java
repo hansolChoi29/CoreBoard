@@ -78,7 +78,6 @@ public class BoardValidation {
     }
 
     public static void sortDirection(String sort){
-        // TODO : test
         if (!sort.equalsIgnoreCase("asc") &&
                 !sort.equalsIgnoreCase("desc")) {
             throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
