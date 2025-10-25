@@ -25,7 +25,6 @@ public class JwtUtil {
         // Keys : 문자열로 된 비밀키를 객체로 쉽게 만들어주는 유틸 클래스
         // hmacShaKeyFor : Key클래스 안의 정적 메서드(HMAC SHA 알고리즘)
         // secret.getBytes() : 문자열을 바이트 배열로 변환 (이유: HMAC SHA알고리즘은 바이트 배열 형태로 키를 필요로 함)
-        System.out.println("JWT secret init 길이= " + (secret == null ? 0 : secret.length()));
         // HMAC SHA알고리즘이란?
         // 핵심은 비밀 키로 토큰 변조를 막는다.
     }
