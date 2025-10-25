@@ -217,8 +217,8 @@ class AuthServiceTest {
 
         // when 실행단계
         // 실제로 테스트 대상을 호출함 : result = accessToken, refreshToken 담은 응답 DTO
-        AuthSignInDto result = authService.signIn(
-                new AuthSignInCommand("tester", "password") // 아아디/비번
+        TokenDto result = authService.signIn(
+                new SignInCommand("tester", "password") // 아아디/비번
         );
 
         // then 검증 단계: 결과가 기대한 값인지 확인하는 구간
@@ -251,7 +251,7 @@ class AuthServiceTest {
 
         AuthErrorException usernameNotFound = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signIn(new AuthSignInCommand(
+                () -> authService.signIn(new SignInCommand(
                         "tester",
                         "password"
                 )));
@@ -275,7 +275,7 @@ class AuthServiceTest {
         // authService.signIn 실행 중 AuthErrorException 에러를 던져야 한다.
         AuthErrorException passwordUnAuthorized = assertThrows(
                 AuthErrorException.class,
-                () -> authService.signIn(new AuthSignInCommand(
+                () -> authService.signIn(new SignInCommand(
                         "tester",
                         "password"
                 )));
@@ -295,7 +295,7 @@ class AuthServiceTest {
         request.setUsername("tester");
         request.setPassword("1234ps");
 
-        AuthSignInCommand command = new AuthSignInCommand(
+        SignInCommand command = new SignInCommand(
                 request.getUsername(),
                 request.getPassword()
         );

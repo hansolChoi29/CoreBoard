@@ -8,9 +8,11 @@ public enum AuthErrorCode {
     INTERNAL_SERVER_ERROR(500, "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
     // 회원가입,
     PASSWORD_CONFIRM_MISMATCH(400, "비밀번호 확인이 일치하지 않습니다."),
+    USERNAME_PASSWORD_ISBLANK(400,"아이디 또는 비밀번호를 필수입니다."),
     CONFLICT(409, "이미 가입한 계정입니다."),
     EMAIL_REQUIRED(400,"이메일은 필수입니다."),
     ID_REQUIRED(400,"아이디는 필수입니다."),
+    PHONENUMBER_ISBLANK(400,"전화번호는 필수입니다."),
     PASSWORD_REQUIRED(400,"비밀번호는 필수입니다.");
 
     private final int status;
