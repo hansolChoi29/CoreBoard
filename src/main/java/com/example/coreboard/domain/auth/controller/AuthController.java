@@ -3,14 +3,11 @@ package com.example.coreboard.domain.auth.controller;
 
 import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.service.AuthService;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.validation.AuthValidation;
-import com.example.coreboard.domain.users.entity.Users;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.BAD_REQUEST;
 
 @RequestMapping("/auth")
 @RestController
@@ -26,7 +23,6 @@ public class AuthController {
     // 트러블 : @RequestBody 누락 - 자바 객체로 변환 (httpMessageConverter)
     @PostMapping("/users")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) {
-
         // 요청의 JSON데이터를 SignUpResponse 객체로 바꿔서 받음 <= @RequestBody
         // 응답은 ApiResponse<SignUpResponse> 형태로 감싸서 반환(공통 응답 포맷)
         SignUpCommand users = new SignUpCommand(
@@ -65,7 +61,6 @@ public class AuthController {
         // 컨트롤러->서비스 : command
         // 서비스->컨트롤러 : result
         // 컨트롤러->클라이언트 : response
-//        TokenResponse tokenResponse = authService.signIn(request);
         TokenResponse response = new TokenResponse(
                 out.getAccessToken(),
                 out.getRefreshToken()
