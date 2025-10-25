@@ -11,9 +11,7 @@ import org.springframework.web.method.HandlerMethod;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthInterceptorTest {
-    @InjectMocks
     AuthInterceptor authInterceptor;
-
     MockHttpServletRequest mockHttpServletRequest;
     MockHttpServletResponse mockHttpServletResponse;
     HandlerMethod handlerMethod;
@@ -61,8 +59,16 @@ class AuthInterceptorTest {
     @Test
     @DisplayName("Authorization_헤더_없음_GET통과")
     void noHeader_getRequestIsPass() {
-        // given
 
+        // GET이면 true
+        mockHttpServletRequest.setMethod("GET");
+        // assertDoesNotThrow : 예외 없이 정상 실행되어야 한다는 걸 테스트
+        assertDoesNotThrow(() -> authInterceptor.preHandle(
+                        mockHttpServletRequest,
+                        mockHttpServletResponse,
+                        handlerMethod
+                )
+        );
     }
 
     @Test
