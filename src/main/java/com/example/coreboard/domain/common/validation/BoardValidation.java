@@ -11,9 +11,6 @@ import static com.example.coreboard.domain.common.exception.board.BoardErrorCode
 
 public class BoardValidation {
 
-    private BoardValidation() {
-    }
-
     // 컨트롤러에서 가져온 값 주입하여 검증 세팅
     public static void createValidation(BoardCreateRequest createRequest) {
         createValidation(createRequest.getTitle(), createRequest.getContent());
@@ -78,7 +75,8 @@ public class BoardValidation {
     }
 
     public static void sortDirection(String sort){
-        if (!sort.equalsIgnoreCase("asc") && !sort.equalsIgnoreCase("desc")) {
+        if (!sort.equalsIgnoreCase("asc") &&
+                !sort.equalsIgnoreCase("desc")) {
             throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);
         }
     }

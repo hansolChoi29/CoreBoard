@@ -1,7 +1,6 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.*;
-import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -507,6 +506,35 @@ class BoardControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체_조회_desc_정상")
+    void getAllDesc() throws Exception {
+        BoardSummaryResponse item = new BoardSummaryResponse(
+                1L, 10L, "제목", LocalDateTime.now()
+        );
+
+        PageResponse<BoardSummaryResponse> pageResponse =
+                new PageResponse<>(List.of(item), 0, 10, 1L);
+
+        PageResponse<BoardSummaryResponse> body =
+                ApiResponse.ok(pageResponse, "게시글 전체 조회!").getData();
+
+        given(boardService.findAll(eq(0), eq(10), eq("desc"))).willReturn(body);
+
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", "desc")
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
+
+        verify(boardService).findAll(eq(0), eq(10), eq("desc"));
+        verifyNoMoreInteractions(boardService);
     }
 
     @Test
