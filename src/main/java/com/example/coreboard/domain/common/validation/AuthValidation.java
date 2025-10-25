@@ -9,9 +9,6 @@ import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.U
 
 public class AuthValidation {
 
-    private AuthValidation() {
-    }
-
     public static void signUpValidation(SignUpRequest request) {
         signUp(request.getUsername(),
                 request.getPassword(),

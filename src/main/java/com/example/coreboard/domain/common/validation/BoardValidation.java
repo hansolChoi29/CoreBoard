@@ -11,9 +11,6 @@ import static com.example.coreboard.domain.common.exception.board.BoardErrorCode
 
 public class BoardValidation {
 
-    private BoardValidation() {
-    }
-
     // 컨트롤러에서 가져온 값 주입하여 검증 세팅
     public static void createValidation(BoardCreateRequest createRequest) {
         createValidation(createRequest.getTitle(), createRequest.getContent());
