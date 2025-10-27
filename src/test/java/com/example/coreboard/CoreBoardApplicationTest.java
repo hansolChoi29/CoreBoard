@@ -1,9 +1,12 @@
 package com.example.coreboard;
 
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
+import com.example.coreboard.domain.common.config.PasswordEncode;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +58,24 @@ class CoreBoardApplicationTest {
 
     @Autowired
     UsersRepository usersRepository;
+    @Autowired
+    PasswordEncode passwordEncode;
+    @Autowired
+    EmailPhoneNumberEncode emailPhoneNumberEncode;
 
     @Autowired
     MockMvc mockMvc;
+
+    @BeforeEach
+    void setUser(){
+        Users user = new Users(
+                "username",
+                passwordEncode.encrypt("password"),
+                emailPhoneNumberEncode.encrypt("email@naver.com"),
+                emailPhoneNumberEncode.encrypt("01012341234")
+        );
+        usersRepository.save(user);
+    }
 
     // url, username, password를 여기서 주입한다
     @DynamicPropertySource
@@ -104,15 +122,6 @@ class CoreBoardApplicationTest {
     @Test
     @DisplayName("POST/auth/token")
     void authToken() throws Exception {
-        Users user = new Users(
-                "username",
-                "password",
-                "email@naver.com",
-                "01012341234"
-        );
-
-        usersRepository.save(user);
-
         String json = """
                 {
                     "username" : "username",
