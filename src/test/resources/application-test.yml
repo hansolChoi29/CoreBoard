@@ -1,7 +1,4 @@
 spring:
-  datasource:
-    url: jdbc:tc:mysql:8.0.33:///coreboard_test
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
 
   jpa:
     hibernate:
@@ -17,4 +14,4 @@ jwt:
 
 aes:
   secret:
-    key: test-aes-secret-key-for-coreboard
+    key: 1234567890ABCDEF
