@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:tc:mysql:8.0.33:///coreboard_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+jwt:
+  secret:
+    key: test-jwt-secret-key-for-coreboard
+
+aes:
+  secret:
+    key: test-aes-secret-key-for-coreboard
