@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false) // HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
 @Testcontainers       // Testcontainers 활성화
 @Transactional        // 각 테스트가 끝나면 롤백해서 DB 깨끗하게 초기화
-public class AuthBoardTest {
+public class AuthTest {
 
     @Container // Testcontainers가 이 필드를 테스트 시작 시 자동으로 Docker 컨테이너로 실행하게 함
     static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36") // 도커 환경으로 DB 띄우겠다
@@ -44,12 +44,16 @@ public class AuthBoardTest {
 
     @MockitoBean
     AuthInterceptor authInterceptor;
+
     @Autowired
     UsersRepository usersRepository;
+
     @Autowired
     PasswordEncode passwordEncode;
+
     @Autowired
     EmailPhoneNumberEncode emailPhoneNumberEncode;
+
     @Autowired
     MockMvc mockMvc;
 
