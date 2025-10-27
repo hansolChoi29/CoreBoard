@@ -1,5 +1,4 @@
-package com.example.coreboard.domain.integration;
-
+package com.example.coreboard;
 
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
@@ -25,18 +24,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @SpringBootTest        // 스프링 부트 애플리케이션 전체를 테스트용으로 띄워서 실제처럼 컨테이너를 다 로드해주는 어노테이션
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false) // HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
 @Testcontainers       // Testcontainers 활성화
 @Transactional        // 각 테스트가 끝나면 롤백해서 DB 깨끗하게 초기화
-public class BoardIntegrationTest {
+class CoreBoardApplicationTest {
     @Container // Testcontainers가 이 필드를 테스트 시작 시 자동으로 Docker 컨테이너로 실행하게 함
     static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36") // 도커 환경으로 DB 띄우겠다
             // 컨테이너 내부 DB 이름을 testdb로 설정
@@ -97,8 +95,44 @@ public class BoardIntegrationTest {
         // DB 저장확인
     }
 
-    // POST /auth/token
+    @Test
+    @DisplayName("Application context loads")
+    void contextLoads() {
+    }
 
+    // POST /auth/token
+    @Test
+    @DisplayName("POST/auth/token")
+    void authToken() throws Exception {
+        Users user = new Users(
+                "username",
+                "password",
+                "email@naver.com",
+                "01012341234"
+        );
+
+        usersRepository.save(user);
+
+        String json = """
+                {
+                    "username" : "username",
+                    "password" : "password"
+                }
+                """;
+
+        mockMvc.perform(
+                        post("/auth/token")
+                                .content(json)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                // exists : 이 필드가 JSON 응답 안에 존재하기만 하면 통과해라
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
+        assertThat(usersRepository.count()).isEqualTo(1);
+        Users token = usersRepository.findByUsername("username").get();
+        assertThat(token.getUsername()).isEqualTo("username");
+    }
     // 테스트 메서드 (컨트롤러 -> 서비스 -> DB 흐름)
     // POST /board
 //    @Test
@@ -144,6 +178,5 @@ public class BoardIntegrationTest {
             // 즉, new AuthInterceptor() 자체가 체인에 안 끼게 된다.
         }
     }
-
 
 }
