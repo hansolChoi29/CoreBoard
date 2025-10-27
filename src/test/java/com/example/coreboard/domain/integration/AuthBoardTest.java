@@ -44,7 +44,6 @@ public class AuthBoardTest {
 
     @MockitoBean
     AuthInterceptor authInterceptor;
-
     @Autowired
     UsersRepository usersRepository;
     @Autowired
@@ -67,7 +66,7 @@ public class AuthBoardTest {
     @BeforeEach
     void setUser() {
         Users user = new Users(
-                "username01",
+                "username",
                 passwordEncode.encrypt("password"),
                 emailPhoneNumberEncode.encrypt("email@naver.com"),
                 emailPhoneNumberEncode.encrypt("01012341234")
@@ -80,7 +79,7 @@ public class AuthBoardTest {
     void authUsers() throws Exception {
         String json = """
                 {
-                    "username" : "username",
+                    "username" : "username1",
                     "password" : "password",
                     "confirmPassword" : "password",
                     "email" : "email@naver.com",
@@ -93,14 +92,12 @@ public class AuthBoardTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.username").value("username"));
+                .andExpect(jsonPath("$.data.username").value("username1"));
         assertThat(usersRepository.count()).isEqualTo(2);
-        Users created = usersRepository.findByUsername("username").get();
-        assertThat(created.getUsername()).isEqualTo("username");
-        // DB 저장확인
+        Users created = usersRepository.findByUsername("username1").get();
+        assertThat(created.getUsername()).isEqualTo("username1");
     }
 
-    // POST /auth/token
     @Test
     @DisplayName("POST/auth/token")
     void authToken() throws Exception {
@@ -124,5 +121,4 @@ public class AuthBoardTest {
         Users token = usersRepository.findByUsername("username").get();
         assertThat(token.getUsername()).isEqualTo("username");
     }
-
 }
