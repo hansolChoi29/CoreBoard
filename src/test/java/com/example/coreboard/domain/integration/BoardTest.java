@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.integration;
 
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.users.entity.Users;
@@ -7,20 +8,19 @@ import com.example.coreboard.domain.users.repository.UsersRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -30,20 +30,20 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.http.MediaType;
 
 import javax.crypto.SecretKey;
-
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest        // 스프링 부트 애플리케이션 전체를 테스트용으로 띄워서 실제처럼 컨테이너를 다 로드해주는 어노테이션
 @ActiveProfiles("test")
-@AutoConfigureMockMvc(addFilters = false) // HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
+@AutoConfigureMockMvc(addFilters = true)
+// HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
 @Testcontainers       // Testcontainers 활성화
 @Transactional        // 각 테스트가 끝나면 롤백해서 DB 깨끗하게 초기화
 public class BoardTest {
@@ -73,6 +73,8 @@ public class BoardTest {
     MockMvc mockMvc;
 
     private String accessToken;
+    private Long savedUserId;
+    private String savedUsername;
 
     // url, username, password를 여기서 주입한다
     @DynamicPropertySource
@@ -86,24 +88,26 @@ public class BoardTest {
 
     @BeforeEach
     void setup() {
-        Users u = usersRepository.save(new Users("username", "password", "email@naver.com", "01012341234"));
+        Users user = usersRepository.save(new Users("username", "password", "email@naver.com", "01012341234"));
 
         String secret = "test-jwt-secret-key-for-coreboard";
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+        // 뽑아 쓸 거임
+        this.savedUserId = user.getUserId();
+        this.savedUsername = user.getUsername();
 
         // 이 클래스에 있는 accessToken 변수에 값을 넣어라
         // accessToken = Jwts.builder() : 메서드 안의 변수인지 클래스의 변수인지 모름
         this.accessToken = Jwts.builder()
                 .setSubject("username")
-                .claim("userId", u.getUserId())
+                .claim("userId", user.getUserId())
                 .claim("type", "access")
                 .setExpiration(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 테스트 메서드 (컨트롤러 -> 서비스 -> DB 흐름)
-    // POST /board
     @Test
     @DisplayName("POST/board")
     void boardCreate() throws Exception {
@@ -125,6 +129,54 @@ public class BoardTest {
         assertThat(boardRepository.count()).isEqualTo(1);
     }
 
+    @Test
+    @DisplayName("GET/board/id")
+    void getOn() throws Exception {
+        Board board = new Board(
+                null, // 가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
+                10L,
+                "title",
+                "content",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        Board saved = boardRepository.save(board);
+        Long realId = saved.getId();
+        mockMvc.perform(
+                        get("/board/{id}", realId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(realId))
+                .andExpect(jsonPath("$.data.title").value("title"))
+                .andExpect(jsonPath("$.data.content").value("content"));
+    }
+
+    @Test
+    @DisplayName("GET/board")
+    void getAll() throws Exception {
+        Board board = new Board(
+                null, // 가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
+                10L,
+                "title",
+                "content",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        boardRepository.save(board);
+        mockMvc.perform(
+                        get("/board")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", "asc")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.page").value("0"))
+                .andExpect(jsonPath("$.data.size").value("10"));
+    }
+
+
     // NoAuthForIntegrationTest : 통합 테스트에서 인증만 잠깐 꺼두는 설정 클래스
     // WebMvcConfigurer : 스프링 MVC 설정을 커스터마이징 할 수 있는 인터페이스
 
@@ -139,11 +191,4 @@ public class BoardTest {
             // 스프링 MVC의 인터셉터 등록을 빈칸으로 덮어쓰겠다
         }
     }
-
-    // 학습테스트 먼저 한 이후 아래 요청도 테스트 예정
-
-    // GET /board/{id}
-    // GET /board
-    // PUT /board/{id}
-    // Delete /board/{id}
 }

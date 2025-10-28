@@ -75,9 +75,6 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
-    // 2) 보드 전체 조회 - Cursor
-
-
     // 보드 수정 - 멱등의 개념
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
