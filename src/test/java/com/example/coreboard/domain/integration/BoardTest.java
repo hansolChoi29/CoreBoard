@@ -208,6 +208,28 @@ public class BoardTest {
                 .andExpect(jsonPath("$.data.id").value(realId));
     }
 
+    @Test
+    @DisplayName("DELETE/board/id")
+    void delete() throws Exception {
+        Board board = new Board(
+                null,
+                savedUserId,
+                "title",
+                "content",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        Board saved = boardRepository.save(board);
+        Long realId = saved.getId();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/board/{id}", realId)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
 
     // NoAuthForIntegrationTest : 통합 테스트에서 인증만 잠깐 꺼두는 설정 클래스
     // WebMvcConfigurer : 스프링 MVC 설정을 커스터마이징 할 수 있는 인터페이스
