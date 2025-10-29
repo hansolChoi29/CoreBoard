@@ -6,7 +6,6 @@ public enum AuthErrorCode {
     FORBIDDEN(403, "접근 권한이 없습니다."),
     NOT_FOUND(404, "존재하지 않는 사용자입니다."),
     INTERNAL_SERVER_ERROR(500, "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
-    // 회원가입,
     PASSWORD_CONFIRM_MISMATCH(400, "비밀번호 확인이 일치하지 않습니다."),
     USERNAME_PASSWORD_ISBLANK(400,"아이디 또는 비밀번호를 필수입니다."),
     CONFLICT(409, "이미 가입한 계정입니다."),
