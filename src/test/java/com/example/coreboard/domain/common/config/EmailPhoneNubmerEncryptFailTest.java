@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @SpringBootTest(properties = {
-        "aes.secret.key=short" // 암호화 실패 메시지 보기위해 분리하여 test
+        "aes.secret.key=short"  암호화 실패 메시지 보기위해 분리하여 test
 })
 @ContextConfiguration(classes = EmailPhoneNumberEncode.class)
 @ExtendWith(SpringExtension.class)
@@ -27,9 +27,9 @@ public class EmailPhoneNubmerEncryptFailTest {
     void encryptException() {
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                // Expected java.lang.RuntimeException to be thrown, but nothing was thrown.
-                // 실행했는데 에외 안나고 정상 - encrypt 조건 없어서 그럼
-                () -> encoder.encrypt("01012341234") //암호화 시도
+                 Expected java.lang.RuntimeException to be thrown, but nothing was thrown.
+                 실행했는데 에외 안나고 정상 - encrypt 조건 없어서 그럼
+                () -> encoder.encrypt("01012341234") 암호화 시도
         );
         assertTrue(exception.getMessage().contains("암호화 실패!"));
     }

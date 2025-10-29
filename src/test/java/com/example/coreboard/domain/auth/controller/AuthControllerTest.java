@@ -29,8 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
 
-    // 시큐리티를 사용하지 않고 직접 구현했으며 filter 사용 대신 인터셉터를 사용했어서 requestAttr()를 씀
-    // 만약, 시큐리티(SecurityFilterChain)를 썼다면 @WithMockUser(username = "tester") 하면 됨
 
     private static final String BASE = "/auth";
     String username = "tester";
@@ -44,11 +42,11 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        // MockMvc를 만들려면
-        // 1. 컨트롤러
-        // 2. 전역 예외처리기
-        // 3. JSON<->객체 변환기
-        // 4. 위 설정들로 MockMvc 인스턴스 생성하겠다.
+         MockMvc를 만들려면
+         1. 컨트롤러
+         2. 전역 예외처리기
+         3. JSON<->객체 변환기
+         4. 위 설정들로 MockMvc 인스턴스 생성하겠다.
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(authController)
@@ -86,7 +84,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_불일치_400")
     void signUpConfirmMismatch() throws Exception {
-        // 요청 바디에 넣을 json
+         요청 바디에 넣을 json
         String json = """
                     {
                         "username":"user03",
@@ -95,7 +93,7 @@ class AuthControllerTest {
                         "password":"gkst",
                         "confirmPassword":"wmleporujq32109"
                     }
-                """; // 컨트롤러 테스트라서 비밀번호 검증은 serviceTest에서 하겠음
+                """;  컨트롤러 테스트라서 비밀번호 검증은 serviceTest에서 하겠음
         given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
 
         mockMvc.perform(
@@ -369,7 +367,7 @@ class AuthControllerTest {
         verify(authService).signIn(any());
     }
 
-    //로그인 시나리오 (컨트롤러는 요청 응답 메시지용, 진짜 검증은 서비스test에서)
+    로그인 시나리오 (컨트롤러는 요청 응답 메시지용, 진짜 검증은 서비스test에서)
     @Test
     @DisplayName("로그인_존재하지_않는_사용자_404")
     void signInNotFound() throws Exception {

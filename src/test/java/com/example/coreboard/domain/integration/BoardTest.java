@@ -40,28 +40,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest        // 스프링 부트 애플리케이션 전체를 테스트용으로 띄워서 실제처럼 컨테이너를 다 로드해주는 어노테이션
+@SpringBootTest         스프링 부트 애플리케이션 전체를 테스트용으로 띄워서 실제처럼 컨테이너를 다 로드해주는 어노테이션
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = true)
-// HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
-@Testcontainers       // Testcontainers 활성화
-@Transactional        // 각 테스트가 끝나면 롤백해서 DB 깨끗하게 초기화
+ HTTP 요청 시뮬레이션 (가짜 서블릿 환경)
+@Testcontainers        Testcontainers 활성화
+@Transactional         각 테스트가 끝나면 롤백해서 DB 깨끗하게 초기화
 public class BoardTest {
 
-    @Container // Testcontainers가 이 필드를 테스트 시작 시 자동으로 Docker 컨테이너로 실행하게 함
-    static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36") // 도커 환경으로 DB 띄우겠다
-            // 컨테이너 내부 DB 이름을 testdb로 설정
+    @Container  Testcontainers가 이 필드를 테스트 시작 시 자동으로 Docker 컨테이너로 실행하게 함
+    static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36")  도커 환경으로 DB 띄우겠다
+             컨테이너 내부 DB 이름을 testdb로 설정
             .withDatabaseName("testdb")
-            // DB 접속 계정 정보 설정
-            .withUsername("test") // 실제 MySQL 계정 넣으면 안 된다
+             DB 접속 계정 정보 설정
+            .withUsername("test")  실제 MySQL 계정 넣으면 안 된다
             .withPassword("test");
 
     @MockitoBean
     AuthInterceptor authInterceptor;
-    // Testcontainers 설정 영역
-    // MySQL 대신 도커 MySQL 컨테이너를 띄워서 사용
-    // 운영 DB랑 최대한 비슷한 환경을 만들기 위한 목적
-    // 스프링 빈 주입 영역 (@Autowired)
+     Testcontainers 설정 영역
+     MySQL 대신 도커 MySQL 컨테이너를 띄워서 사용
+     운영 DB랑 최대한 비슷한 환경을 만들기 위한 목적
+     스프링 빈 주입 영역 (@Autowired)
 
     @Autowired
     BoardRepository boardRepository;
@@ -76,7 +76,7 @@ public class BoardTest {
     private Long savedUserId;
     private String savedUsername;
 
-    // url, username, password를 여기서 주입한다
+     url, username, password를 여기서 주입한다
     @DynamicPropertySource
     static void overrideDataSourceProps(
             DynamicPropertyRegistry registry
@@ -93,12 +93,12 @@ public class BoardTest {
         String secret = "test-jwt-secret-key-for-coreboard";
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
-        // 뽑아 쓸 거임
+         뽑아 쓸 거임
         this.savedUserId = user.getUserId();
         this.savedUsername = user.getUsername();
 
-        // 이 클래스에 있는 accessToken 변수에 값을 넣어라
-        // accessToken = Jwts.builder() : 메서드 안의 변수인지 클래스의 변수인지 모름
+         이 클래스에 있는 accessToken 변수에 값을 넣어라
+         accessToken = Jwts.builder() : 메서드 안의 변수인지 클래스의 변수인지 모름
         this.accessToken = Jwts.builder()
                 .setSubject("username")
                 .claim("userId", user.getUserId())
@@ -133,7 +133,7 @@ public class BoardTest {
     @DisplayName("GET/board/id")
     void getOn() throws Exception {
         Board board = new Board(
-                null, // 가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
+                null,  가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
                 10L,
                 "title",
                 "content",
@@ -156,7 +156,7 @@ public class BoardTest {
     @DisplayName("GET/board")
     void getAll() throws Exception {
         Board board = new Board(
-                null, // 가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
+                null,  가짜가 아니라 실제 DB에 접근하기 때문에 1L 지정해주면 에러 남
                 10L,
                 "title",
                 "content",
@@ -198,7 +198,7 @@ public class BoardTest {
                 }
                 """;
         mockMvc.perform(
-                        // put 인식 안돼서
+                         put 인식 안돼서
                         MockMvcRequestBuilders.put("/board/{id}", realId)
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -231,18 +231,18 @@ public class BoardTest {
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
-    // NoAuthForIntegrationTest : 통합 테스트에서 인증만 잠깐 꺼두는 설정 클래스
-    // WebMvcConfigurer : 스프링 MVC 설정을 커스터마이징 할 수 있는 인터페이스
+     NoAuthForIntegrationTest : 통합 테스트에서 인증만 잠깐 꺼두는 설정 클래스
+     WebMvcConfigurer : 스프링 MVC 설정을 커스터마이징 할 수 있는 인터페이스
 
-    // 예시) 실제 인터셉터 안 거치게 하고 싶다, 이메일 찐 발송 대신 가짜 발송 대체하고 싶다.
-    // 테스트용 Bean 하나만 등록하고 싶다 등
-    @TestConfiguration // 테스트할 때만 임시로 적용되는 스프링 설정
-    static class NoAuthForIntegrationTest implements WebMvcConfigurer { // 바깥 클래스의 객체가 없어도 이 클래스를 사용할 수 있게 하려는 것
-        // (static이어야 Spring이 정상적으로 읽는다)
+     예시) 실제 인터셉터 안 거치게 하고 싶다, 이메일 찐 발송 대신 가짜 발송 대체하고 싶다.
+     테스트용 Bean 하나만 등록하고 싶다 등
+    @TestConfiguration  테스트할 때만 임시로 적용되는 스프링 설정
+    static class NoAuthForIntegrationTest implements WebMvcConfigurer {  바깥 클래스의 객체가 없어도 이 클래스를 사용할 수 있게 하려는 것
+         (static이어야 Spring이 정상적으로 읽는다)
         @Override
         public void addInterceptors(InterceptorRegistry registry) {
-            // 테스트 전용 설정 클래스 하나 만들어서
-            // 스프링 MVC의 인터셉터 등록을 빈칸으로 덮어쓰겠다
+             테스트 전용 설정 클래스 하나 만들어서
+             스프링 MVC의 인터셉터 등록을 빈칸으로 덮어쓰겠다
         }
     }
 }

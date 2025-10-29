@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ContextConfiguration(classes = WebConfig.class)
 @ExtendWith(SpringExtension.class)
 class WebConfigTest {
-    // 인터셉터를 MVC 체인에 등록하는 컨피그
+     인터셉터를 MVC 체인에 등록하는 컨피그
 
     @Test
     void addInterceptors() {
