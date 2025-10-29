@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
 
+
     private static final String BASE = "/auth";
     String username = "tester";
 
@@ -41,7 +42,6 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(authController)
@@ -360,6 +360,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
         verify(authService).signIn(any());
     }
+
 
     @Test
     @DisplayName("로그인_존재하지_않는_사용자_404")

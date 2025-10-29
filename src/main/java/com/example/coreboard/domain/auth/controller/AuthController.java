@@ -37,7 +37,6 @@ public class AuthController {
         SignUpResponse response = new SignUpResponse(
                 out.getUsername()
         );
-
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
 
