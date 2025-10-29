@@ -10,7 +10,7 @@ class BoardTest {
 
     @Test
     void update() {
-        // entity는 json 만들 필요없음  HTTP가 아니기 때문, 그렇다면?
+         entity는 json 만들 필요없음  HTTP가 아니기 때문, 그렇다면?
         Board board = new Board(
                 1L,
                 10L,

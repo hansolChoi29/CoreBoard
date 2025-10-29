@@ -105,7 +105,6 @@ public class BoardService {
             ));
         }
 
-        // DB에서 꺼낸 페이지네이션 결과를 API 응답형식(PageResponse)로 감쌈
         PageResponse<BoardSummaryResponse> body = new PageResponse<>(
                 contents,
                 result.getNumber(),       // 현재 페이지 번호
@@ -116,7 +115,6 @@ public class BoardService {
         return body;
     }
 
-    // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
     public BoardUpdatedDto update(
             BoardUpdateCommand boardUpdatedCommad
