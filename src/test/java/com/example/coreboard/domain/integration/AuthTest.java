@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.integration;
 
-import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
-import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
+import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -49,10 +49,10 @@ public class AuthTest {
     UsersRepository usersRepository;
 
     @Autowired
-    PasswordEncode passwordEncode;
+    PasswordManager passwordEncode;
 
     @Autowired
-    EmailPhoneNumberEncode emailPhoneNumberEncode;
+    EmailPhoneNumberManager emailPhoneNumberEncode;
 
     @Autowired
     MockMvc mockMvc;

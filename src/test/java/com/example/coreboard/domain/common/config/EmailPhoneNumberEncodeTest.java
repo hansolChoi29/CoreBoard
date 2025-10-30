@@ -15,14 +15,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "aes.secret.key=1234567890ABCDEF" // 16바이트 키 (AES-128용),
 })
-@ContextConfiguration(classes = EmailPhoneNumberEncode.class) // 이 빈만 등록
+@ContextConfiguration(classes = EmailPhoneNumberManager.class) // 이 빈만 등록
 @ExtendWith(SpringExtension.class)
 class EmailPhoneNumberEncodeTest {
     // 모키토 시반이 아니라서 순수 단위테스트로 가야함
     // 레포 안 씀, DB 안 씀, 빈 안 쓰기 때문 (협력자가 없다..)
 
     @Autowired
-    private EmailPhoneNumberEncode encoder;
+    private EmailPhoneNumberManager encoder;
 
     @Test
     @DisplayName("암호화를_복호화하여_원본_텍스트_반환")

@@ -5,7 +5,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PasswordEncode {
+public class PasswordManager {
     // BCrypt는 salt가 자동 포함
 
     private static final int COST = 12; // 2의 12승만큼 반복 조합

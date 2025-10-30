@@ -15,12 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(properties = {
         "aes.secret.key=short" // 암호화 실패 메시지 보기위해 분리하여 test
 })
-@ContextConfiguration(classes = EmailPhoneNumberEncode.class)
+@ContextConfiguration(classes = EmailPhoneNumberManager.class)
 @ExtendWith(SpringExtension.class)
 public class EmailPhoneNubmerEncryptFailTest {
 
     @Autowired
-    private EmailPhoneNumberEncode encoder;
+    private EmailPhoneNumberManager encoder;
 
     @Test
     @DisplayName("암호화_실패_예외")
