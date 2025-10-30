@@ -5,7 +5,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PasswordEncode {
+public class PasswordManager {
 
     private static final int COST = 12;
 

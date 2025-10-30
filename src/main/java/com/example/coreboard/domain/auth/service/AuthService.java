@@ -1,8 +1,8 @@
 package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.*;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
-import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
+import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
@@ -15,13 +15,13 @@ import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*
 @Service
 public class AuthService {
     private final UsersRepository usersRepository;
-    private final PasswordEncode passwordEncoder;
-    private final EmailPhoneNumberEncode emailPhoneNumberEncode;
+    private final PasswordManager passwordEncoder;
+    private final EmailPhoneNumberManager emailPhoneNumberEncode;
 
     public AuthService(
-            PasswordEncode passwordEncoder,
+            PasswordManager passwordEncoder,
             UsersRepository usersRepository,
-            EmailPhoneNumberEncode emailPhoneNumberEncode
+            EmailPhoneNumberManager emailPhoneNumberEncode
     ) {
         this.passwordEncoder = passwordEncoder;
         this.usersRepository = usersRepository;

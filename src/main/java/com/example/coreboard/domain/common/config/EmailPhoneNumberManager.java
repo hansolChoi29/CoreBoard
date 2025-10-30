@@ -13,7 +13,9 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 @Component
-public class EmailPhoneNumberEncode {
+
+public class EmailPhoneNumberManager {
+    // [ IV(12바이트) ][ 암호문(나머지) ]
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";

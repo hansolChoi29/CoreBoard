@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL}?sslMode=REQUIRED&serverTimezone=Asia/Seoul
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver

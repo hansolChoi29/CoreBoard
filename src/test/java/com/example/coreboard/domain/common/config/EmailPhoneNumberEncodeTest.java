@@ -13,12 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "aes.secret.key=1234567890ABCDEF"
 })
-@ContextConfiguration(classes = EmailPhoneNumberEncode.class)
+@ContextConfiguration(classes = EmailPhoneNumberManager.class)
 @ExtendWith(SpringExtension.class)
 class EmailPhoneNumberEncodeTest {
 
     @Autowired
-    private EmailPhoneNumberEncode encoder;
+    private EmailPhoneNumberManager encoder;
 
     @Test
     @DisplayName("암호화를_복호화하여_원본_텍스트_반환")
