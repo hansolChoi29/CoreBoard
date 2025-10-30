@@ -1,8 +1,8 @@
 package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.*;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
-import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
+import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
@@ -51,10 +51,10 @@ class AuthServiceTest {
     AuthService authService; // 테스트용 진짜 AuthService 객체에 Mock 으로 만든 의존성들을 자동으로 주입해달라.
 
     @Mock
-    PasswordEncode passwordEncode;
+    PasswordManager passwordEncode;
 
     @Mock
-    EmailPhoneNumberEncode emailPhoneNumberEncode;
+    EmailPhoneNumberManager emailPhoneNumberEncode;
 
     SignUpRequest request;
 
