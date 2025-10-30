@@ -1,8 +1,8 @@
 package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.*;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberEncode;
-import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
+import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
@@ -38,10 +38,10 @@ class AuthServiceTest {
     AuthService authService;
 
     @Mock
-    PasswordEncode passwordEncode;
+    PasswordManager passwordEncode;
 
     @Mock
-    EmailPhoneNumberEncode emailPhoneNumberEncode;
+    EmailPhoneNumberManager emailPhoneNumberEncode;
 
     SignUpRequest request;
 

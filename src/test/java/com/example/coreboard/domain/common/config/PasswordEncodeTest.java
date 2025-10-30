@@ -15,7 +15,7 @@ class PasswordEncodeTest {
     @Test
     @DisplayName("같은_입력값_다른_해시")
     void encrypt() {
-        PasswordEncode encoder = new PasswordEncode();
+        PasswordManager encoder = new PasswordManager();
         String hash1 = encoder.encrypt("1234zcv");
         String hash2 = encoder.encrypt("qwer098");
 
@@ -25,7 +25,7 @@ class PasswordEncodeTest {
     @Test
     @DisplayName("encrypt()된_비밀번호와_원문_일치")
     void matches() {
-        PasswordEncode encoder = new PasswordEncode();
+        PasswordManager encoder = new PasswordManager();
         String password = "qwer1234";
         String encoded = encoder.encrypt(password);
 
@@ -36,14 +36,14 @@ class PasswordEncodeTest {
     @Test
     @DisplayName("스토어해시_널_false")
     void matchesNullHash() {
-        PasswordEncode encodr = new PasswordEncode();
+        PasswordManager encodr = new PasswordManager();
         assertFalse(encodr.matches("qwe", null));
     }
 
     @Test
     @DisplayName("스토어해시_빈문자열_false")
     void matchesEmptyHash() {
-        PasswordEncode encodr = new PasswordEncode();
+        PasswordManager encodr = new PasswordManager();
         assertFalse(encodr.matches("qwe", ""));
     }
 }
