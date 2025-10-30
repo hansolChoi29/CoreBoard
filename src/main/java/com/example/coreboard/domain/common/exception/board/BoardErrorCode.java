@@ -2,7 +2,6 @@ package com.example.coreboard.domain.common.exception.board;
 
 public enum BoardErrorCode {
 
-    // 트러블 - 204는 성공으로 떠서 응답바디에 아무것도 안 뜸
     TITLE_AND_CONTENTS_BLANK(400, "제목과 내용은 필수입니다."),
     NOT_TITLE(400, "제목은 필수입니다."),
     NOT_CONTENT(400, "내용은 필수입니다."),
