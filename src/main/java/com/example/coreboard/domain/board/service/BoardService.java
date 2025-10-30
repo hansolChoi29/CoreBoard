@@ -36,21 +36,17 @@ public class BoardService {
         this.usersRepository = usersRepository;
     }
 
-    // 보드 생성
     public BoardCreateDto create(
             BoardCreateCommand boardCreateCommand,
-            String username // 인터셉터에서 가로채 검증을 끝내고 반환된 username을 컨트롤러에서 받아와 board에 저장하기
+            String username
     ) {
-        // users 테이블의 username이 들어있으면 값을 user에 담는다. (반환용)
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        // 제목 중복 검사
         if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
             throw new BoardErrorException(TITLE_DUPLICATED);
         }
 
-        // 보드 저장할 것들 세팅
         Board board = Board.create(
                 user.getUserId(),
                 boardCreateCommand.getTitle(),
@@ -67,36 +63,29 @@ public class BoardService {
         );
     }
 
-    // 보드 단건 조회 - 멱등
     public BoardGetOneDto findOne(
             BoardGetOneCommand boardGetOneCommand
     ) {
 
-        Board board = boardRepository.findById(boardGetOneCommand.getId()) // id 추출하는 메서드 이용해서
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
+        Board board = boardRepository.findById(boardGetOneCommand.getId())
+                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
-        // 트러블 - board만 넣었더니 500 에러: 단건 조회용, 타이틀과 본문 응답 반환
         return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
                 board.getCreatedDate(), board.getLastModifiedDate());
     }
 
-    // 보드 전체 조회 - 멱등
     public PageResponse<BoardSummaryResponse> findAll(int page, int size, String sort
     ) {
-        // Sort.Direction : Spring 전용 Enum(Sort.Direction.ASC, Sort.Direction.DESC)
         Sort.Direction direction = sort.equalsIgnoreCase("asc")
                 ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
 
-        // Page<Board>타입의 result 즉 게시글 여러개를 페이지네이션해서 담고 있는 객체.
         Page<Board> result = boardRepository.findAll(pageable);
 
-        // contents는 게시글 응답DTO를 담을 리스트, 엔티티 그대로 반환하지 않고 필요한 정보만 담은 DTO객체들로 변환해서 저장하기 위한 용도
-        List<BoardSummaryResponse> contents = new ArrayList<>(); // ArrayList는 비어있는 상태
+        List<BoardSummaryResponse> contents = new ArrayList<>();
 
-        // result 안의 게시글들을 하나씩 꺼내서 DTO(summary)로 변환하고 contents 리스트에 차곡차곡 추가
-        for (Board board : result.getContent()) { // result.getContent(): 게시글 리스트를 꺼내옴
+        for (Board board : result.getContent()) {
             contents.add(new BoardSummaryResponse(
                     board.getId(),
                     board.getUserId(),
@@ -105,18 +94,16 @@ public class BoardService {
             ));
         }
 
-        // DB에서 꺼낸 페이지네이션 결과를 API 응답형식(PageResponse)로 감쌈
         PageResponse<BoardSummaryResponse> body = new PageResponse<>(
                 contents,
-                result.getNumber(),       // 현재 페이지 번호
-                result.getSize(),         // 한 페이지에 몇 개
-                result.getTotalElements() // 전체 게시글 수
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements()
         );
 
         return body;
     }
 
-    // 보드 수정 트러블 - 성공응답 나오지만, 조회 시 수정이 안되는 이슈 발생(Transactional)
     @Transactional
     public BoardUpdatedDto update(
             BoardUpdateCommand boardUpdatedCommad
@@ -124,15 +111,13 @@ public class BoardService {
         Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Board board = boardRepository.findById(boardUpdatedCommad.getId()) // id 추출하는 메서드 이용해서
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND)); // 값이 있으면 반환 없으면 에러 던짐
+        Board board = boardRepository.findById(boardUpdatedCommad.getId())
+                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
-        // 권한 체크
         if (board.getUserId() != user.getUserId()) {
             throw new AuthErrorException(FORBIDDEN);
         }
 
-        // 저장
         board.update(
                 boardUpdatedCommad.getTitle(),
                 boardUpdatedCommad.getContent()
@@ -142,7 +127,6 @@ public class BoardService {
         );
     }
 
-    // 보드 삭제
     public void delete(
             String username,
             Long id
@@ -150,19 +134,13 @@ public class BoardService {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        // 보드 1로 삭제 1번째 : 성공
-        // 보드 1로 삭제 2번째 : board가 존재하지 않음 - 비멱등 (따라서 삭제 성공 계속 보내야 함)
-        boardRepository.findById(id) // Optional이라 null 허용되게 함
-                .filter(board -> { // false면 Optional.empty()로 바꿈
+        boardRepository.findById(id)
+                .filter(board -> {
                     if (!board.getUserId().equals(user.getUserId())) {
                         throw new AuthErrorException(FORBIDDEN);
                     }
-                    return true; // 권한 있으면 Optional 유지하여
+                    return true;
                 })
                 .ifPresent(boardRepository::delete);
-        //.ifPresent(board -> boardRepository.delete(board)); 같은 의미임
-        // ifPresent()는 Optional 안에 값이 존재할 경우 실행
-        // 게시글이 존재한다 : baordRepository(board) 호출하고
-        // 게시글이 존재하지 않는다 : 아무 일도 하지 않음
     }
 }
