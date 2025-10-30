@@ -27,9 +27,6 @@ public class Board {
     @Column(nullable = false)
     private Long userId;
 
-    // long vs Long
-    // 기본형은 null 불가능하기 때문에 equals 할 수 없음
-    
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;
@@ -70,7 +67,6 @@ public class Board {
             String newContent
 
     ) {
-        // 내부 규칙이기 때문에 유효성검사가 아님 - DB에 실제 데이터가 바뀌는 거라 내부 규칙으로 봐야 됨
         if (newTitle != null && !newTitle.isBlank()) {
             this.title = newTitle;
         }
