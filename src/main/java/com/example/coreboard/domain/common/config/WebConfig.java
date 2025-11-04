@@ -44,7 +44,6 @@ public class WebConfig implements WebMvcConfigurer {
     static class JsonXssSafeStringSerializer extends JsonSerializer<String> {
         @Override
         public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            // TODO : Test
             if (value != null) {
                 String safe = value
                         .replace("&", "&amp;")
@@ -54,7 +53,6 @@ public class WebConfig implements WebMvcConfigurer {
                         .replace("'", "&#39;");
                 gen.writeString(safe);
             } else {
-                // TODO : Test
                 gen.writeNull();
             }
         }
