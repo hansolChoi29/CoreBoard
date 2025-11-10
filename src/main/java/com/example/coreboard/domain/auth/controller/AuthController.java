@@ -2,6 +2,12 @@ package com.example.coreboard.domain.auth.controller;
 
 
 import com.example.coreboard.domain.auth.dto.*;
+import com.example.coreboard.domain.auth.dto.command.SignInCommand;
+import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
+import com.example.coreboard.domain.auth.dto.request.SignInRequest;
+import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
+import com.example.coreboard.domain.auth.dto.response.SignUpResponse;
+import com.example.coreboard.domain.auth.dto.response.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.validation.AuthValidation;

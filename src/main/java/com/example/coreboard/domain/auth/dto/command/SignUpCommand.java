@@ -1,9 +1,8 @@
-package com.example.coreboard.domain.auth.dto;
+package com.example.coreboard.domain.auth.dto.command;
 
 import jakarta.validation.constraints.NotBlank;
 
-
-public class SignUpRequest {
+public class SignUpCommand {
     @NotBlank
     private String username;
     private String password;
@@ -11,7 +10,7 @@ public class SignUpRequest {
     private String email;
     private String phoneNumber;
 
-    public SignUpRequest(
+    public SignUpCommand(
             String username,
             String password,
             String confirmPassword,
@@ -45,4 +44,3 @@ public class SignUpRequest {
         return phoneNumber;
     }
 }
-
