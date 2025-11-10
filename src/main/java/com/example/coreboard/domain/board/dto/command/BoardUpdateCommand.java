@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.board.dto;
+package com.example.coreboard.domain.board.dto.command;
 
 
 public class BoardUpdateCommand {
