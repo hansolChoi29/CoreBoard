@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.auth.dto;
+package com.example.coreboard.domain.auth.dto.response;
 
 public class TokenResponse {
     private final String accessToken;
