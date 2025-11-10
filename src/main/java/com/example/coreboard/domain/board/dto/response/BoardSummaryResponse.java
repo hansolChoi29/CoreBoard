@@ -1,26 +1,22 @@
-package com.example.coreboard.domain.board.dto;
-
+package com.example.coreboard.domain.board.dto.response;
 
 import java.time.LocalDateTime;
 
-public class BoardCreateResponse {
+public class BoardSummaryResponse {
     private final Long id;
     private final long userId;
     private final String title;
-    private final String content;
     private final LocalDateTime createdDate;
 
-    public BoardCreateResponse(
+    public BoardSummaryResponse(
             Long id,
             long userId,
             String title,
-            String content,
             LocalDateTime createdDate
     ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
-        this.content = content;
         this.createdDate = createdDate;
     }
 
@@ -28,20 +24,15 @@ public class BoardCreateResponse {
         return id;
     }
 
-    public String getTitle() {
-        return title;
+    public long getUserId() {
+        return userId;
     }
 
-    public String getContent() {
-        return content;
+    public String getTitle() {
+        return title;
     }
 
     public LocalDateTime getCreatedDate() {
         return createdDate;
     }
-
-    public long getUserId() {
-        return userId;
-    }
-
 }
