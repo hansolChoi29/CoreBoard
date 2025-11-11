@@ -11,6 +11,8 @@ import com.example.coreboard.domain.auth.dto.response.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,12 +61,17 @@ public class AuthController {
         );
 
         TokenDto out = authService.signIn(users);
+        ResponseCookie refreshCookies = ResponseCookie.from("refresh", out.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/auth/refresh")
+                .maxAge(7 * 24 * 60 * 60)
+                .build();
+        TokenResponse response = new TokenResponse(out.getAccessToken());
 
-        TokenResponse response = new TokenResponse(
-                out.getAccessToken(),
-                out.getRefreshToken()
-        );
-
-        return ResponseEntity.ok(ApiResponse.ok(response, "로그인 성공!"));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookies.toString())
+                .body(ApiResponse.ok(response, "로그인 성공!"));
     }
 }
