@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.common.validation;
 
-import com.example.coreboard.domain.auth.dto.SignInRequest;
-import com.example.coreboard.domain.auth.dto.SignUpRequest;
+import com.example.coreboard.domain.auth.dto.request.SignInRequest;
+import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 

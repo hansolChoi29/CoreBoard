@@ -1,10 +1,11 @@
-package com.example.coreboard.domain.auth.dto;
+package com.example.coreboard.domain.auth.dto.command;
 
-public class SignInRequest {
+public class SignInCommand {
     String username;
     String password;
 
-    public SignInRequest(String username, String password) {
+
+    public SignInCommand(String username, String password) {
         this.username = username;
         this.password = password;
     }

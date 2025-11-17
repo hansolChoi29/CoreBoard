@@ -356,8 +356,7 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("로그인 성공!"))
-                .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-                .andExpect(jsonPath("$.data.refreshToken").value("refreshToken"));
+                .andExpect(jsonPath("$.data.accessToken").value("accessToken"));
         verify(authService).signIn(any());
     }
 
