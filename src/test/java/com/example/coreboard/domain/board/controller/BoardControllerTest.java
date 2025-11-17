@@ -1,6 +1,8 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.*;
+import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;

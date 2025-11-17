@@ -1,6 +1,11 @@
 package com.example.coreboard.domain.board.service;
 
 import com.example.coreboard.domain.board.dto.*;
+import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
+import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
+import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
+import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
