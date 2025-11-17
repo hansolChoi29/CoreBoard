@@ -1,6 +1,10 @@
 package com.example.coreboard.domain.auth.service;
 
 import com.example.coreboard.domain.auth.dto.*;
+import com.example.coreboard.domain.auth.dto.command.SignInCommand;
+import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
+import com.example.coreboard.domain.auth.dto.request.SignInRequest;
+import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
 import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
 import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;

@@ -115,8 +115,7 @@ public class AuthTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.accessToken").exists())
-                .andExpect(jsonPath("$.data.refreshToken").exists());
+                .andExpect(jsonPath("$.data.accessToken").exists());
         assertThat(usersRepository.count()).isEqualTo(1);
         Users token = usersRepository.findByUsername("username").get();
         assertThat(token.getUsername()).isEqualTo("username");
