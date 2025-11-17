@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.board.dto;
+package com.example.coreboard.domain.board.dto.request;
 
 public class BoardCreateRequest {
     private String title;

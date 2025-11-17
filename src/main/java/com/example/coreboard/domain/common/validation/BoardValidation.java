@@ -1,8 +1,8 @@
 package com.example.coreboard.domain.common.validation;
 
 import ch.qos.logback.core.util.StringUtil;
-import com.example.coreboard.domain.board.dto.BoardCreateRequest;
-import com.example.coreboard.domain.board.dto.BoardUpdateRequest;
+import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 

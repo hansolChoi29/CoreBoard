@@ -1,13 +1,14 @@
-package com.example.coreboard.domain.board.dto;
+package com.example.coreboard.domain.board.dto.request;
 
-public class BoardCreateCommand {
+public class BoardUpdateRequest {
     private String title;
     private String content;
 
-    public BoardCreateCommand(
+    public BoardUpdateRequest(
             String title,
             String content
     ) {
+
         this.title = title;
         this.content = content;
     }
