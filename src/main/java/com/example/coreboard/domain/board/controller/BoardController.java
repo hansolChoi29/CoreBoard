@@ -2,6 +2,15 @@ package com.example.coreboard.domain.board.controller;
 
 
 import com.example.coreboard.domain.board.dto.*;
+import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
+import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
+import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
+import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
+import com.example.coreboard.domain.board.dto.response.BoardCreateResponse;
+import com.example.coreboard.domain.board.dto.response.BoardGetOneResponse;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
+import com.example.coreboard.domain.board.dto.response.BoardUpdateResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
