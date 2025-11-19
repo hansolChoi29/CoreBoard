@@ -14,5 +14,4 @@ public class SignUpResponse {
     public String getUsername() {
         return username;
     }
-
 }
