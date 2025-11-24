@@ -46,7 +46,7 @@ public class AuthController {
                 out.getUsername()
         );
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
-    } //
+    }
 
     @PostMapping("/token")
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(

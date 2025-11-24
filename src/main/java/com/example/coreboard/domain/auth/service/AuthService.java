@@ -59,6 +59,7 @@ public class AuthService {
     public TokenDto signIn(SignInCommand authSignInCommand) {
         Users users =
                 usersRepository.findByUsername(authSignInCommand.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
         if (!passwordEncoder.matches(authSignInCommand.getPassword(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
