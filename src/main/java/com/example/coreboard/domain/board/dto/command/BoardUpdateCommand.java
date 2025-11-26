@@ -23,7 +23,6 @@ public class BoardUpdateCommand {
         return id;
     }
 
-
     public String getUsername() {
         return username;
     }

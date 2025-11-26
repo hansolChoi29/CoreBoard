@@ -25,22 +25,28 @@ public class BoardGetOneDto {
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
     }
-    public Long getId(){
+
+    public Long getId() {
         return id;
     }
-    public long getUserId(){
+
+    public long getUserId() {
         return id;
     }
-    public String getTitle(){
+
+    public String getTitle() {
         return title;
     }
-    public String getContent(){
+
+    public String getContent() {
         return content;
     }
-    public LocalDateTime getCreatedDate(){
+
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
-    public LocalDateTime getLastModifiedDate(){
+
+    public LocalDateTime getLastModifiedDate() {
         return lastModifiedDate;
     }
 

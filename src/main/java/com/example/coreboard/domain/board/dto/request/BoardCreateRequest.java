@@ -19,5 +19,4 @@ public class BoardCreateRequest {
     public String getContent() {
         return content;
     }
-
 }
