@@ -41,8 +41,6 @@ class WebConfigTest {
         serializer.serialize("<script>alert('x')</script>", generator, provider);
         generator.flush();
 
-        // <script>alert('x')</script>
-        // &lt;script&gtalert(&#39;x&#39;)&lt;script&gt&gt;
         assertEquals("\"&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;\"", writer.toString());
     }
 
