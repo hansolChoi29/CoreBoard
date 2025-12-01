@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RequestMapping("/auth")
-@RestController //
+@RestController
 public class AuthController {
     private final AuthService authService;
 
@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/users")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) {
-        AuthValidation.signUpValidation(request);
+        AuthValidation.signUpValidation(request); //
 
         SignUpCommand users = new SignUpCommand(
                 request.getUsername(),
