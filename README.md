@@ -5,6 +5,7 @@
 3. Gradle : 8.14.3
 4. Spring Boot : 3.5.6
 
+
 ---
 
 ## Docker에서 MySQL 컨테이너 실행
@@ -49,4 +50,11 @@ docker run -d \
 ## IntelliJ Run/Debug 설정
 실행 시 로컬 환경(application-local.yml)을 사용하려면
 Run ▸ Edit Configurations ▸ Active Profiles에 local 입력
+
+## API 문서 확인
+CoreBoard 프로젝트의 API 문서는 Swagger UI를 통해 확인 가능합니다.  
+> ⚠️ 서버를 먼저 실행해야 합니다.
+
+- Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- OpenAPI JSON 스펙: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
