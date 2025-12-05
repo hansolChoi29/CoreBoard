@@ -20,9 +20,7 @@ public class BoardValidation {
     }
 
     public static void updateValidation(String title, String content) {
-
         boolean titleValidation = StringUtil.isNullOrEmpty(title);
-
         boolean contentValidation = StringUtil.isNullOrEmpty(content);
 
         if (titleValidation && contentValidation) {
@@ -44,7 +42,6 @@ public class BoardValidation {
 
     public static void createValidation(String title, String content) {
         boolean titleValidation = StringUtil.isNullOrEmpty(title);
-
         boolean contentValidation = StringUtil.isNullOrEmpty(content);
 
         if (titleValidation && contentValidation) {

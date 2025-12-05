@@ -17,7 +17,7 @@ public class SignUpRequest {
             String confirmPassword,
             String email,
             String phoneNumber
-    ){
+    ) {
         this.username = username;
         this.password = password;
         this.confirmPassword = confirmPassword;
@@ -33,7 +33,7 @@ public class SignUpRequest {
         return password;
     }
 
-    public String getConfirmPassword(){
+    public String getConfirmPassword() {
         return confirmPassword;
     }
 

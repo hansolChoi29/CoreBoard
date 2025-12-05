@@ -15,7 +15,6 @@ import java.util.Base64;
 @Component
 
 public class EmailPhoneNumberManager {
-    // [ IV(12바이트) ][ 암호문(나머지) ]
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
@@ -42,6 +41,7 @@ public class EmailPhoneNumberManager {
             buffer.put(encrypted);
 
             return Base64.getEncoder().encodeToString(buffer.array());
+
         } catch (Exception e) {
             throw new RuntimeException("암호화 실패!: " + e.getMessage());
         }
@@ -67,6 +67,7 @@ public class EmailPhoneNumberManager {
             byte[] decrypted = cipher.doFinal(cipherBytes);
 
             return new String(decrypted, StandardCharsets.UTF_8);
+
         } catch (Exception e) {
             throw new RuntimeException("복호화 실패!: " + e.getMessage());
         }

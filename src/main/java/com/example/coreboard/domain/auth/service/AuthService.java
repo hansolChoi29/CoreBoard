@@ -31,10 +31,6 @@ public class AuthService {
     }
 
     public SignUpDto signUp(SignUpCommand signUpCommand) {
-        if (signUpCommand.getPassword() == null || !signUpCommand.getPassword().equals(signUpCommand.getConfirmPassword())) {
-            throw new AuthErrorException(PASSWORD_CONFIRM_MISMATCH);
-        }
-
         if (usersRepository.existsByUsername(signUpCommand.getUsername())) {
             throw new AuthErrorException(CONFLICT);
         }
@@ -49,19 +45,20 @@ public class AuthService {
                 encryptedEmail,
                 encryptPhoneNubmer
         );
-        Users user = usersRepository.save(users);
-        return new SignUpDto(
-                user.getUsername()
 
-        );
+        usersRepository.save(users);
+
+        return new SignUpDto(users.getUsername());
     }
 
     public TokenDto signIn(SignInCommand authSignInCommand) {
         Users users =
                 usersRepository.findByUsername(authSignInCommand.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
         if (!passwordEncoder.matches(authSignInCommand.getPassword(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
+
         String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
         String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
 

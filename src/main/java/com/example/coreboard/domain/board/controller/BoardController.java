@@ -18,8 +18,6 @@ import com.example.coreboard.domain.common.response.PageResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 
 @RestController
 @RequestMapping("/board")
@@ -52,9 +50,7 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable Long id
     ) {
-        BoardGetOneCommand board = new BoardGetOneCommand(
-                id
-        );
+        BoardGetOneCommand board = new BoardGetOneCommand(id);
 
         BoardGetOneDto out = boardService.findOne(board);
 
@@ -87,8 +83,8 @@ public class BoardController {
             @RequestAttribute("username") String username,
             @PathVariable Long id
     ) {
-
         BoardValidation.updateValidation(updateRequestDto);
+
         BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.getTitle(),
                 updateRequestDto.getContent());
 
