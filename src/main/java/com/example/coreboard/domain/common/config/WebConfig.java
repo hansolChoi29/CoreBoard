@@ -52,6 +52,7 @@ public class WebConfig implements WebMvcConfigurer {
                         .replace("\"", "&quot;")
                         .replace("'", "&#39;");
                 gen.writeString(safe);
+
             } else {
                 gen.writeNull();
             }

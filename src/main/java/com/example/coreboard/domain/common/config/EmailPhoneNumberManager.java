@@ -41,6 +41,7 @@ public class EmailPhoneNumberManager {
             buffer.put(encrypted);
 
             return Base64.getEncoder().encodeToString(buffer.array());
+
         } catch (Exception e) {
             throw new RuntimeException("암호화 실패!: " + e.getMessage());
         }
@@ -66,6 +67,7 @@ public class EmailPhoneNumberManager {
             byte[] decrypted = cipher.doFinal(cipherBytes);
 
             return new String(decrypted, StandardCharsets.UTF_8);
+
         } catch (Exception e) {
             throw new RuntimeException("복호화 실패!: " + e.getMessage());
         }
