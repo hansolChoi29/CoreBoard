@@ -42,9 +42,8 @@ public class AuthController {
 
         SignUpDto out = authService.signUp(users);
 
-        SignUpResponse response = new SignUpResponse(
-                out.getUsername()
-        );
+        SignUpResponse response = new SignUpResponse(out.getUsername());
+
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
 
@@ -52,7 +51,6 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(
             @RequestBody SignInRequest request
     ) {
-
         AuthValidation.signInValidation(request);
 
         SignInCommand users = new SignInCommand(
@@ -61,6 +59,7 @@ public class AuthController {
         );
 
         TokenDto out = authService.signIn(users);
+
         ResponseCookie refreshCookies = ResponseCookie.from("refresh", out.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
@@ -68,6 +67,7 @@ public class AuthController {
                 .path("/auth/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
+
         TokenResponse response = new TokenResponse(out.getAccessToken());
 
         return ResponseEntity.ok()

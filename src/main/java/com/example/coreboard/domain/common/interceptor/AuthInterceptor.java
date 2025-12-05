@@ -9,7 +9,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 public class AuthInterceptor implements HandlerInterceptor {
 
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String authorization = request.getHeader("Authorization");
@@ -19,7 +18,6 @@ public class AuthInterceptor implements HandlerInterceptor {
             if ("GET".equals(request.getMethod())) {
                 return true;
             }
-
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
         }
 
@@ -32,9 +30,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         String username = JwtUtil.getUsername(accessToken);
-
         request.setAttribute("username", username);
-
         return true;
     }
 }
