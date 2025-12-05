@@ -20,6 +20,7 @@ public class PasswordManager {
     ) {
         if (storedHash == null || storedHash.isEmpty())
             return false;
+
         return BCrypt.verifyer()
                 .verify(inputPassword.toCharArray(), storedHash)
                 .verified;
