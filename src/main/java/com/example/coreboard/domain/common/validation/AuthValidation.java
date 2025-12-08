@@ -48,8 +48,6 @@ public class AuthValidation {
         if (phoneNumber == null || phoneNumber.isBlank()) {
             throw new AuthErrorException(AuthErrorCode.PHONENUMBER_ISBLANK);
         }
-
-
     }
 
     public static void signIn(String username, String password) {
