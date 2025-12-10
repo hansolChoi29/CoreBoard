@@ -14,7 +14,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null) {
-
             if ("GET".equals(request.getMethod())) {
                 return true;
             }
@@ -31,6 +30,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         String username = JwtUtil.getUsername(accessToken);
         request.setAttribute("username", username);
-        return true;
+        return true; //
     }
 }
