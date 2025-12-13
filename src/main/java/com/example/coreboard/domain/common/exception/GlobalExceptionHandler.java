@@ -10,7 +10,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ErrorException.class)
     public ResponseEntity<ApiResponse<Object>> handleFailException(ErrorException e) {
-
         return ResponseEntity
                 .status(e.getStatus())
                 .body(ApiResponse.fail(e.getMessage()));
