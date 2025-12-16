@@ -24,11 +24,9 @@ public class AuthInterceptor implements HandlerInterceptor {
                 .replaceFirst("(?i)^Bearer\\s+", "")
                 .replaceAll("\\s+", "");
 
-        
         if (!JwtUtil.validationToken(accessToken)) {
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
         }
-//
         String username = JwtUtil.getUsername(accessToken);
         request.setAttribute("username", username);
         return true;
