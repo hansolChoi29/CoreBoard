@@ -57,7 +57,9 @@ public class AuthController {
                 request.getUsername(),
                 request.getPassword()
         );
+
         TokenDto out = authService.signIn(users);
+
         ResponseCookie refreshCookies = ResponseCookie.from("refresh", out.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
@@ -65,7 +67,9 @@ public class AuthController {
                 .path("/auth/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
+
         TokenResponse response = new TokenResponse(out.getAccessToken());
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookies.toString())
                 .body(ApiResponse.ok(response, "로그인 성공!"));
