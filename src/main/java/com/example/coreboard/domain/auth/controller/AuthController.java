@@ -67,8 +67,8 @@ public class AuthController {
                 .path("/auth/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
-
         TokenResponse response = new TokenResponse(out.getAccessToken());
+
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookies.toString())
