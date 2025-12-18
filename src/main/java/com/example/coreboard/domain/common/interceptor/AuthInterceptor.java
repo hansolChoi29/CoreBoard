@@ -10,7 +10,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler
+    ) {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null) {
