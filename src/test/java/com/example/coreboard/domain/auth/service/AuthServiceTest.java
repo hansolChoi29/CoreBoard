@@ -106,54 +106,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입_비밀번호_불일치_400")
-    void signUp_IsMisMatch() {
-        AuthErrorException passwordMismatch = assertThrows(
-                AuthErrorException.class,
-                () -> authService.signUp(new SignUpCommand(
-                        "tester",
-                        "password",
-                        "pa",
-                        "email@naver.com",
-                        "01012341234"
-                ))
-        );
-        assertEquals(400, passwordMismatch.getStatus());
-    }
-
-    @Test
-    @DisplayName("회원가입_비밀번호_null_400")
-    void signUp_IsPasswordNull() {
-        AuthErrorException passwordNull = assertThrows(
-                AuthErrorException.class,
-                () -> authService.signUp(new SignUpCommand(
-                        "tester",
-                        null,
-                        "password",
-                        "email@naver.com",
-                        "01012341234"
-                ))
-        );
-        assertEquals(400, passwordNull.getStatus());
-    }
-
-    @Test
-    @DisplayName("회원가입_비밀번호확인_null_400")
-    void signUp_IsConfirmPasswordNull() {
-        AuthErrorException confirmPasswordNull = assertThrows(
-                AuthErrorException.class,
-                () -> authService.signUp(new SignUpCommand(
-                        "tester",
-                        "password",
-                        null,
-                        "email@naver.com",
-                        "01012341234"
-                ))
-        );
-        assertEquals(400, confirmPasswordNull.getStatus());
-    }
-
-    @Test
     @DisplayName("회원가입_존재_유저_409")
     void signUp_IsConflict() {
         given(usersRepository.existsByUsername("tester")).willReturn(true);

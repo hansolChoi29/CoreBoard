@@ -10,7 +10,6 @@ public class PasswordManager {
     private static final int COST = 12;
 
     public String encrypt(String password) {
-
         return BCrypt.withDefaults().hashToString(COST, password.toCharArray());
     }
 
