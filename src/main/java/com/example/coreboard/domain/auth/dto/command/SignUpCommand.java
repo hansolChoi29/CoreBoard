@@ -32,10 +32,6 @@ public class SignUpCommand {
         return password;
     }
 
-    public String getConfirmPassword() {
-        return confirmPassword;
-    }
-
     public String getEmail() {
         return email;
     }
