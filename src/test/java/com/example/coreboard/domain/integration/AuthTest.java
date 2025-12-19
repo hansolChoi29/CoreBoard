@@ -2,47 +2,24 @@ package com.example.coreboard.domain.integration;
 
 import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
 import com.example.coreboard.domain.common.config.PasswordManager;
-import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@AutoConfigureMockMvc(addFilters = false)
-@Testcontainers
-@Transactional
-public class AuthTest {
 
-    @Container
-    static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @MockitoBean
-    AuthInterceptor authInterceptor;
-
+ class AuthTest extends IntegrationTestBase {
     @Autowired
     UsersRepository usersRepository;
 
@@ -54,15 +31,6 @@ public class AuthTest {
 
     @Autowired
     MockMvc mockMvc;
-
-    @DynamicPropertySource
-    static void overrideDataSourceProps(
-            DynamicPropertyRegistry registry
-    ) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
 
     @BeforeEach
     void setUser() {
