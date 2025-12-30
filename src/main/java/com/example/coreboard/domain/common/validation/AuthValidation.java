@@ -10,16 +10,15 @@ import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.U
 public class AuthValidation {
 
     public static void signUpValidation(SignUpRequest request) {
-        signUp(request.getUsername(),
-                request.getPassword(),
-                request.getConfirmPassword(),
-                request.getEmail(),
-                request.getPhoneNumber()
-        );
+        signUp(request.username(),
+                request.password(),
+                request.confirmPassword(),
+                request.email(),
+                request.phoneNumber());
     }
 
     public static void signInValidation(SignInRequest resquest) {
-        signIn(resquest.getUsername(), resquest.getPassword());
+        signIn(resquest.username(), resquest.password());
     }
 
     public static void signUp(
@@ -27,8 +26,7 @@ public class AuthValidation {
             String password,
             String confirmPassword,
             String email,
-            String phoneNumber
-    ) {
+            String phoneNumber) {
         if (username == null || username.isBlank()) {
             throw new AuthErrorException(AuthErrorCode.ID_REQUIRED);
         }
@@ -51,12 +49,10 @@ public class AuthValidation {
     }
 
     public static void signIn(String username, String password) {
-        if (
-                username == null
-                        || username.isBlank()
-                        || password == null
-                        || password.isBlank()
-        ) {
+        if (username == null
+                || username.isBlank()
+                || password == null
+                || password.isBlank()) {
             throw new AuthErrorException(USERNAME_PASSWORD_ISBLANK);
         }
     }

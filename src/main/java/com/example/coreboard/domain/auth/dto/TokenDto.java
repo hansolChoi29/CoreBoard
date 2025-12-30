@@ -1,19 +1,8 @@
 package com.example.coreboard.domain.auth.dto;
 
-public class TokenDto {
-    private final String accessToken;
-    private final String refreshToken;
+import jakarta.validation.constraints.NotBlank;
 
-    public TokenDto(String accessToken, String refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
+public record TokenDto(
+        @NotBlank String accessToken,
+        @NotBlank String refreshToken) {
 }

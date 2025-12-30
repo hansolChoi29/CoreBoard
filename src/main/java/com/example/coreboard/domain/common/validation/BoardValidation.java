@@ -12,11 +12,11 @@ import static com.example.coreboard.domain.common.exception.board.BoardErrorCode
 public class BoardValidation {
 
     public static void createValidation(BoardCreateRequest createRequest) {
-        createValidation(createRequest.getTitle(), createRequest.getContent());
+        createValidation(createRequest.title(), createRequest.content());
     }
 
     public static void updateValidation(BoardUpdateRequest updateRequest) {
-        updateValidation(updateRequest.getTitle(), updateRequest.getContent());
+        updateValidation(updateRequest.title(), updateRequest.content());
     }
 
     public static void updateValidation(String title, String content) {
@@ -70,7 +70,7 @@ public class BoardValidation {
         }
     }
 
-    public static void sortDirection(String sort){
+    public static void sortDirection(String sort) {
         if (!sort.equalsIgnoreCase("asc") &&
                 !sort.equalsIgnoreCase("desc")) {
             throw new BoardErrorException(BoardErrorCode.SORT_DIRECTION_INVALID);

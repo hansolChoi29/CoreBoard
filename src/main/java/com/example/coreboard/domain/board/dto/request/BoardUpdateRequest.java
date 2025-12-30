@@ -1,23 +1,8 @@
 package com.example.coreboard.domain.board.dto.request;
 
-public class BoardUpdateRequest {
-    private String title;
-    private String content;
+import jakarta.validation.constraints.NotBlank;
 
-    public BoardUpdateRequest(
-            String title,
-            String content
-    ) {
-
-        this.title = title;
-        this.content = content;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContent() {
-        return content;
-    }
+public record BoardUpdateRequest(
+        @NotBlank String title,
+        @NotBlank String content) {
 }
