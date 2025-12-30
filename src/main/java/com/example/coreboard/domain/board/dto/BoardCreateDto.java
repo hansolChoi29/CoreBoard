@@ -14,8 +14,7 @@ public class BoardCreateDto {
             long userId,
             String title,
             String content,
-            LocalDateTime createdDate
-    ) {
+            LocalDateTime createdDate) {
         this.id = id;
         this.userId = userId;
         this.title = title;

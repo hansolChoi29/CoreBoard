@@ -17,18 +17,15 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
-
 
     private static final String BASE = "/auth";
     String username = "tester";
@@ -54,8 +51,7 @@ class AuthControllerTest {
     @DisplayName("회원가입_성공")
     void signUp() throws Exception {
         SignUpDto dummy = new SignUpDto(
-                username
-        );
+                username);
         given(authService.signUp(any())).willReturn(dummy);
         String json = """
                     {
@@ -67,10 +63,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("회원가입 성공"));
         verify(authService).signUp(any());
@@ -91,10 +86,9 @@ class AuthControllerTest {
         given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
 
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
         verify(authService).signUp(any());
@@ -114,10 +108,9 @@ class AuthControllerTest {
                 """;
         given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("이미 가입한 계정입니다."));
         verify(authService).signUp(any());
@@ -136,10 +129,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .content(json)
-                                .contentType(MediaType.APPLICATION_JSON)
-                )
+                post(BASE + "/users")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
         verifyNoInteractions(authService);
@@ -157,10 +149,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("이메일은 필수입니다."));
         verifyNoInteractions(authService);
@@ -179,10 +170,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .content(json)
-                                .contentType(MediaType.APPLICATION_JSON)
-                )
+                post(BASE + "/users")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디는 필수입니다."));
         verifyNoInteractions(authService);
@@ -200,10 +190,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디는 필수입니다."));
         verifyNoInteractions(authService);
@@ -222,10 +211,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호는 필수입니다."));
     }
@@ -242,10 +230,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호는 필수입니다."));
         verifyNoInteractions(authService);
@@ -264,10 +251,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
     }
@@ -284,17 +270,16 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE + "/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 확인이 일치하지 않습니다."));
     }
 
     @Test
     @DisplayName("회원가입_전화번호_누락_400")
-    void signUpPhoneNumberRequired() throws Exception{
+    void signUpPhoneNumberRequired() throws Exception {
         String json = """
                     {
                         "username":"qwer1",
@@ -305,10 +290,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                post(BASE+"/users")
+                post(BASE + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("전화번호는 필수입니다."));
         verifyNoInteractions(authService);
@@ -316,7 +300,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입_전화번호_null_400")
-    void signUpPhoneNumberNull() throws Exception{
+    void signUpPhoneNumberNull() throws Exception {
         String json = """
                     {
                         "username":"qwer1",
@@ -326,10 +310,9 @@ class AuthControllerTest {
                     }
                 """;
         mockMvc.perform(
-                        post(BASE+"/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("전화번호는 필수입니다."));
         verifyNoInteractions(authService);
@@ -340,8 +323,7 @@ class AuthControllerTest {
     void signIn() throws Exception {
         TokenDto dummy = new TokenDto(
                 "accessToken",
-                "refreshToken"
-        );
+                "refreshToken");
         given(authService.signIn(any())).willReturn(dummy);
         String json = """
                 {
@@ -350,16 +332,14 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("로그인 성공!"))
                 .andExpect(jsonPath("$.data.accessToken").value("accessToken"));
         verify(authService).signIn(any());
     }
-
 
     @Test
     @DisplayName("로그인_존재하지_않는_사용자_404")
@@ -373,10 +353,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
         verify(authService).signIn(any());
@@ -393,10 +372,9 @@ class AuthControllerTest {
                 """;
         given(authService.signIn(any())).willThrow(new AuthErrorException(AuthErrorCode.BAD_REQUEST));
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("비밀번호 또는 아이디가 일치하지 않습니다."));
         verify(authService).signIn(any());
@@ -412,10 +390,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
@@ -431,10 +408,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
@@ -449,10 +425,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());
@@ -467,10 +442,9 @@ class AuthControllerTest {
                 }
                 """;
         mockMvc.perform(
-                        post(BASE + "/token")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+                post(BASE + "/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호를 필수입니다."));
         verify(authService, never()).signIn(any());

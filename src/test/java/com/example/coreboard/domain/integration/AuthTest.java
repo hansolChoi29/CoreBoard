@@ -12,14 +12,12 @@ import org.springframework.http.MediaType;
 
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
- class AuthTest extends IntegrationTestBase {
+class AuthTest extends IntegrationTestBase {
     @Autowired
     UsersRepository usersRepository;
 
@@ -38,8 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "username",
                 passwordEncode.encrypt("password"),
                 emailPhoneNumberEncode.encrypt("email@naver.com"),
-                emailPhoneNumberEncode.encrypt("01012341234")
-        );
+                emailPhoneNumberEncode.encrypt("01012341234"));
         usersRepository.save(user);
     }
 
@@ -56,10 +53,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 }
                 """;
         mockMvc.perform(
-                        post("/auth/users")
-                                .content(json)
-                                .contentType(MediaType.APPLICATION_JSON)
-                )
+                post("/auth/users")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.username").value("username1"));
         assertThat(usersRepository.count()).isEqualTo(2);
@@ -78,10 +74,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 """;
 
         mockMvc.perform(
-                        post("/auth/token")
-                                .content(json)
-                                .contentType(MediaType.APPLICATION_JSON)
-                )
+                post("/auth/token")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").exists());
         assertThat(usersRepository.count()).isEqualTo(1);
