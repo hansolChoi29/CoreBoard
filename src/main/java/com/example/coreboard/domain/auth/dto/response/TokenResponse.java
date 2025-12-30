@@ -1,13 +1,7 @@
 package com.example.coreboard.domain.auth.dto.response;
 
-public class TokenResponse {
-    private final String accessToken;
+import jakarta.validation.constraints.NotBlank;
 
-    public TokenResponse(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
+public record TokenResponse(
+        @NotBlank String accessToken) {
 }

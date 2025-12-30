@@ -34,10 +34,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 class BoardServiceTest {
-
 
     @Mock
     BoardRepository boardRepository;
@@ -69,8 +67,7 @@ class BoardServiceTest {
         given(boardRepository.existsByTitle("제목")).willReturn(false);
 
         given(boardRepository.save(any(Board.class))).willReturn(
-                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now())
-        );
+                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now()));
 
         BoardCreateDto result = boardService.create(boardCreateCommand, "tester");
 
@@ -91,9 +88,7 @@ class BoardServiceTest {
                 AuthErrorException.class,
                 () -> boardService.create(
                         boardCreateCommand,
-                        "tester"
-                )
-        );
+                        "tester"));
         assertEquals(404, notFoundUser.getStatus());
 
         verify(boardRepository, never()).existsByTitle(anyString());
@@ -111,9 +106,7 @@ class BoardServiceTest {
                 BoardErrorException.class,
                 () -> boardService.create(
                         boardCreateCommand,
-                        "tester"
-                )
-        );
+                        "tester"));
         assertEquals(409, duplicatedBoard.getStatus());
 
         verify(usersRepository).findByUsername("tester");
@@ -131,8 +124,7 @@ class BoardServiceTest {
                 "제목",
                 "본문",
                 LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         given(boardRepository.findById(id)).willReturn(Optional.of(entity));
 
         BoardGetOneCommand boardGetOneCommand = new BoardGetOneCommand(id);
@@ -157,8 +149,7 @@ class BoardServiceTest {
         BoardGetOneCommand command = new BoardGetOneCommand(id);
         BoardErrorException findOneNotFound = assertThrows(
                 BoardErrorException.class,
-                () -> boardService.findOne(command)
-        );
+                () -> boardService.findOne(command));
         assertEquals(404, findOneNotFound.getStatus());
         verify(boardRepository, times(1)).findById(id);
         verifyNoMoreInteractions(boardRepository);
@@ -176,8 +167,7 @@ class BoardServiceTest {
         List<Board> boards = List.of(
                 new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
                 new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 10L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now())
-        );
+                new Board(3L, 10L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
 
         Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
         given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
@@ -190,9 +180,9 @@ class BoardServiceTest {
         assertEquals(boards.size(), result.getContent().size());
         Board firstEntity = boards.get(0);
         BoardSummaryResponse firstDto = result.getContent().get(0);
-        assertEquals(firstEntity.getId(), firstDto.getId());
-        assertEquals(firstEntity.getUserId(), firstDto.getUserId());
-        assertEquals(firstEntity.getTitle(), firstDto.getTitle());
+        assertEquals(firstEntity.getId(), firstDto.id());
+        assertEquals(firstEntity.getUserId(), firstDto.userId());
+        assertEquals(firstEntity.getTitle(), firstDto.title());
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         verify(boardRepository, times(1)).findAll(captor.capture());
@@ -216,8 +206,7 @@ class BoardServiceTest {
         List<Board> boards = List.of(
                 new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
                 new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 30L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now())
-        );
+                new Board(3L, 30L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
 
         Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
         given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
@@ -240,7 +229,6 @@ class BoardServiceTest {
         verifyNoMoreInteractions(boardRepository);
     }
 
-
     @Test
     @DisplayName("게시글_수정_성공")
     void update() {
@@ -251,8 +239,7 @@ class BoardServiceTest {
                 "tester",
                 id,
                 "새제목",
-                "새본문"
-        );
+                "새본문");
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
         given(boardRepository.findById(id)).willReturn(Optional.of(board));
         given(users.getUserId()).willReturn(10L);
@@ -276,8 +263,7 @@ class BoardServiceTest {
                 "tester",
                 1L,
                 "title",
-                "content"
-        );
+                "content");
 
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
@@ -287,8 +273,7 @@ class BoardServiceTest {
 
         AuthErrorException forbiddern = assertThrows(
                 AuthErrorException.class,
-                () -> boardService.update(cmd)
-        );
+                () -> boardService.update(cmd));
 
         assertEquals(403, forbiddern.getStatus());
 
@@ -318,7 +303,7 @@ class BoardServiceTest {
 
     @Test
     @DisplayName("게시글_삭제_권한없음_403")
-    void deleteFobiddern(){
+    void deleteFobiddern() {
         Users users = mock(Users.class);
         Board board = mock(Board.class);
         String username = "tester";
@@ -331,8 +316,7 @@ class BoardServiceTest {
 
         AuthErrorException fodibbern = assertThrows(
                 AuthErrorException.class,
-                ()-> boardService.delete("tester", 1L)
-        );
+                () -> boardService.delete("tester", 1L));
         assertEquals(403, fodibbern.getStatus());
 
         verify(usersRepository, times(1)).findByUsername("tester");
