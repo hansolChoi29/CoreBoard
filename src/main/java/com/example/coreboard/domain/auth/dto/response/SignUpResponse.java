@@ -1,17 +1,7 @@
 package com.example.coreboard.domain.auth.dto.response;
 
+import jakarta.validation.constraints.NotBlank;
 
-public class SignUpResponse {
-    private final String username;
-
-    public SignUpResponse(
-            String username
-
-    ) {
-        this.username = username;
-    }
-
-    public String getUsername() {
-        return username;
-    }
+public record SignUpResponse(
+        @NotBlank String username) {
 }
