@@ -51,7 +51,7 @@ public class AuthController {
                 SignInCommand users = new SignInCommand(
                                 request.username(),
                                 request.password());
-
+//
                 TokenDto out = authService.signIn(users);
 
                 ResponseCookie refreshCookies = ResponseCookie.from("refresh", out.refreshToken())
