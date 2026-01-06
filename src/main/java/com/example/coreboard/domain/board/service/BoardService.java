@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.board.service;
 
-
 import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
 import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
@@ -29,122 +28,111 @@ import java.util.List;
 
 @Service
 public class BoardService {
-    private final BoardRepository boardRepository;
-    private final UsersRepository usersRepository;
+        private final BoardRepository boardRepository;
+        private final UsersRepository usersRepository;
 
-    public BoardService(
-            BoardRepository boardRepository,
-            UsersRepository usersRepository
-    ) {
-        this.boardRepository = boardRepository;
-        this.usersRepository = usersRepository;
-    }
-
-    public BoardCreateDto create(
-            BoardCreateCommand boardCreateCommand,
-            String username
-    ) {
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
-            throw new BoardErrorException(TITLE_DUPLICATED);
+        public BoardService(
+                        BoardRepository boardRepository,
+                        UsersRepository usersRepository) {
+                this.boardRepository = boardRepository;
+                this.usersRepository = usersRepository;
         }
 
-        Board board = Board.create(
-                user.getUserId(),
-                boardCreateCommand.getTitle(),
-                boardCreateCommand.getContent()
-        );
-        Board saved = boardRepository.save(board);
+        public BoardCreateDto create(
+                        BoardCreateCommand boardCreateCommand,
+                        String username) {
+                Users user = usersRepository.findByUsername(username)
+                                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        return new BoardCreateDto(
-                saved.getId(),
-                saved.getUserId(),
-                saved.getTitle(),
-                saved.getContent(),
-                saved.getCreatedDate()
-        );
-    }
+                if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
+                        throw new BoardErrorException(TITLE_DUPLICATED);
+                }
 
-    public BoardGetOneDto findOne(
-            BoardGetOneCommand boardGetOneCommand
-    ) {
+                Board board = Board.create(
+                                user.getUserId(),
+                                boardCreateCommand.getTitle(),
+                                boardCreateCommand.getContent());
+                Board saved = boardRepository.save(board);
 
-        Board board = boardRepository.findById(boardGetOneCommand.getId())
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
-
-        return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
-                board.getCreatedDate(), board.getLastModifiedDate());
-    }
-
-    public PageResponse<BoardSummaryResponse> findAll(int page, int size, String sort
-    ) {
-        Sort.Direction direction = sort.equalsIgnoreCase("asc")
-                ? Sort.Direction.ASC : Sort.Direction.DESC;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
-
-        Page<Board> result = boardRepository.findAll(pageable);
-
-        List<BoardSummaryResponse> contents = new ArrayList<>();
-
-        for (Board board : result.getContent()) {
-            contents.add(new BoardSummaryResponse(
-                    board.getId(),
-                    board.getUserId(),
-                    board.getTitle(),
-                    board.getCreatedDate()
-            ));
+                return new BoardCreateDto(
+                                saved.getId(),
+                                saved.getUserId(),
+                                saved.getTitle(),
+                                saved.getContent(),
+                                saved.getCreatedDate());
         }
 
-        PageResponse<BoardSummaryResponse> body = new PageResponse<>(
-                contents,
-                result.getNumber(),
-                result.getSize(),
-                result.getTotalElements()
-        );
+        public BoardGetOneDto findOne(
+                        BoardGetOneCommand boardGetOneCommand) {
 
-        return body;
-    }
+                Board board = boardRepository.findById(boardGetOneCommand.getId())
+                                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
-    @Transactional
-    public BoardUpdatedDto update(
-            BoardUpdateCommand boardUpdatedCommad
-    ) {
-        Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        Board board = boardRepository.findById(boardUpdatedCommad.getId())
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
-
-        if (board.getUserId() != user.getUserId()) {
-            throw new AuthErrorException(FORBIDDEN);
+                return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
+                                board.getCreatedDate(), board.getLastModifiedDate());
         }
 
-        board.update(
-                boardUpdatedCommad.getTitle(),
-                boardUpdatedCommad.getContent()
-        );
-        return new BoardUpdatedDto(
-                board.getId()
-        );
-    }
+        public PageResponse<BoardSummaryResponse> findAll(int page, int size, String sort) {
+                Sort.Direction direction = sort.equalsIgnoreCase("asc")
+                                ? Sort.Direction.ASC
+                                : Sort.Direction.DESC;
 
-    public void delete(
-            String username,
-            Long id
-    ) {
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+                Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
 
-        boardRepository.findById(id)
-                .filter(board -> {
-                    if (!board.getUserId().equals(user.getUserId())) {
+                Page<Board> result = boardRepository.findAll(pageable);
+
+                List<BoardSummaryResponse> contents = new ArrayList<>();
+
+                for (Board board : result.getContent()) {
+                        contents.add(new BoardSummaryResponse(
+                                        board.getId(),
+                                        board.getUserId(),
+                                        board.getTitle(),
+                                        board.getCreatedDate()));
+                }
+
+                PageResponse<BoardSummaryResponse> body = new PageResponse<>(
+                                contents,
+                                result.getNumber(),
+                                result.getSize(),
+                                result.getTotalElements());
+
+                return body;
+        }
+
+        @Transactional
+        public BoardUpdatedDto update(
+                        BoardUpdateCommand boardUpdatedCommad) {
+                Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
+                                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
+                Board board = boardRepository.findById(boardUpdatedCommad.getId())
+                                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
+
+                if (board.getUserId() != user.getUserId()) {
                         throw new AuthErrorException(FORBIDDEN);
-                    }
-                    return true;
-                })
-                .ifPresent(boardRepository::delete);
-    }
+                }
+
+                board.update(
+                                boardUpdatedCommad.getTitle(),
+                                boardUpdatedCommad.getContent());
+                return new BoardUpdatedDto(
+                                board.getId());
+        }
+
+        public void delete(
+                        String username,
+                        Long id) {
+                Users user = usersRepository.findByUsername(username)
+                                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
+                boardRepository.findById(id)
+                                .filter(board -> {
+                                        if (!board.getUserId().equals(user.getUserId())) {
+                                                throw new AuthErrorException(FORBIDDEN);
+                                        }
+                                        return true;
+                                })
+                                .ifPresent(boardRepository::delete);
+        }
 }
