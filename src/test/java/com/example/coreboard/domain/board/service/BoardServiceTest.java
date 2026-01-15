@@ -60,11 +60,14 @@ class BoardServiceTest {
     @DisplayName("게시글_생성")
     void create() {
         Users users = new Users("tester", "password", "user01@naver.com", "01012341234");
+
         ReflectionTestUtils.setField(users, "userId", 10L);
+
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
         given(boardRepository.existsByTitle("제목")).willReturn(false);
 
         Board saved = new Board(1L, 10L, "제목", "내용", FIXED_TIME, FIXED_TIME);
+
         given(boardRepository.save(any(Board.class))).willReturn(saved);
 
         BoardCreateDto result = boardService.create(boardCreateCommand, "tester");
