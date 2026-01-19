@@ -119,6 +119,7 @@ docker run -d \
 ### 1) 회원가입 (Public)
 **POST** `/auth/users`
 
+#### macOS / Linux / Git Bash
 ```bash
 curl -X POST "http://localhost:8080/auth/users" \
   -H "Content-Type: application/json" \
@@ -131,11 +132,36 @@ curl -X POST "http://localhost:8080/auth/users" \
   }'
 ```
 
+#### Windows PowerShell
+```bash
+curl -X POST "http://localhost:8080/auth/users" `
+  -H "Content-Type: application/json" `
+  -d '{
+    "username": "dssaa",
+    "email": "user012@naver.com",
+    "phoneNumber": "01012345678",
+    "password": "user01",
+    "confirmPassword": "user01"
+  }'
+```
+
+
 ### 2) 로그인 (Public)
-**POST** `auth/token`
+**POST** `/auth/token`
+#### macOS / Linux / Git Bash
 ```bash
 curl -i -X POST "http://localhost:8080/auth/token" \
   -H "Content-Type: application/json" \
+  -d '{
+    "username": "dssaa",
+    "password": "user01"
+  }'
+```
+
+#### Windows PowerShell
+```bash
+curl.exe -i -X POST "http://localhost:8080/auth/token" `
+  -H "Content-Type: application/json" `
   -d '{
     "username": "dssaa",
     "password": "user01"
