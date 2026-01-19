@@ -22,20 +22,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BoardServiceTest {
+    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @Mock
     BoardRepository boardRepository;
@@ -58,16 +60,16 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_생성")
     void create() {
-        Users users = mock(Users.class);
+        Users users = new Users("tester", "password", "user01@naver.com", "01012341234");
+
+        ReflectionTestUtils.setField(users, "userId", 10L);
 
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-
-        given(users.getUserId()).willReturn(10L);
-
         given(boardRepository.existsByTitle("제목")).willReturn(false);
 
-        given(boardRepository.save(any(Board.class))).willReturn(
-                new Board(1L, 10L, "제목", "내용", LocalDateTime.now(), LocalDateTime.now()));
+        Board saved = new Board(1L, 10L, "제목", "내용", FIXED_TIME, FIXED_TIME);
+
+        given(boardRepository.save(any(Board.class))).willReturn(saved);
 
         BoardCreateDto result = boardService.create(boardCreateCommand, "tester");
 
@@ -75,9 +77,16 @@ class BoardServiceTest {
         assertEquals("제목", result.getTitle());
         assertEquals("내용", result.getContent());
 
-        verify(usersRepository, times(1)).findByUsername("tester");
-        verify(boardRepository, times(1)).existsByTitle("제목");
-        verify(boardRepository, times(1)).save(any(Board.class));
+        ArgumentCaptor<Board> captor = ArgumentCaptor.forClass(Board.class);
+        verify(boardRepository).save(captor.capture());
+        Board toSave = captor.getValue();
+
+        assertEquals(10L, toSave.getUserId());
+        assertEquals("제목", toSave.getTitle());
+        assertEquals("내용", toSave.getContent());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(boardRepository).existsByTitle("제목");
     }
 
     @Test
@@ -89,7 +98,7 @@ class BoardServiceTest {
                 () -> boardService.create(
                         boardCreateCommand,
                         "tester"));
-        assertEquals(404, notFoundUser.getStatus());
+        assertEquals(HttpStatus.NOT_FOUND, notFoundUser.getStatus());
 
         verify(boardRepository, never()).existsByTitle(anyString());
         verify(boardRepository, never()).save(any());
@@ -107,7 +116,7 @@ class BoardServiceTest {
                 () -> boardService.create(
                         boardCreateCommand,
                         "tester"));
-        assertEquals(409, duplicatedBoard.getStatus());
+        assertEquals(HttpStatus.CONFLICT, duplicatedBoard.getStatus());
 
         verify(usersRepository).findByUsername("tester");
         verify(boardRepository).existsByTitle("제목");
@@ -150,7 +159,7 @@ class BoardServiceTest {
         BoardErrorException findOneNotFound = assertThrows(
                 BoardErrorException.class,
                 () -> boardService.findOne(command));
-        assertEquals(404, findOneNotFound.getStatus());
+        assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
         verify(boardRepository, times(1)).findById(id);
         verifyNoMoreInteractions(boardRepository);
     }
@@ -275,8 +284,7 @@ class BoardServiceTest {
                 AuthErrorException.class,
                 () -> boardService.update(cmd));
 
-        assertEquals(403, forbiddern.getStatus());
-
+        assertEquals(HttpStatus.FORBIDDEN, forbiddern.getStatus());
         verify(board, never()).update(anyString(), anyString());
     }
 
@@ -317,10 +325,9 @@ class BoardServiceTest {
         AuthErrorException fodibbern = assertThrows(
                 AuthErrorException.class,
                 () -> boardService.delete("tester", 1L));
-        assertEquals(403, fodibbern.getStatus());
+        assertEquals(HttpStatus.FORBIDDEN, fodibbern.getStatus());
 
         verify(usersRepository, times(1)).findByUsername("tester");
         verify(boardRepository, times(1)).findById(1L);
     }
-
 }

@@ -3,20 +3,26 @@ package com.example.coreboard.domain.common.response;
 import java.util.Collections;
 
 public class ApiResponse<T> {
+    private final boolean success;
     private final String message;
     private final T data;
 
-    public ApiResponse(String message, T data) {
+    public ApiResponse(boolean success, String message, T data) {
+        this.success = success;
         this.message = message;
         this.data = data;
     }
 
     public static <T> ApiResponse<T> ok(T data, String message) {
-        return new ApiResponse<>(message, data);
+        return new ApiResponse<>(true, message, data);
     }
 
-    public static ApiResponse<Object> fail(String message) {
-        return new ApiResponse<>(message, Collections.emptyMap());
+    public static <T>ApiResponse<T> fail(String message, T data) {
+        return new ApiResponse<>(false, message, data);
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     public T getData() {
