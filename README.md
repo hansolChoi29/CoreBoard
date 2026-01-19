@@ -134,15 +134,13 @@ curl -X POST "http://localhost:8080/auth/users" \
 
 #### Windows PowerShell
 ```bash
-curl -X POST "http://localhost:8080/auth/users" `
-  -H "Content-Type: application/json" `
-  -d '{
-    "username": "dssaa",
-    "email": "user012@naver.com",
-    "phoneNumber": "01012345678",
-    "password": "user01",
-    "confirmPassword": "user01"
-  }'
+irm http://localhost:8080/auth/users -Method Post -ContentType 'application/json' -Body '{
+"username":"qwerqwer2"
+,"email":"qwerqwer2@naver.com"
+,"phoneNumber":"01012345678"
+,"password":"qwerqwer2"
+,"confirmPassword":"qwerqwer2"
+}'
 ```
 
 
@@ -153,20 +151,27 @@ curl -X POST "http://localhost:8080/auth/users" `
 curl -i -X POST "http://localhost:8080/auth/token" \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "dssaa",
-    "password": "user01"
+    "username": "qwerqwer2",
+    "password": "qwerqwer2"
   }'
 ```
 
+#### Windows PowerShell (로그인 + 토큰 저장)
+```bash
+$token = (irm http://localhost:8080/auth/token -Method Post -ContentType 'application/json' -Body (@{
+  username='qwerqwer2'
+  password='qwerqwer2'
+} | ConvertTo-Json)).data.accessToken
+
+```
+#### 게시글 생성
 #### Windows PowerShell
 ```bash
-curl.exe -i -X POST "http://localhost:8080/auth/token" `
-  -H "Content-Type: application/json" `
-  -d '{
-    "username": "dssaa",
-    "password": "user01"
-  }'
+irm http://localhost:8080/board -Method Post -ContentType 'application/json' `
+  -Headers @{ Authorization = "Bearer $token" } `
+  -Body (@{ title='title1'; content='content1' } | ConvertTo-Json)
 ```
+
 
 ## API 예시
 
