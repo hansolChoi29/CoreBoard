@@ -38,7 +38,7 @@ public enum BoardErrorCode {
             400,
             "제목은 255자 이하여야 합니다.",
             List.of(new FieldError(
-                    "content",
+                    "title",
                     "제목은 255자 이하여야 합니다."
             ))
     ),
