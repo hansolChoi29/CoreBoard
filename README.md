@@ -117,8 +117,6 @@ docker run -d \
 
 ## 인증 사용 방법
 ### 1) 회원가입 (Public)
-**POST** `/auth/users`
-
 #### macOS / Linux / Git Bash
 ```bash
 curl -X POST "http://localhost:8080/auth/users" \
@@ -145,7 +143,6 @@ irm http://localhost:8080/auth/users -Method Post -ContentType 'application/json
 
 
 ### 2) 로그인 (Public)
-**POST** `/auth/token`
 #### macOS / Linux / Git Bash
 ```bash
 curl -i -X POST "http://localhost:8080/auth/token" \
