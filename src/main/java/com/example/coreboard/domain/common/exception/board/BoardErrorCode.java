@@ -92,7 +92,7 @@ public enum BoardErrorCode {
             400,
             "정렬 방향은 asc 또는 desc만 허용됩니다.",
             List.of(new FieldError(
-                    "pagealbe",
+                    "pageable",
                     "정렬방향 asc/desc만 허용합니다."
             ))
     ),
