@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 
 public enum BoardErrorCode {
-
     TITLE_AND_CONTENTS_BLANK(
             HttpStatus.BAD_REQUEST,
             400,
