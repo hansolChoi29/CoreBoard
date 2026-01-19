@@ -164,7 +164,7 @@ $token = (irm http://localhost:8080/auth/token -Method Post -ContentType 'applic
 } | ConvertTo-Json)).data.accessToken
 
 ```
-#### 게시글 생성
+### 3) 게시글 생성
 #### Windows PowerShell
 ```bash
 irm http://localhost:8080/board -Method Post -ContentType 'application/json' `
