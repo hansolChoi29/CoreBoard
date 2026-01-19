@@ -25,7 +25,7 @@ public abstract class ErrorException extends RuntimeException {
     public int getCode() {
         return code;
     }
-
+    
     public List<FieldError> getErrors() {
         return errors;
     }
