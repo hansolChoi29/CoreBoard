@@ -22,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -97,7 +98,7 @@ class BoardServiceTest {
                 () -> boardService.create(
                         boardCreateCommand,
                         "tester"));
-        assertEquals(404, notFoundUser.getStatus());
+        assertEquals(HttpStatus.NOT_FOUND, notFoundUser.getStatus());
 
         verify(boardRepository, never()).existsByTitle(anyString());
         verify(boardRepository, never()).save(any());
@@ -115,7 +116,7 @@ class BoardServiceTest {
                 () -> boardService.create(
                         boardCreateCommand,
                         "tester"));
-        assertEquals(409, duplicatedBoard.getStatus());
+        assertEquals(HttpStatus.CONFLICT, duplicatedBoard.getStatus());
 
         verify(usersRepository).findByUsername("tester");
         verify(boardRepository).existsByTitle("제목");
@@ -158,7 +159,7 @@ class BoardServiceTest {
         BoardErrorException findOneNotFound = assertThrows(
                 BoardErrorException.class,
                 () -> boardService.findOne(command));
-        assertEquals(404, findOneNotFound.getStatus());
+        assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
         verify(boardRepository, times(1)).findById(id);
         verifyNoMoreInteractions(boardRepository);
     }
@@ -283,8 +284,7 @@ class BoardServiceTest {
                 AuthErrorException.class,
                 () -> boardService.update(cmd));
 
-        assertEquals(403, forbiddern.getStatus());
-
+        assertEquals(HttpStatus.FORBIDDEN, forbiddern.getStatus());
         verify(board, never()).update(anyString(), anyString());
     }
 
@@ -325,10 +325,9 @@ class BoardServiceTest {
         AuthErrorException fodibbern = assertThrows(
                 AuthErrorException.class,
                 () -> boardService.delete("tester", 1L));
-        assertEquals(403, fodibbern.getStatus());
+        assertEquals(HttpStatus.FORBIDDEN, fodibbern.getStatus());
 
         verify(usersRepository, times(1)).findByUsername("tester");
         verify(boardRepository, times(1)).findById(1L);
     }
-
 }
