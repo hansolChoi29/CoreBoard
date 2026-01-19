@@ -1,11 +1,9 @@
 # CoreBoard
 
-CoreBoard는 기본기 검증용 미니 게시판입니다.
-Spring Security/Lombok 없이 TDD로 구현하며 스프링 동작 원리와 책임 분리를 훈련했습니다.
-비밀번호(BCrypt)와 개인정보(AES/GCM)를 분리했고, DTO는 request/command/response로 나눴습니다.
-검증 로직이 섞여 테스트가 깨지던 문제는 Validator 분리로 해결해 변경 영향 범위와 회귀 리스크를 줄였습니다.
-
-
+CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
+**Spring Security/Lombok 없이 TDD로 구현**하며 스프링 동작 원리와 책임 분리를 훈련했습니다.</br>
+**비밀번호(BCrypt)와 개인정보(AES/GCM)**를 분리했고, DTO는 **request/command/response**로 나눴습니다.</br>
+**검증 로직이 섞여 테스트가 깨지던 문제**는 **Validator 분리로 해결**해 변경 영향 범위와 회귀 리스크를 줄였습니다.</br>
 
 
 
