@@ -8,8 +8,8 @@ public class AuthErrorException extends ErrorException {
         super(
                 authErrorCode.getStatus(),
                 authErrorCode.getCode(),
-                authErrorCode.getErrors(),
-                authErrorCode.getMessage()
-        );
+                authErrorCode.getMessage(),
+                authErrorCode.getErrors()
+                );
     }
 }
