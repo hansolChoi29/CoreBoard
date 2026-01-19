@@ -16,7 +16,7 @@ public enum BoardErrorCode {
             HttpStatus.BAD_REQUEST,
             400,
             "제목은 필수입니다.",
-            List.of()
+            List.of(new FieldError("title", "제목은 필수입니다."))
     ),
     NOT_CONTENT(
             HttpStatus.BAD_REQUEST,
