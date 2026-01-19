@@ -50,7 +50,7 @@ class BoardControllerTest {
     long userId = 1;
 
     @Mock
-            BoardService boardService;
+    BoardService boardService;
 
     @InjectMocks
     BoardController boardController;
@@ -355,7 +355,9 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.code").value(404))
+                .andExpect(jsonPath("$.data.errors").isArray())
+                .andExpect(jsonPath("$.data.errors[0].reason").value("존재하지 않는 게시글입니다."));
 
         verify(boardService).findOne(any(BoardGetOneCommand.class));
         verifyNoMoreInteractions(boardService);
@@ -417,51 +419,51 @@ class BoardControllerTest {
                                 .param("sort", "asc")
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
     @Test
     @DisplayName("게시글_전체조회_size_0")
-    void getAllShortSize()throws Exception{
+    void getAllShortSize() throws Exception {
         mockMvc.perform(
-                get(BASE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("page","0")
-                        .param("size","0")
-                        .param("sort","asc")
+                        get(BASE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page", "0")
+                                .param("size", "0")
+                                .param("sort", "asc")
 
-        )
+                )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
     @Test
     @DisplayName("게시글_전체조회_size_11")
-    void getAllTooLongsize()throws Exception{
+    void getAllTooLongsize() throws Exception {
         mockMvc.perform(
                         get(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .param("page","0")
-                                .param("size","11")
-                                .param("sort","asc")
+                                .param("page", "0")
+                                .param("size", "11")
+                                .param("sort", "asc")
 
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
         verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
     }
 
     @Test
     @DisplayName("게시글_전체조회_sort_not_asc")
-    void getAllNotAsc()throws Exception{
+    void getAllNotAsc() throws Exception {
         mockMvc.perform(
                         get(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .param("page","0")
-                                .param("size","10")
-                                .param("sort","aaa")
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", "aaa")
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
