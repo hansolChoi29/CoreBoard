@@ -116,24 +116,30 @@ docker run -d \
   - response (ApiResponse, PageResponse)
 
 ## 인증 사용 방법
-회원가입 </br>
-```http://localhost:8080/auth/users```
-```json
-{
-    "username":"dssaa",
-    "email":"user012@naver.com",
-    "phoneNumber":"user01",
-    "password":"user01",
-    "confirmPassword":"user01"    
-}
+### 1) 회원가입 (Public)
+**POST** `/auth/users`
+
+```bash
+curl -X POST "http://localhost:8080/auth/users" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "dssaa",
+    "email": "user012@naver.com",
+    "phoneNumber": "01012345678",
+    "password": "user01",
+    "confirmPassword": "user01"
+  }'
 ```
 
-로그인 </br>
-```json
-{
-    "username":"dssaa",
-    "password":"user01",
-}
+### 2) 로그인 (Public)
+**POST** `auth/token`
+```bash
+curl -i -X POST "http://localhost:8080/auth/token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "dssaa",
+    "password": "user01"
+  }'
 ```
 
 ## API 예시
