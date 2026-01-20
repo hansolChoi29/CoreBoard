@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.common.response;
 
-import java.util.Collections;
 
 public class ApiResponse<T> {
     private final boolean success;
