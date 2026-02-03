@@ -38,6 +38,7 @@ public class BoardService {
                 this.usersRepository = usersRepository;
         }
 
+        @Transactional
         public BoardCreateDto create(
                         BoardCreateCommand boardCreateCommand,
                         String username) {
@@ -120,6 +121,7 @@ public class BoardService {
                                 board.getId());
         }
 
+        @Transactional
         public void delete(
                         String username,
                         Long id) {
