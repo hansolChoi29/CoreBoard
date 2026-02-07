@@ -40,8 +40,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /home/ubuntu/apps/coreboard
-            LATEST_JAR=$(ls -t *-SNAPSHOT.jar | head -n 1)
+            cd /home/ubuntu/apps/coreboard  
+            LATEST_JAR=$(ls -t build/libs/*-SNAPSHOT.jar | head -n 1)
             mv -f "$LATEST_JAR" app.jar
             sudo systemctl restart coreboard
             sudo systemctl status coreboard --no-pager
