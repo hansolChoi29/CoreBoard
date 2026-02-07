@@ -5,7 +5,14 @@ CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 비밀번호(BCrypt)와 개인정보(AES/GCM)를 분리했고, DTO는 **request/command/response**로 나눴습니다.</br>
 **검증 로직이 섞여 테스트가 깨지던 문제**는 **Validator 분리로 해결**해 변경 영향 범위와 회귀 리스크를 줄였습니다.</br>
 
+* 현재 EC2 + CI/CD 완료
+* 모니터링 및 부하테스트 예정
 
+
+<details>
+  <summary><b>회고록</b></summary>
+  [CoreBoardTistory](https://winwin0219.tistory.com/category/CoreBoard)   
+</details>
 
 ## Quick Start
 1. JDK : 17.0.15 (Amazon Corretto) 
