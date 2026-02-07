@@ -11,8 +11,12 @@ CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 
 <details>
   <summary><b>회고록</b></summary>
-  [CoreBoardTistory](https://winwin0219.tistory.com/category/CoreBoard)   
+
+  <a href="https://winwin0219.tistory.com/category/CoreBoard">
+    CoreBoard Tistory
+  </a>
 </details>
+
 
 ## Quick Start
 1. JDK : 17.0.15 (Amazon Corretto) 
