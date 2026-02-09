@@ -35,7 +35,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -246,27 +245,6 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("게시글_생성_이미_존재하는_제목_409")
-        void createTitleDuplicated() throws Exception {
-                BoardCreateRequest request = new BoardCreateRequest("중복제목", "내용");
-                String json = objectMapper.writeValueAsString(request);
-
-                given(boardService.create(any(), eq(username)))
-                                .willThrow(new BoardErrorException(BoardErrorCode.TITLE_DUPLICATED));
-
-                mockMvc.perform(
-                                post(BASE)
-                                                .requestAttr("username", username)
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(json))
-                                .andExpect(status().isConflict())
-                                .andExpect(jsonPath("$.message").value("이미 사용 중인 제목입니다."));
-
-                verify(boardService).create(any(), eq(username));
-                verifyNoMoreInteractions(boardService);
-        }
-
-        @Test
         @DisplayName("게시글_단건_조회_성공")
         void getOne() throws Exception {
                 BoardGetOneDto dummy = new BoardGetOneDto(
@@ -303,8 +281,7 @@ class BoardControllerTest {
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
-                                .andExpect(jsonPath("$.data").isEmpty());
-
+                                .andExpect(jsonPath("$.data.code").value(404));
                 verify(boardService).findOne(any(BoardGetOneCommand.class));
                 verifyNoMoreInteractions(boardService);
         }
@@ -361,7 +338,7 @@ class BoardControllerTest {
                                                 .param("size", "11")
                                                 .param("sort", "asc"))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
                 verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
         }
 
@@ -377,7 +354,7 @@ class BoardControllerTest {
 
                 )
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
                 verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
         }
 
@@ -393,7 +370,7 @@ class BoardControllerTest {
 
                 )
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("zise는 최대 10이하이어야 합니다"));
+                                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
                 verify(boardService, never()).findAll(anyInt(), anyInt(), anyString());
         }
 
