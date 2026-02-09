@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: "coreboard"
     metrics_path: "/actuator/prometheus"
     static_configs:
-      - targets: ["localhost:8080"]
+      - targets: ["127.0.0.1:8080"]
