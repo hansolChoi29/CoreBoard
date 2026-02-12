@@ -22,6 +22,9 @@ aes:
 logging:
   level:
     root: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: OFF   # DB에 쿼리 몇 번 날렸는지/얼마나 걸렸는지
+    org.hibernate.stat: OFF            # 통계 로그
     
 management:
   endpoints:
