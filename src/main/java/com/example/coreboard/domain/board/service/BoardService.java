@@ -100,6 +100,8 @@ public class BoardService {
                 return body;
         }
 
+        // TODO : keyset
+
         @Transactional
         public BoardUpdatedDto update(
                         BoardUpdateCommand boardUpdatedCommad) {
