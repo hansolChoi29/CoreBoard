@@ -82,6 +82,7 @@ public class BoardController {
                         @RequestParam(name = "lastId") Long lastId) {
                 SliceResponse<BoardSummaryKeysetResponse> response = boardService.getKeyset(lastId);
 
+                return ResponseEntity.ok(ApiResponse.ok(response, "게시글 커서 조회!"));
         }
 
         @PutMapping("/{id}")
