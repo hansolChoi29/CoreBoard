@@ -8,12 +8,15 @@ import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
 import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
 import com.example.coreboard.domain.board.dto.response.BoardCreateResponse;
 import com.example.coreboard.domain.board.dto.response.BoardGetOneResponse;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
 import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.dto.response.BoardUpdateResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.PageResponse;
+import com.example.coreboard.domain.common.response.SliceResponse;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,6 +75,13 @@ public class BoardController {
                 PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
+        }
+
+        @GetMapping("/keyset")
+        public ResponseEntity<ApiResponse<SliceResponse<BoardSummaryKeysetResponse>>> getKeyset(
+                        @RequestParam(name = "lastId") Long lastId) {
+                SliceResponse<BoardSummaryKeysetResponse> response = boardService.getKeyset(lastId);
+
         }
 
         @PutMapping("/{id}")

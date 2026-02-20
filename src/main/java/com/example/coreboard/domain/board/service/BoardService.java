@@ -4,12 +4,14 @@ import com.example.coreboard.domain.board.dto.*;
 import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
 import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
 import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
 import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.PageResponse;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -102,14 +104,17 @@ public class BoardService {
         // TODO : keyset - 부하테스트 2차
 
         /*
-        DAO -> DB에서 데이터 꺼내오는 담당자
-                서비스 코드에 SQL이 섞이면 더러워지고 유지보수가 힘드니까 SQL을 한 곳(DAO)으로 몰아넣자
+         * DAO -> DB에서 데이터 꺼내오는 담당자
+         * 서비스 코드에 SQL이 섞이면 더러워지고 유지보수가 힘드니까 SQL을 한 곳(DAO)으로 몰아넣자
+         * 
+         * repository -> 도메인을 보관/꺼내주는 창고 담당자
+         * 서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
+         * 그래서 서비스는 도메인 기준으로만 말하게 하자
+         */
         
-        repository -> 도메인을 보관/꺼내주는 창고 담당자
-                서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
-                그래서 서비스는 도메인 기준으로만 말하게 하자
-        */
+        public SliceResponse<BoardSummaryKeysetResponse> getKeyset(Long lastId){
 
+        }
         @Transactional
         public BoardUpdatedDto update(
                         BoardUpdateCommand boardUpdatedCommad) {
