@@ -99,9 +99,16 @@ public class BoardService {
 
                 return body;
         }
-
         // TODO : keyset - 부하테스트 2차
+
+        /*
+        DAO -> DB에서 데이터 꺼내오는 담당자
+                서비스 코드에 SQL이 섞이면 더러워지고 유지보수가 힘드니까 SQL을 한 곳(DAO)으로 몰아넣자
         
+        repository -> 도메인을 보관/꺼내주는 창고 담당자
+                서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
+                그래서 서비스는 도메인 기준으로만 말하게 하자
+        */
 
         @Transactional
         public BoardUpdatedDto update(
