@@ -330,4 +330,11 @@ class BoardServiceTest {
         verify(usersRepository, times(1)).findByUsername("tester");
         verify(boardRepository, times(1)).findById(1L);
     }
+
+    @Test
+    @DisplayName("첫페이지 lastId null이면 size반환하고 nextLastId세팅")
+    void firstpage_lastId_isnull_return_size_nextLastId() {
+        
+    }
+
 }
