@@ -13,21 +13,26 @@ import java.util.Optional;
 public interface BoardRepository extends JpaRepository<Board, Long> {
     Optional<Board> findById(Long id);
 
-    Page<Board> findAll(Pageable pageable);
-
     boolean existsByTitle(String title);
 
-    /*
-     * Keyset은 cursor 조건을 직접 넣는 메서드
-     * 마지막으로 본 데이터의 값을 기준으로 다음 데이터를 가져온다 - 페이지 개념이 없다
-     * 예를들어 lastId = null인 경우 아직 본 데이터가 없다 - 최신부터
-     * 
-     * @Query + List 반환 + size+1
-     */
+    // 처음 게시판 들어왔을 때
     @Query("""
             select b from Board b
-            where(:lastId is null or b.id < :lastId)
-            order by b.id desc
+            where(b.title < :cursorTItle)
+            or(b.title = :cursorTitle and b.id < :cursorId)
+            order by b.title desc, b.id desc
+            limit :size
             """)
-    List<Board> findNextPage(@Param("lastId") Long lastId, Pageable pageable);
+    List<Board> findNextPage(
+            @Param("cursorTitle") String cursorTitle,
+            @Param("cursorId") Long cursorId,
+            @Param("size") int size);
+
+    // 다음 페이지 눌렀을 때
+    @Query("""
+            select b from Board b
+            order by b.title desc, b.id desc
+            limit :size
+            """)
+    List<Board> findFirstPage(@Param("size") int size);
 }
