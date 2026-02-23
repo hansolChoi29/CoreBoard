@@ -10,6 +10,7 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.common.response.PageResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -163,28 +164,42 @@ class BoardServiceTest {
         verify(boardRepository, times(1)).findById(id);
         verifyNoMoreInteractions(boardRepository);
     }
-    
+
     @Test
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_false")
     void findAll_firstPage_noNextPage(){
+        List<Board> boards = List.of(
+            new Board(3L, 10L,"title1","content1", FIXED_TIME, FIXED_TIME),
+            new Board(2L, 10L,"title2","content2", FIXED_TIME, FIXED_TIME),
+            new Board(1L, 10L,"title3","content3", FIXED_TIME, FIXED_TIME)
+        );
+        given(boardRepository.findFirstPage(11)).willReturn(boards);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 0, null);
 
+        assertEquals(3, result.getContents().size());
+        assertFalse(result.isHasNext());
+        assertNull(result.getNextCursorTitle());
+        assertNull(result.getNextCursorId());
+
+        verify(boardRepository, times(1)).findFirstPage(11);
+        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
-    void findAll_firstPage_hasNextPage(){
+    void findAll_firstPage_hasNextPage() {
 
     }
 
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
-    void findAll_nextPage_noNextPage(){
+    void findAll_nextPage_noNextPage() {
 
     }
 
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
-    void findAll_nextPage_hasNextPage(){
+    void findAll_nextPage_hasNextPage() {
 
     }
 
