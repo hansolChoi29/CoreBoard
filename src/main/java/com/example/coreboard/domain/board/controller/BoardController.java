@@ -15,7 +15,7 @@ import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.PageResponse;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.domain.common.response.CursorResponse;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,25 +64,19 @@ public class BoardController {
         }
 
         @GetMapping
-        public ResponseEntity<ApiResponse<PageResponse<BoardSummaryResponse>>> getAll(
-                        @RequestParam(name = "page", defaultValue = "0") int page,
+        public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryResponse>>> getAll(
+                        @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
+                        @RequestParam(name = "cursorId", required = false) Long cursorId,
                         @RequestParam(name = "size", defaultValue = "10") int size,
-                        @RequestParam(name = "sort", defaultValue = "asc") String sort) {
+                        @RequestParam(name="sort", defaultValue = "asc") String sort
+                ) {
                 BoardValidation.sortDirection(sort);
 
-                BoardValidation.pageableValication(page, size);
+                BoardValidation.pageableValication(size);
 
-                PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
+                CursorResponse<BoardSummaryResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
-        }
-
-        @GetMapping("/keyset")
-        public ResponseEntity<ApiResponse<SliceResponse<BoardSummaryKeysetResponse>>> getKeyset(
-                        @RequestParam(name = "lastId") Long lastId) {
-                SliceResponse<BoardSummaryKeysetResponse> response = boardService.getKeyset(lastId);
-
-                return ResponseEntity.ok(ApiResponse.ok(response, "게시글 커서 조회!"));
         }
 
         @PutMapping("/{id}")
