@@ -11,7 +11,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.PageResponse;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -74,32 +74,19 @@ public class BoardService {
                                 board.getCreatedDate(), board.getLastModifiedDate());
         }
 
-        public PageResponse<BoardSummaryResponse> findAll(int page, int size, String sort) {
-                Sort.Direction direction = sort.equalsIgnoreCase("asc")
-                                ? Sort.Direction.ASC
-                                : Sort.Direction.DESC;
+        public CursorResponse<BoardSummaryResponse> findAll(
+                String cursorTitle, 
+                Long cursorId, 
+                int size, 
+                String sort
+        ) {
+               // 첫 페이지 or 다음 페이지 분기
 
-                Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "title"));
+               // 다음 페이지 존재 여부
 
-                Page<Board> result = boardRepository.findAll(pageable);
+               // dto 변환
 
-                List<BoardSummaryResponse> contents = new ArrayList<>();
-
-                for (Board board : result.getContent()) {
-                        contents.add(new BoardSummaryResponse(
-                                        board.getId(),
-                                        board.getUserId(),
-                                        board.getTitle(),
-                                        board.getCreatedDate()));
-                }
-
-                PageResponse<BoardSummaryResponse> body = new PageResponse<>(
-                                contents,
-                                result.getNumber(),
-                                result.getSize(),
-                                result.getTotalElements());
-
-                return body;
+               // 다음 커서 추출
         }
         // TODO : keyset - 부하테스트 2차
 
@@ -111,10 +98,7 @@ public class BoardService {
          * 서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
          * 그래서 서비스는 도메인 기준으로만 말하게 하자
          */
-        
-        public SliceResponse<BoardSummaryKeysetResponse> getKeyset(Long lastId){
-
-        }
+       
         @Transactional
         public BoardUpdatedDto update(
                         BoardUpdateCommand boardUpdatedCommad) {
