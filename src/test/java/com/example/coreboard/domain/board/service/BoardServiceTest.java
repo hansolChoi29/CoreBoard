@@ -174,7 +174,7 @@ class BoardServiceTest {
                 new Board(2L, 10L, "title2", "content2", FIXED_TIME, FIXED_TIME),
                 new Board(1L, 10L, "title3", "content3", FIXED_TIME, FIXED_TIME));
         given(boardRepository.findFirstPage(11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 0, null);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 10, null);
 
         assertEquals(3, result.getContents().size());
         assertFalse(result.isHasNext());
@@ -190,10 +190,10 @@ class BoardServiceTest {
     void findAll_firstPage_hasNextPage() {
         List<Board> boards=new ArrayList<>();
         for(long i = 11; i>=1; i--){
-            boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME))
+            boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         given(boardRepository.findFirstPage(11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 0, null);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 10, null);
         
         assertEquals(10L, result.getContents().size());
         assertTrue(result.isHasNext());
@@ -212,7 +212,7 @@ class BoardServiceTest {
                 new Board(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
         given(boardRepository.findNextPage("title", 5L, 11)).willReturn(boards);
         CursorResponse<BoardSummaryResponse> result = boardService.findAll("title", 5L, 10, null);
-        assertEquals(1, result.getContents().size());
+        assertEquals(2, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
         assertNull(result.getNextCursorId());
@@ -237,7 +237,7 @@ class BoardServiceTest {
         assertEquals("title1", result.getNextCursorTitle());
         assertEquals(1L, result.getNextCursorId());
 
-        verify(boardRepository).findNextPage("titile2", 12L, 11);
+        verify(boardRepository).findNextPage("title2", 12L, 11);
         verifyNoMoreInteractions(boardRepository);
     }
 
