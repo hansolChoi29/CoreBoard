@@ -163,79 +163,29 @@ class BoardServiceTest {
         verify(boardRepository, times(1)).findById(id);
         verifyNoMoreInteractions(boardRepository);
     }
-
+    
     @Test
-    @DisplayName("게시글_전체조회_성공")
-    void findAll() {
-        int page = 0;
-        int size = 10;
-        String sort = "asc";
+    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_false")
+    void findAll_firstPage_noNextPage(){
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title"));
-
-        List<Board> boards = List.of(
-                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 10L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
-
-        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
-        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
-
-        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
-
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(boards.size(), result.getTotalElements());
-        assertEquals(boards.size(), result.getContent().size());
-        Board firstEntity = boards.get(0);
-        BoardSummaryResponse firstDto = result.getContent().get(0);
-        assertEquals(firstEntity.getId(), firstDto.id());
-        assertEquals(firstEntity.getUserId(), firstDto.userId());
-        assertEquals(firstEntity.getTitle(), firstDto.title());
-
-        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(boardRepository, times(1)).findAll(captor.capture());
-        Pageable used = captor.getValue();
-        assertEquals(page, used.getPageNumber());
-        assertEquals(size, used.getPageSize());
-        assertEquals(Sort.by(Sort.Direction.ASC, "title"), used.getSort());
-
-        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
-    @DisplayName("게시글_전체_조회_desc_성공")
-    void findAllDesc() {
-        int page = 0;
-        int size = 10;
-        String sort = "desc";
+    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
+    void findAll_firstPage_hasNextPage(){
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "title"));
+    }
 
-        List<Board> boards = List.of(
-                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 30L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
+    @Test
+    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
+    void findAll_nextPage_noNextPage(){
 
-        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
-        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
+    }
 
-        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
+    @Test
+    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
+    void findAll_nextPage_hasNextPage(){
 
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(boards.size(), result.getTotalElements());
-        assertEquals(boards.size(), result.getContent().size());
-
-        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(boardRepository, times(1)).findAll(captor.capture());
-        Pageable used = captor.getValue();
-
-        assertEquals(page, used.getPageNumber());
-        assertEquals(size, used.getPageSize());
-        assertEquals(Sort.by(Sort.Direction.DESC, "title"), used.getSort());
-
-        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
@@ -330,11 +280,4 @@ class BoardServiceTest {
         verify(usersRepository, times(1)).findByUsername("tester");
         verify(boardRepository, times(1)).findById(1L);
     }
-
-    @Test
-    @DisplayName("첫페이지 lastId null이면 size반환하고 nextLastId세팅")
-    void firstpage_lastId_isnull_return_size_nextLastId() {
-        
-    }
-
 }
