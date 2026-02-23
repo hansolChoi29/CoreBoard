@@ -190,7 +190,7 @@ class BoardServiceTest {
     void findAll_firstPage_hasNextPage() {
         List<Board> boards=new ArrayList<>();
         for(long i = 11; i>=1; i--){
-            boards.add(new Board(i,10L,"title","content"+i, FIXED_TIME, FIXED_TIME))
+            boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME))
         }
         given(boardRepository.findFirstPage(11)).willReturn(boards);
         CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 0, null);
@@ -207,12 +207,11 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
     void findAll_nextPage_noNextPage() {
-        List<Board> boards=List.of(
-            new Board(2L,10L,"title","content", FIXED_TIME, FIXED_TIME),
-            new Board(1L,10L,"title","content", FIXED_TIME, FIXED_TIME)
-        );
-        given(boardRepository.findNextPage("title",5L,11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title",5L, 10, null);
+        List<Board> boards = List.of(
+                new Board(2L, 10L, "title", "content", FIXED_TIME, FIXED_TIME),
+                new Board(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
+        given(boardRepository.findNextPage("title", 5L, 11)).willReturn(boards);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title", 5L, 10, null);
         assertEquals(1, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
@@ -225,7 +224,21 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
     void findAll_nextPage_hasNextPage() {
+        List<Board> boards = new ArrayList<>();
+        for (long i = 11; i >= 1; i--) {
+            boards.add(
+                    new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+        }
+        given(boardRepository.findNextPage("title2", 12L, 11)).willReturn(boards);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title2", 12L, 11, null);
 
+        assertEquals(10, result.getContents().size());
+        assertTrue(result.isHasNext());
+        assertEquals("title1", result.getNextCursorTitle());
+        assertEquals(1L, result.getNextCursorId());
+
+        verify(boardRepository).findNextPage("titile2", 12L, 11);
+        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
