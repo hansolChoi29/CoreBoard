@@ -207,7 +207,19 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
     void findAll_nextPage_noNextPage() {
+        List<Board> boards=List.of(
+            new Board(2L,10L,"title","content", FIXED_TIME, FIXED_TIME),
+            new Board(1L,10L,"title","content", FIXED_TIME, FIXED_TIME)
+        );
+        given(boardRepository.findNextPage("title",5L,11)).willReturn(boards);
+        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title",5L, 10, null);
+        assertEquals(1, result.getContents().size());
+        assertFalse(result.isHasNext());
+        assertNull(result.getNextCursorTitle());
+        assertNull(result.getNextCursorId());
 
+        verify(boardRepository, times(1)).findNextPage("title", 5L, 11);
+        verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
