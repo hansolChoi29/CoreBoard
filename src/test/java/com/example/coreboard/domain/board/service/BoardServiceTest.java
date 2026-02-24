@@ -246,11 +246,16 @@ class BoardServiceTest {
     @DisplayName("커서가_null이면_findFirstPage_호출")
     void findAll_title_or_id_null() {
         List<Board> mockData = createBoards(5);
+        given(boardRepository.findFirstPage(6)).willReturn(mockData);
+        boardService.findAll(null, null,5, null);
+        verify(boardRepository).findFirstPage(6);
+        verify(boardRepository,  never()).findNextPage(any(), any(), anyInt());
     }
 
     @Test
     @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
     void findAll_size_hasNext_true_size_return() {
+       
 
     }
 
@@ -260,14 +265,6 @@ class BoardServiceTest {
 
     }
 
-    /*
-     * Long id,
-     * Long userId,
-     * String title,
-     * String content,
-     * LocalDateTime createdDate,
-     * LocalDateTime lastModifiedDate
-     */
     private List<Board> createBoards(int count) {
         return IntStream.range(0, count)
                 .mapToObj(i -> new Board(
