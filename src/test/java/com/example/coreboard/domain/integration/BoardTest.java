@@ -121,12 +121,10 @@ class BoardTest extends IntegrationTestBase {
                 mockMvc.perform(
                                 get("/board")
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .param("page", "0")
                                                 .param("size", "10")
                                                 .param("sort", "asc"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.data.page").value("0"))
-                                .andExpect(jsonPath("$.data.size").value("10"));
+                                .andExpect(jsonPath("$.data.hasNext").value("false"));
         }
 
         @Test

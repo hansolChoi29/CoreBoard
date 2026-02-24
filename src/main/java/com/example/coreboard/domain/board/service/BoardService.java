@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
 
-
 import java.util.List;
 
 @Service
@@ -72,42 +71,29 @@ public class BoardService {
                         Long cursorId,
                         int size,
                         String sort) {
-                                
-                // 첫페이지/다음페이지 분기
+
                 List<Board> result = (cursorTitle == null || cursorId == null)
                                 ? boardRepository.findFirstPage(size + 1)
                                 : boardRepository.findNextPage(cursorTitle, cursorId, size + 1);
 
-                // 11개 왔으면 다음 있음 마지막 1개 버림 10개 이하로 왔으면 마지막 페이지
                 boolean hasNext = result.size() > size;
                 if (hasNext) {
                         result = result.subList(0, size);
                 }
 
                 List<BoardSummaryKeysetResponse> contents = result.stream()
-                .map(b -> new BoardSummaryKeysetResponse(
-                        b.getId(),
-                        b.getUserId(),
-                        b.getTitle(),
-                        b.getCreatedDate()
-                ))
-                .toList();
+                                .map(b -> new BoardSummaryKeysetResponse(
+                                                b.getId(),
+                                                b.getUserId(),
+                                                b.getTitle(),
+                                                b.getCreatedDate()))
+                                .toList();
 
                 String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
-                Long nextCursorId = hasNext?result.get(result.size()-1).getId() : null;
-                
+                Long nextCursorId = hasNext ? result.get(result.size() - 1).getId() : null;
+
                 return new CursorResponse<>(contents, nextCursorTitle, nextCursorId, hasNext);
         }
-        // TODO : keyset - 부하테스트 2차
-
-        /*
-         * DAO -> DB에서 데이터 꺼내오는 담당자
-         * 서비스 코드에 SQL이 섞이면 더러워지고 유지보수가 힘드니까 SQL을 한 곳(DAO)으로 몰아넣자
-         * 
-         * repository -> 도메인을 보관/꺼내주는 창고 담당자
-         * 서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
-         * 그래서 서비스는 도메인 기준으로만 말하게 하자
-         */
 
         @Transactional
         public BoardUpdatedDto update(

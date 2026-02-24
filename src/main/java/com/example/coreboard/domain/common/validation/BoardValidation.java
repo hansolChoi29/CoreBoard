@@ -10,7 +10,6 @@ import static com.example.coreboard.domain.common.exception.board.BoardErrorCode
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.TITLE_AND_CONTENTS_BLANK;
 
 public class BoardValidation {
-
     public static void createValidation(BoardCreateRequest createRequest) {
         createValidation(createRequest.title(), createRequest.content());
     }
