@@ -9,12 +9,10 @@ import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
 import com.example.coreboard.domain.board.dto.response.BoardCreateResponse;
 import com.example.coreboard.domain.board.dto.response.BoardGetOneResponse;
 import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
-import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.dto.response.BoardUpdateResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
-import com.example.coreboard.domain.common.response.PageResponse;
 import com.example.coreboard.domain.common.response.CursorResponse;
 
 import org.springframework.http.ResponseEntity;
