@@ -124,7 +124,7 @@ docker run -d \
   - config (WebConfig, JwtConfig, 암호화 유틸)
   - interceptor (JWT 인증)
   - exception (에러코드/예외/핸들러)
-  - response (ApiResponse, PageResponse)
+  - response (ApiResponse, CursorResponse)
 
 ## 인증 사용 방법
 ### 1) 회원가입 (Public)
