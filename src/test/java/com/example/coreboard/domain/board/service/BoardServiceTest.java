@@ -5,6 +5,7 @@ import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
 import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
 import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
 import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
 import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
@@ -174,7 +175,7 @@ class BoardServiceTest {
                 new Board(2L, 10L, "title2", "content2", FIXED_TIME, FIXED_TIME),
                 new Board(1L, 10L, "title3", "content3", FIXED_TIME, FIXED_TIME));
         given(boardRepository.findFirstPage(11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 10, null);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10, null);
 
         assertEquals(3, result.getContents().size());
         assertFalse(result.isHasNext());
@@ -189,16 +190,16 @@ class BoardServiceTest {
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
     void findAll_firstPage_hasNextPage() {
         List<Board> boards=new ArrayList<>();
-        for(long i = 11; i>=1; i--){
+        for(long i = 11; i >= 1; i--){
             boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         given(boardRepository.findFirstPage(11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll(null, null, 10, null);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10, null);
         
         assertEquals(10L, result.getContents().size());
         assertTrue(result.isHasNext());
-        assertEquals("title1", result.getNextCursorTitle());
-        assertEquals(1L, result.getNextCursorId());
+        assertEquals("title2", result.getNextCursorTitle());
+        assertEquals(2L, result.getNextCursorId());
 
         verify(boardRepository, times(1)).findFirstPage(11);
         verifyNoMoreInteractions(boardRepository);
@@ -211,7 +212,7 @@ class BoardServiceTest {
                 new Board(2L, 10L, "title", "content", FIXED_TIME, FIXED_TIME),
                 new Board(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
         given(boardRepository.findNextPage("title", 5L, 11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title", 5L, 10, null);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10, null);
         assertEquals(2, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
@@ -230,12 +231,12 @@ class BoardServiceTest {
                     new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         given(boardRepository.findNextPage("title2", 12L, 11)).willReturn(boards);
-        CursorResponse<BoardSummaryResponse> result = boardService.findAll("title2", 12L, 11, null);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title2", 12L, 10, null);
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
-        assertEquals("title1", result.getNextCursorTitle());
-        assertEquals(1L, result.getNextCursorId());
+        assertEquals("title2", result.getNextCursorTitle());
+        assertEquals(2L, result.getNextCursorId());
 
         verify(boardRepository).findNextPage("title2", 12L, 11);
         verifyNoMoreInteractions(boardRepository);

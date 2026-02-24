@@ -61,10 +61,7 @@ public class BoardValidation {
         }
     }
 
-    public static void pageableValication(int page, int size) {
-        if (page < 0) {
-            throw new BoardErrorException(BoardErrorCode.PAGE_NOT_INTEGER);
-        }
+    public static void pageableValication(int size) {
         if (size < 1 || size > 10) {
             throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }

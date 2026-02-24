@@ -74,19 +74,36 @@ public class BoardService {
                                 board.getCreatedDate(), board.getLastModifiedDate());
         }
 
-        public CursorResponse<BoardSummaryResponse> findAll(
-                String cursorTitle, 
-                Long cursorId, 
-                int size, 
-                String sort
-        ) {
-               // 첫 페이지 or 다음 페이지 분기
+        public CursorResponse<BoardSummaryKeysetResponse> findAll(
+                        String cursorTitle,
+                        Long cursorId,
+                        int size,
+                        String sort) {
+                                
+                // 첫페이지/다음페이지 분기
+                List<Board> result = (cursorTitle == null || cursorId == null)
+                                ? boardRepository.findFirstPage(size + 1)
+                                : boardRepository.findNextPage(cursorTitle, cursorId, size + 1);
 
-               // 다음 페이지 존재 여부
+                // 11개 왔으면 다음 있음 마지막 1개 버림 10개 이하로 왔으면 마지막 페이지
+                boolean hasNext = result.size() > size;
+                if (hasNext) {
+                        result = result.subList(0, size);
+                }
 
-               // dto 변환
+                List<BoardSummaryKeysetResponse> contents = result.stream()
+                .map(b -> new BoardSummaryKeysetResponse(
+                        b.getId(),
+                        b.getUserId(),
+                        b.getTitle(),
+                        b.getCreatedDate()
+                ))
+                .toList();
 
-               // 다음 커서 추출
+                String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
+                Long nextCursorId = hasNext?result.get(result.size()-1).getId() : null;
+                
+                return new CursorResponse<>(contents, nextCursorTitle, nextCursorId, hasNext);
         }
         // TODO : keyset - 부하테스트 2차
 
@@ -98,7 +115,7 @@ public class BoardService {
          * 서비스가 DB 중심으로 사고하면 비즈니스 로직이 테이블에 끌려다님
          * 그래서 서비스는 도메인 기준으로만 말하게 하자
          */
-       
+
         @Transactional
         public BoardUpdatedDto update(
                         BoardUpdateCommand boardUpdatedCommad) {
