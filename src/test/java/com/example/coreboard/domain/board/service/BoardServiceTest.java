@@ -34,6 +34,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -246,8 +247,11 @@ class BoardServiceTest {
     @DisplayName("커서가_null이면_findFirstPage_호출")
     void findAll_title_or_id_null() {
         List<Board> mockData = createBoards(5);
+       
         given(boardRepository.findFirstPage(6)).willReturn(mockData);
+        
         boardService.findAll(null, null,5, null);
+       
         verify(boardRepository).findFirstPage(6);
         verify(boardRepository,  never()).findNextPage(any(), any(), anyInt());
     }
@@ -256,8 +260,11 @@ class BoardServiceTest {
     @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
     void findAll_size_hasNext_true_size_return() {
         List<Board> mockData = createBoards(5);
+       
         given(boardRepository.findNextPage("title", 1L, 6)).willReturn(mockData);
+        
         boardService.findAll("title",1L, 5, null);
+       
         verify(boardRepository).findNextPage("title",1L,6);
         verify(boardRepository, never()).findFirstPage(anyInt());
     }
@@ -265,7 +272,12 @@ class BoardServiceTest {
     @Test
     @DisplayName("결과가 size 이하면 hasNext false")
     void findAll_size_hasNext_false() {
-
+        given(boardRepository.findFirstPage(6)).willReturn(createBoards(5));
+        
+        boardService.findAll("title", null,5, null);
+        
+        verify(boardRepository).findFirstPage(6);
+        verify(boardRepository, never()).findNextPage(any(),any(),anyInt());
     }
 
     private List<Board> createBoards(int count) {
