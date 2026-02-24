@@ -24,10 +24,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -186,13 +189,13 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
     void findAll_firstPage_hasNextPage() {
-        List<Board> boards=new ArrayList<>();
-        for(long i = 11; i >= 1; i--){
+        List<Board> boards = new ArrayList<>();
+        for (long i = 11; i >= 1; i--) {
             boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         given(boardRepository.findFirstPage(11)).willReturn(boards);
         CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10, null);
-        
+
         assertEquals(10L, result.getContents().size());
         assertTrue(result.isHasNext());
         assertEquals("title2", result.getNextCursorTitle());
@@ -237,6 +240,44 @@ class BoardServiceTest {
 
         verify(boardRepository).findNextPage("title2", 12L, 11);
         verifyNoMoreInteractions(boardRepository);
+    }
+
+    @Test
+    @DisplayName("커서가_null이면_findFirstPage_호출")
+    void findAll_title_or_id_null() {
+        List<Board> mockData = createBoards(5);
+    }
+
+    @Test
+    @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
+    void findAll_size_hasNext_true_size_return() {
+
+    }
+
+    @Test
+    @DisplayName("결과가 size 이하면 hasNext false")
+    void findAll_size_hasNext_false() {
+
+    }
+
+    /*
+     * Long id,
+     * Long userId,
+     * String title,
+     * String content,
+     * LocalDateTime createdDate,
+     * LocalDateTime lastModifiedDate
+     */
+    private List<Board> createBoards(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(i -> new Board(
+                        (long) i,
+                        1L,
+                        "title" + i,
+                        "content" + i,
+                        LocalDateTime.now(),
+                        LocalDateTime.now()))
+                .collect(Collectors.toList());
     }
 
     @Test
