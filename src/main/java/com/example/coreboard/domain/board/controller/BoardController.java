@@ -64,7 +64,7 @@ public class BoardController {
         }
 
         @GetMapping
-        public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryResponse>>> getAll(
+        public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
                         @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
                         @RequestParam(name = "cursorId", required = false) Long cursorId,
                         @RequestParam(name = "size", defaultValue = "10") int size,
@@ -74,7 +74,7 @@ public class BoardController {
 
                 BoardValidation.pageableValication(size);
 
-                CursorResponse<BoardSummaryResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
+                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
         }
