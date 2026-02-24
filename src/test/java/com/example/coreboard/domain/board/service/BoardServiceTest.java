@@ -255,8 +255,11 @@ class BoardServiceTest {
     @Test
     @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
     void findAll_size_hasNext_true_size_return() {
-       
-
+        List<Board> mockData = createBoards(5);
+        given(boardRepository.findNextPage("title", 1L, 6)).willReturn(mockData);
+        boardService.findAll("title",1L, 5, null);
+        verify(boardRepository).findNextPage("title",1L,6);
+        verify(boardRepository, never()).findFirstPage(anyInt());
     }
 
     @Test
