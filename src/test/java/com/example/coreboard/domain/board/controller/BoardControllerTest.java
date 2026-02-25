@@ -295,7 +295,7 @@ class BoardControllerTest {
         CursorResponse<BoardSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
 
-        given(boardService.findAll(null, null, 10, "asc")).willReturn(cursorResponse);
+        given(boardService.findAll(null, null, 10)).willReturn(cursorResponse);
 
         mockMvc.perform(
                         get(BASE)
@@ -308,7 +308,8 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.contents[0].userId").value(10))
                 .andExpect(jsonPath("$.data.contents[0].title").value("title"))
                 .andExpect(jsonPath("$.data.hasNext").value(false));
-        verify(boardService).findAll(null, null, 10, "asc");
+
+        verify(boardService).findAll(null, null, 10);
         verifyNoMoreInteractions(boardService);
     }
 
@@ -322,7 +323,7 @@ class BoardControllerTest {
                                 .param("sort", "asc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt());
     }
 
     @Test
@@ -337,7 +338,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt());
     }
 
     @Test
@@ -352,7 +353,7 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt());
     }
 
     @Test
@@ -362,7 +363,7 @@ class BoardControllerTest {
                 new BoardSummaryKeysetResponse(10L, 11L, "title", LocalDateTime.of(2025, 1, 1, 0, 0)));
         CursorResponse<BoardSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
-        given(boardService.findAll("title", 10L, 10, "asc")).willReturn(cursorResponse);
+        given(boardService.findAll("title", 10L, 10)).willReturn(cursorResponse);
 
         mockMvc.perform(
                         get(BASE)
@@ -374,7 +375,7 @@ class BoardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
 
-        verify(boardService).findAll("title", 10L, 10, "asc");
+        verify(boardService).findAll("title", 10L, 10);
         verifyNoMoreInteractions(boardService);
     }
 
@@ -388,7 +389,7 @@ class BoardControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt());
         verifyNoMoreInteractions(boardService);
     }
 

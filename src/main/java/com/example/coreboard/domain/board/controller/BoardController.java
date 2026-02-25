@@ -72,7 +72,7 @@ public class BoardController {
 
                 BoardValidation.pageableValication(size);
 
-                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
+                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
         }

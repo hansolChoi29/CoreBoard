@@ -11,5 +11,4 @@ public class CoreBoardApplication {
     public static void main(String[] args) {
         SpringApplication.run(CoreBoardApplication.class, args);
     }
-
 }
