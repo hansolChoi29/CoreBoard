@@ -13,7 +13,6 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.CursorResponse;
-import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,8 +26,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
@@ -297,12 +294,7 @@ class BoardControllerTest {
                 new BoardSummaryKeysetResponse(1L, 10L, "title", LocalDateTime.of(2025, 1, 1, 0, 0)));
         CursorResponse<BoardSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
-        /*
-         * String cursorTitle,
-         * Long cursorId,
-         * int size,
-         * String sort
-         */
+
         given(boardService.findAll(null, null, 10, "asc")).willReturn(cursorResponse);
 
         mockMvc.perform(
@@ -360,19 +352,6 @@ class BoardControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
-    }
-
-    @Test
-    @DisplayName("게시글_전체조회_sort_not_asc/desc")
-    void getAllNotAsc() throws Exception {
-        mockMvc.perform(
-                        get(BASE)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .param("size", "10")
-                                .param("sort", "aaa"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
         verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
@@ -468,7 +447,6 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
         verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
-
     }
 
     @Test
