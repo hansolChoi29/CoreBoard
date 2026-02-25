@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -16,17 +17,17 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("""
             select b from Board b
+            order by b.title desc, b.id desc
+            """)
+    List<Board> findFirstPage(Pageable pageable);
+
+    @Query("""
+            select b from Board b
             where(b.title < :cursorTitle)
             or(b.title = :cursorTitle and b.id < :cursorId)
             order by b.title desc, b.id desc
             """)
-    List<Board> findNextPage(Pageable pageable);
-
-    @Query("""
-            select b from Board b
-            order by b.title desc, b.id desc
-            """)
-    List<Board> findFirstPage(
+    List<Board> findNextPage(
             @Param("cursorTitle") String cursorTitle,
             @Param("cursorId") Long cursorId,
             Pageable pageable
