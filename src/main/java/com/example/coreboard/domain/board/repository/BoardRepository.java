@@ -13,7 +13,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     boolean existsByTitle(String title);
 
-    // 처음 게시판 들어왔을 때
     @Query("""
             select b from Board b
             where(b.title < :cursorTItle)
@@ -26,7 +25,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("cursorId") Long cursorId,
             @Param("size") int size);
 
-    // 다음 페이지 눌렀을 때
     @Query("""
             select b from Board b
             order by b.title desc, b.id desc
