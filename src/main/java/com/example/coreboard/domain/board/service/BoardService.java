@@ -69,8 +69,8 @@ public class BoardService {
         public CursorResponse<BoardSummaryKeysetResponse> findAll(
                         String cursorTitle,
                         Long cursorId,
-                        int size,
-                        String sort) {
+                        int size
+                        ) {
 
                 List<Board> result = (cursorTitle == null || cursorId == null)
                                 ? boardRepository.findFirstPage(size + 1)
