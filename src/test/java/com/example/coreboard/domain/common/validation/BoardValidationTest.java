@@ -20,4 +20,9 @@ class BoardValidationTest {
         assertDoesNotThrow(() -> BoardValidation.sortDirection("desc"));
     }
 
+    @Test
+    @DisplayName("sort가 asc/desc 아니면 예외 발생")
+    void sortDirection_invalid_throw() {
+        assertThrows(BoardErrorException.class, () -> BoardValidation.sortDirection("aaa"));
+    }
 }
