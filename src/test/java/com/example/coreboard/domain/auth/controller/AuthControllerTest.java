@@ -414,4 +414,17 @@ class AuthControllerTest {
                 .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
         verifyNoInteractions(authService);
     }
+
+    @Test
+    @DisplayName("토근_재발급_refresh가_아닌_다른_쿠키만_있을_때_401")
+    void refresh_wrong_cookie_name() throws Exception {
+        mockMvc.perform(
+                        post(BASE + "/refresh")
+                                .cookie(new Cookie("other", "sameValue"))
+                )
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(authService);
+    }
+
+
 }
