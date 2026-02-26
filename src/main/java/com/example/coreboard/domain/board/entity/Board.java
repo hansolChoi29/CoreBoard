@@ -32,7 +32,7 @@ public class Board {
     private LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(updatable = false)
+    @Column
     private LocalDateTime lastModifiedDate;
 
     protected Board() {
@@ -46,7 +46,7 @@ public class Board {
             LocalDateTime createdDate,
             LocalDateTime lastModifiedDate
     ) {
-        this.id=id;
+        this.id = id;
         this.title = title;
         this.content = content;
         this.userId = userId;
@@ -67,12 +67,8 @@ public class Board {
             String newContent
 
     ) {
-        if (newTitle != null && !newTitle.isBlank()) {
-            this.title = newTitle;
-        }
-        if (newContent != null && !newContent.isBlank()) {
-            this.content = newContent;
-        }
+        this.title = newTitle;
+        this.content = newContent;
     }
 
     public Long getId() {
