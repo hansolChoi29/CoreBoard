@@ -176,15 +176,15 @@ class BoardServiceTest {
                 new Board(2L, 10L, "title2", "content2", FIXED_TIME, FIXED_TIME),
                 new Board(1L, 10L, "title3", "content3", FIXED_TIME, FIXED_TIME));
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPage(pageable)).willReturn(boards);
-        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10);
+        given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10, "desc");
 
         assertEquals(3, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
         assertNull(result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findFirstPage(pageable);
+        verify(boardRepository, times(1)).findFirstPageDesc(pageable);
         verifyNoMoreInteractions(boardRepository);
     }
 
@@ -196,15 +196,15 @@ class BoardServiceTest {
             boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPage(pageable)).willReturn(boards);
-        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10);
+        given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10, "desc");
 
         assertEquals(10L, result.getContents().size());
         assertTrue(result.isHasNext());
         assertEquals("title2", result.getNextCursorTitle());
         assertEquals(2L, result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findFirstPage(pageable);
+        verify(boardRepository, times(1)).findFirstPageDesc(pageable);
         verifyNoMoreInteractions(boardRepository);
     }
 
@@ -215,14 +215,14 @@ class BoardServiceTest {
                 new Board(2L, 10L, "title", "content", FIXED_TIME, FIXED_TIME),
                 new Board(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPage("title", 5L, pageable)).willReturn(boards);
-        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10);
+        given(boardRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10, "desc");
         assertEquals(2, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
         assertNull(result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findNextPage("title", 5L, pageable);
+        verify(boardRepository, times(1)).findNextPageDesc("title", 5L, pageable);
         verifyNoMoreInteractions(boardRepository);
     }
 
@@ -235,15 +235,15 @@ class BoardServiceTest {
                     new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPage("title2", 12L, pageable)).willReturn(boards);
-        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title2", 12L, 10);
+        given(boardRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title2", 12L, 10, "desc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
         assertEquals("title2", result.getNextCursorTitle());
         assertEquals(2L, result.getNextCursorId());
 
-        verify(boardRepository).findNextPage("title2", 12L, pageable);
+        verify(boardRepository).findNextPageDesc("title2", 12L, pageable);
         verifyNoMoreInteractions(boardRepository);
     }
 
@@ -252,12 +252,12 @@ class BoardServiceTest {
     void findAll_title_or_id_null() {
         List<Board> mockData = createBoards(5);
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPage(pageable)).willReturn(mockData);
+        given(boardRepository.findFirstPageDesc(pageable)).willReturn(mockData);
 
-        boardService.findAll(null, null,10);
+        boardService.findAll(null, null, 10, "desc");
 
-        verify(boardRepository).findFirstPage(pageable);
-        verify(boardRepository, never()).findNextPage(anyString(), anyLong(), any(Pageable.class));
+        verify(boardRepository).findFirstPageDesc(pageable);
+        verify(boardRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
     }
 
     @Test
@@ -265,24 +265,24 @@ class BoardServiceTest {
     void findAll_size_hasNext_true_size_return() {
         List<Board> mockData = createBoards(5);
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPage("title", 1L, pageable)).willReturn(mockData);
+        given(boardRepository.findNextPageDesc("title", 1L, pageable)).willReturn(mockData);
 
-        boardService.findAll("title", 1L, 10);
+        boardService.findAll("title", 1L, 10, "desc");
 
-        verify(boardRepository).findNextPage("title", 1L, pageable);
-        verify(boardRepository, never()).findFirstPage(pageable);
+        verify(boardRepository).findNextPageDesc("title", 1L, pageable);
+        verify(boardRepository, never()).findFirstPageDesc(pageable);
     }
 
     @Test
     @DisplayName("결과가 size 이하면 hasNext false")
     void findAll_size_hasNext_false() {
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPage(pageable)).willReturn(createBoards(5));
+        given(boardRepository.findFirstPageDesc(pageable)).willReturn(createBoards(5));
 
-        boardService.findAll("title", null, 10);
+        boardService.findAll("title", null, 10, "desc");
 
-        verify(boardRepository).findFirstPage(pageable);
-        verify(boardRepository, never()).findNextPage(anyString(), anyLong(), any(Pageable.class));
+        verify(boardRepository).findFirstPageDesc(pageable);
+        verify(boardRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
     }
 
     private List<Board> createBoards(int count) {
