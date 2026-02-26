@@ -15,11 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import org.springframework.http.MediaType;
 
@@ -121,12 +118,10 @@ class BoardTest extends IntegrationTestBase {
                 mockMvc.perform(
                                 get("/board")
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .param("page", "0")
                                                 .param("size", "10")
                                                 .param("sort", "asc"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.data.page").value("0"))
-                                .andExpect(jsonPath("$.data.size").value("10"));
+                                .andExpect(jsonPath("$.data.hasNext").value("false"));
         }
 
         @Test
@@ -172,13 +167,5 @@ class BoardTest extends IntegrationTestBase {
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data").isEmpty());
-        }
-
-        @TestConfiguration
-        static class NoAuthForIntegrationTest implements WebMvcConfigurer {
-                @Override
-                public void addInterceptors(InterceptorRegistry registry) {
-
-                }
         }
 }

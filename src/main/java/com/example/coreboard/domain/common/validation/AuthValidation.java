@@ -8,7 +8,6 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.USERNAME_PASSWORD_ISBLANK;
 
 public class AuthValidation {
-
     public static void signUpValidation(SignUpRequest request) {
         signUp(request.username(),
                 request.password(),
