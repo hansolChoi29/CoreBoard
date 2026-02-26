@@ -10,6 +10,8 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -388,6 +390,12 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_AccessToken을_refresh슬롯에_401")
     void refresh_accessToken_inRefresh_slot() throws Exception {
-
+        String accessToken = JwtUtil.createAccessToken(1L, "tester");
+        mockMvc.perform(
+                        post(BASE + "/refresh")
+                                .cookie(new Cookie("refresh", accessToken))
+                )
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(authService);
     }
 }
