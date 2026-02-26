@@ -105,7 +105,16 @@ public class AuthController {
     }
 
     @DeleteMapping("/token")
-    public ResponseEntity<ApiResponse<Void>> logout(){
-
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        ResponseCookie deleteCookie = ResponseCookie.from("refresh", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/auth/refresh")
+                .maxAge(0)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(ApiResponse.ok(null, "로그아웃되었습니다."));
     }
 }
