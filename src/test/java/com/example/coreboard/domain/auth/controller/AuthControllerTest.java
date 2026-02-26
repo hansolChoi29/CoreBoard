@@ -451,6 +451,6 @@ class AuthControllerTest {
     @Test
     @DisplayName("validationRefreshToken_잘못된_토큰")
     void validation_refreshToken_invalid() {
-
+        assertFalse(JwtUtil.validationRefreshToken("badToken"));
     }
 }
