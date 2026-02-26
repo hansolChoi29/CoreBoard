@@ -75,11 +75,11 @@ public class BoardService {
             String sort
     ) {
         Pageable pageable = PageRequest.of(0, size + 1);
-        boolean isAsc = "desc".equalsIgnoreCase(sort);
+        boolean isDesc = "desc".equalsIgnoreCase(sort);
         List<Board> result = (cursorTitle == null || cursorId == null)
-                ? (isAsc ? boardRepository.findFirstPageDesc(pageable)
+                ? (isDesc ? boardRepository.findFirstPageDesc(pageable)
                 : boardRepository.findFirstPageAsc(pageable))
-                : (isAsc ? boardRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
+                : (isDesc ? boardRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
                 : boardRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
 
         boolean hasNext = result.size() > size;
