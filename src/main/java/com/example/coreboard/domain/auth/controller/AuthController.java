@@ -84,6 +84,12 @@ public class AuthController {
     ResponseEntity<ApiResponse<TokenResponse>> refresh(
         HttpServletRequest request
     ){
-
+        // 1) refresh 담을 변수 선언
+        // 2) HTTP 요청에는 쿠키가 여러 개 담겨 올 수 있음 그래서 쿠키 목록을 하나씩 돌면서 이름이 refresh인 걸 찾아서 값을 꺼내야 함
+        // 2-1) getCookie()가 null 인 경우도 있는데 요청에 쿠키가 아예 없으면 null을 반환함 그래서 null 체크를 먼저 할 것
+        // 3) refreshToken == null -> 쿠키 자체가 없음 || 쿠키는 있는데 만료 
+        // 4) 검증 통과한 refreshToken에서 username이랑 userId를 꺼내서 AccessToken을 만듦
+        // 4-1) DB 조회 x, 토큰 안에 있는 정보만으로 만듦
+        // 5) 새로 만든 AccessToken을 응답으로 돌려줄 것
     }
 }
