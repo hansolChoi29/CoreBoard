@@ -1,9 +1,13 @@
 package com.example.coreboard.domain.integration;
 
+import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
+import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -11,11 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import org.springframework.http.MediaType;
 
@@ -39,6 +40,9 @@ class BoardTest extends IntegrationTestBase {
 
         @Autowired
         MockMvc mockMvc;
+
+        @Autowired
+        ObjectMapper objectMapper;
 
         private String accessToken;
         private Long savedUserId;
@@ -66,17 +70,13 @@ class BoardTest extends IntegrationTestBase {
         @Test
         @DisplayName("POST/board")
         void boardCreate() throws Exception {
-                String json = """
-                                {
-                                    "title" : "title",
-                                    "content" : "content"
-                                }
-                                """;
+                BoardCreateRequest request = new BoardCreateRequest("title", "content");
+
                 mockMvc.perform(
                                 post("/board")
                                                 .header("Authorization", "Bearer " + accessToken)
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .content(json))
+                                                .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data.title").value("title"))
                                 .andExpect(jsonPath("$.data.content").value("content"));
@@ -118,12 +118,10 @@ class BoardTest extends IntegrationTestBase {
                 mockMvc.perform(
                                 get("/board")
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .param("page", "0")
                                                 .param("size", "10")
                                                 .param("sort", "asc"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.data.page").value("0"))
-                                .andExpect(jsonPath("$.data.size").value("10"));
+                                .andExpect(jsonPath("$.data.hasNext").value("false"));
         }
 
         @Test
@@ -139,18 +137,13 @@ class BoardTest extends IntegrationTestBase {
 
                 Board saved = boardRepository.save(board);
                 Long realId = saved.getId();
+                BoardUpdateRequest reqeust = new BoardUpdateRequest("newtitle", "newcontent");
 
-                String json = """
-                                {
-                                    "title" : "newtitle",
-                                    "content" : "newcontent"
-                                }
-                                """;
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put("/board/{id}", realId)
                                                 .header("Authorization", "Bearer " + accessToken)
                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                .content(json))
+                                                .content(objectMapper.writeValueAsString(reqeust)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data.id").value(realId));
         }
@@ -174,13 +167,5 @@ class BoardTest extends IntegrationTestBase {
                                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data").isEmpty());
-        }
-
-        @TestConfiguration
-        static class NoAuthForIntegrationTest implements WebMvcConfigurer {
-                @Override
-                public void addInterceptors(InterceptorRegistry registry) {
-
-                }
         }
 }

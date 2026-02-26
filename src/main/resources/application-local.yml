@@ -22,3 +22,12 @@ jwt:
 aes:
   secret:
     key: MySuperSecretKey
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always

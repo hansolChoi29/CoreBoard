@@ -39,12 +39,15 @@ class AuthTest extends IntegrationTestBase {
 
         @BeforeEach
         void setUser() {
+                long start = System.currentTimeMillis();
                 Users user = new Users(
                                 "username",
                                 passwordEncode.encrypt("password"),
                                 emailPhoneNumberEncode.encrypt("email@naver.com"),
                                 emailPhoneNumberEncode.encrypt("01012341234"));
                 usersRepository.save(user);
+                long end = System.currentTimeMillis();
+                System.out.println("암호화 시간: " + (end - start) + "ms"); // 443ms
         }
 
         @Test

@@ -10,7 +10,6 @@ import static com.example.coreboard.domain.common.exception.board.BoardErrorCode
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.TITLE_AND_CONTENTS_BLANK;
 
 public class BoardValidation {
-
     public static void createValidation(BoardCreateRequest createRequest) {
         createValidation(createRequest.title(), createRequest.content());
     }
@@ -61,10 +60,7 @@ public class BoardValidation {
         }
     }
 
-    public static void pageableValication(int page, int size) {
-        if (page < 0) {
-            throw new BoardErrorException(BoardErrorCode.PAGE_NOT_INTEGER);
-        }
+    public static void pageableValication(int size) {
         if (size < 1 || size > 10) {
             throw new BoardErrorException(BoardErrorCode.SIZE_TOO_LARGE);
         }
