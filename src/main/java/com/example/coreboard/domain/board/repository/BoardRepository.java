@@ -40,14 +40,14 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findFirstPageAsc(Pageable pageable);
 
     @Query("""
-            select b from  Board b
-            where (b.title < :cursorTitle)
-            or(b.title=:cursorTitle and b.id < :cursorId)
-            order by b.title asc, b.id asc
+             select b from Board b
+            where(b.title < :cursorTitle)
+            or(b.title = :cursorTitle and b.id < :cursorId)
+            order by b.title asc, b.id asc 
             """)
     List<Board> findNextPageAsc(
             @Param("cursorTitle") String cursorTitle,
-            @Param("cursorId") int cursorId,
+            @Param("cursorId") Long cursorId,
             Pageable pageable
     );
 }
