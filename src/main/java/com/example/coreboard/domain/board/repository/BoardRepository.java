@@ -19,7 +19,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             select b from Board b
             order by b.title desc, b.id desc
             """)
-    List<Board> findFirstPage(Pageable pageable);
+    List<Board> findFirstPageDesc(Pageable pageable);
 
     @Query("""
             select b from Board b
@@ -27,7 +27,25 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             or(b.title = :cursorTitle and b.id < :cursorId)
             order by b.title desc, b.id desc
             """)
-    List<Board> findNextPage(
+    List<Board> findNextPageDesc(
+            @Param("cursorTitle") String cursorTitle,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            select b from Board b
+            order by b.title asc , b.id asc
+            """)
+    List<Board> findFirstPageAsc(Pageable pageable);
+
+    @Query("""
+             select b from Board b
+            where(b.title < :cursorTitle)
+            or(b.title = :cursorTitle and b.id < :cursorId)
+            order by b.title asc, b.id asc 
+            """)
+    List<Board> findNextPageAsc(
             @Param("cursorTitle") String cursorTitle,
             @Param("cursorId") Long cursorId,
             Pageable pageable
