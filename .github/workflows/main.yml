@@ -18,10 +18,8 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Build
-        run: |
-          chmod +x ./gradlew
-          ./gradlew clean build -x test
+      - name: Test & Build
+        run: ./gradlew clean build
 
       - name: Upload jar to EC2
         uses: appleboy/scp-action@v0.1.7
