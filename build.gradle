@@ -20,6 +20,8 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     testImplementation "org.testcontainers:mysql:1.20.1"
     testImplementation("org.testcontainers:junit-jupiter:1.20.1")
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

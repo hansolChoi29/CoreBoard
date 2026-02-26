@@ -8,12 +8,13 @@ import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
 import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
 import com.example.coreboard.domain.board.dto.response.BoardCreateResponse;
 import com.example.coreboard.domain.board.dto.response.BoardGetOneResponse;
-import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
 import com.example.coreboard.domain.board.dto.response.BoardUpdateResponse;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
-import com.example.coreboard.domain.common.response.PageResponse;
+import com.example.coreboard.domain.common.response.CursorResponse;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,15 +62,17 @@ public class BoardController {
         }
 
         @GetMapping
-        public ResponseEntity<ApiResponse<PageResponse<BoardSummaryResponse>>> getAll(
-                        @RequestParam(name = "page", defaultValue = "0") int page,
+        public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
+                        @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
+                        @RequestParam(name = "cursorId", required = false) Long cursorId,
                         @RequestParam(name = "size", defaultValue = "10") int size,
-                        @RequestParam(name = "sort", defaultValue = "asc") String sort) {
+                        @RequestParam(name="sort", defaultValue = "asc") String sort
+                ) {
                 BoardValidation.sortDirection(sort);
 
-                BoardValidation.pageableValication(page, size);
+                BoardValidation.pageableValication(size);
 
-                PageResponse<BoardSummaryResponse> response = boardService.findAll(page, size, sort);
+                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
         }
