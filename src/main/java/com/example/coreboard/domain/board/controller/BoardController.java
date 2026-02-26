@@ -68,7 +68,7 @@ public class BoardController {
                         @RequestParam(name = "size", defaultValue = "10") int size,
                         @RequestParam(name="sort", defaultValue = "asc") String sort
                 ) {
-                // TODO : desc로 고정하기 보단, asc 쿼리 각각 만들 것
+
                 BoardValidation.sortDirection(sort); 
 
                 BoardValidation.pageableValication(size); // sort 검증해놓고 안 넘기고 있는 거 발견
