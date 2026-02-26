@@ -436,10 +436,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("validationRefreshToken_만료됨")
     void validation_refreshToken_exprired() {
-        // 토큰을 직접 만드는 빌더 시작
         String expiredToken = Jwts.builder()
                 .claim("type", "refresh")
-                // 만료 시간 = 현재 시간보다 1초 전
                 .setExpiration(new Date(System.currentTimeMillis() - 1000))
                 .signWith(Keys.hmacShaKeyFor(
                         "this-is-a-very-very-long-test-secret-key-over-32byte"

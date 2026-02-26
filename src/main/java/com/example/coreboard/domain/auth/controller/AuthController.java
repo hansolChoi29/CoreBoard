@@ -62,7 +62,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path("/auth/refresh") // 이 경로에 엔드포인트가 없음을 발견함
+                .path("/auth/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
         TokenResponse response = new TokenResponse(out.accessToken());
