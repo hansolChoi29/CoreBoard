@@ -58,16 +58,6 @@ public class AuthController {
                 request.password());
         TokenDto out = authService.signIn(users);
 
-        /*
-         * /auth/token 시 refreshToken을 path쿠키로 설정해 놓았는데,
-         * 정작 /auth/refresh 엔드포인트가 없음
-         * 또한 /auth/logout 엔드포인트도 없음을 발견
-         * 즉, 쿠키에 path 설정까지 해놓고 그 경로에 아무것도 없는 미완성인 것
-         */
-
-        /*
-         * TODO : /auth/logout : 로그인할 때 설정한 쿠키랑 완전 동일한 속성인 httpOnly, secure, sameSite, path로 maxAge=0짜리 쿠키를 덮어쓰고 브라우저가 maxAge가 0이면 즉시 해당 쿠키 삭제하는 동작
-         */
         ResponseCookie refreshCookies = ResponseCookie.from("refresh", out.refreshToken())
                 .httpOnly(true)
                 .secure(true)
@@ -88,7 +78,7 @@ public class AuthController {
     ) {
         String refreshToken = null;
         if (request.getCookies() != null) {
-            for (Cookie cookie : (Cookie[]) request.getCookies()) {
+            for (Cookie cookie : request.getCookies()) {
                 if ("refresh".equals(cookie.getName())) {
                     refreshToken = cookie.getValue();
                     break;
