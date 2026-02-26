@@ -9,10 +9,14 @@ CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 비밀번호(BCrypt)와 개인정보(AES/GCM)를 분리했고, DTO는 **request/command/response**로 나눴습니다.</br>
 **검증 로직이 섞여 테스트가 깨지던 문제**는 **Validator 분리로 해결**해 변경 영향 범위와 회귀 리스크를 줄였습니다.</br>
 
+## 프로젝트 진행 상태
 
-* 현재 EC2 + CI/CD 완료 
-* 모니터링 및 부하테스트 진행중
-* refresh/logout 엔드포인트 진행중
+| 항목 | 상태 |
+|------|------|
+| EC2 배포 + CI/CD | ✅ 완료 |
+| 모니터링 + 부하테스트 | ✅ 완료 |
+| Refresh / Logout API | ✅ 완료 |
+| CSP 헤더 적용 | 🔧 개선 예정 |
 
 
 ## Quick Start
@@ -62,7 +66,7 @@ docker.client.strategy=org.testcontainers.dockerclient.NpipeSocketClientProvider
 testcontainers.reuse.enable=true
 "@ | Out-File -FilePath "$env:USERPROFILE\.testcontainers.properties" -Encoding ascii
 ```
-**macOS / Linuk**
+**macOS / Linux**
 ```
 echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
 ```
@@ -82,6 +86,7 @@ echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
 [4. 인증 사용 방법](#4-인증-사용-방법)</br>
 [5. API 예시](#5-api-예시)</br>
 [6. 공통 응답 포맷](#6-공통-응답-포맷)</br>
+[7. 성능 개선](#7-성능-개선)</br>
 
 ---
 
@@ -90,12 +95,13 @@ echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
 **1) 인증**
 - 회원가입: `/auth/users`
 - 로그인: `/auth/token` (Access Token 발급)
-- Refresh Token은 **HttpOnly Cookie**로 내려줌(현재 Refresh 재발급 API는 미구현)
+- 토큰 재발급: `/auth/refresh` 
+- 로그아웃: `DELETE /auth/token`
 
 **2) 게시글**
 - 생성/수정/삭제: JWT 필요
 - 조회(단건/목록): GET 요청은 인증 없이 허용
-- 목록 조회: page/size/sort(asc|desc) 지원
+- 목록 조회: cursorTitle / cursorId 기반 Keyset
 
 **3) 공통**
 - `ApiResponse` 기반 공통 응답 포맷
@@ -219,3 +225,12 @@ CoreBoard 프로젝트의 API 문서는 Swagger UI를 통해 확인 가능합니
   }
 }
 ```
+## 7. 성능 개선
+
+| 단계 | 방식 | p95 응답시간 | 개선 내용 |
+|------|------|-------------|----------|
+| 1단계 | OFFSET + 인덱스 없음 | 1,660ms | - |
+| 2단계 | OFFSET + 인덱스 추가 | 369ms | title 컬럼 인덱스 추가 |
+| 3단계 | Keyset 페이지네이션 | 12.56ms | 구조적 한계 해소 |
+
+- 테스트 환경: 10만 건, 동시 접속 기준 k6 부하테스트
