@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Pageable;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -209,6 +208,29 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_전체_조회_다음_페이지에서_asc_분기")
+    void findAll_nextPage_asc_branch_cover() {
+        List<Board> boards = new ArrayList<>();
+        for (long i = 11; i >= 1; i--) {
+            boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+        }
+
+        given(boardRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
+                .willReturn(boards);
+
+        CursorResponse<BoardSummaryKeysetResponse> result =
+                boardService.findAll("title2", 12L, 10, "asc");
+
+        assertEquals(10, result.getContents().size());
+        assertTrue(result.isHasNext());
+
+        verify(boardRepository, times(1))
+                .findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class));
+        verify(boardRepository, never())
+                .findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
+    }
+
+    @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
     void findAll_nextPage_noNextPage() {
         List<Board> boards = List.of(
@@ -261,7 +283,7 @@ class BoardServiceTest {
     }
 
     @Test
-    @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
+    @DisplayName("결과가_size보다_많으면_hasNext_true고_size개만_반환")
     void findAll_size_hasNext_true_size_return() {
         List<Board> mockData = createBoards(5);
         Pageable pageable = PageRequest.of(0, 11);
@@ -274,7 +296,7 @@ class BoardServiceTest {
     }
 
     @Test
-    @DisplayName("결과가 size 이하면 hasNext false")
+    @DisplayName("결과가_size_이하면_hasNext_false")
     void findAll_size_hasNext_false() {
         Pageable pageable = PageRequest.of(0, 11);
         given(boardRepository.findFirstPageDesc(pageable)).willReturn(createBoards(5));
