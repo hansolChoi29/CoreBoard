@@ -10,6 +10,9 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,10 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+import static org.junit.Assert.assertFalse;
 import static org.junit.matchers.JUnitMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
@@ -426,5 +433,24 @@ class AuthControllerTest {
         verifyNoInteractions(authService);
     }
 
+    @Test
+    @DisplayName("validationRefreshToken_만료됨")
+    void validation_refreshToken_exprired() {
+        // 토큰을 직접 만드는 빌더 시작
+        String expiredToken = Jwts.builder()
+                .claim("type", "refresh")
+                // 만료 시간 = 현재 시간보다 1초 전
+                .setExpiration(new Date(System.currentTimeMillis() - 1000))
+                .signWith(Keys.hmacShaKeyFor(
+                        "this-is-a-very-very-long-test-secret-key-over-32byte"
+                                .getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+        assertFalse(JwtUtil.validationRefreshToken(expiredToken));
+    }
 
+    @Test
+    @DisplayName("validationRefreshToken_잘못된_토큰")
+    void validation_refreshToken_invalid() {
+
+    }
 }
