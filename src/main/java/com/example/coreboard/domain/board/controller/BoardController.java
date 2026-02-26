@@ -68,11 +68,12 @@ public class BoardController {
                         @RequestParam(name = "size", defaultValue = "10") int size,
                         @RequestParam(name="sort", defaultValue = "asc") String sort
                 ) {
-                BoardValidation.sortDirection(sort);
 
-                BoardValidation.pageableValication(size);
+                BoardValidation.sortDirection(sort); 
 
-                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size);
+                BoardValidation.pageableValication(size); // sort 검증해놓고 안 넘기고 있는 거 발견
+
+                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
         }
