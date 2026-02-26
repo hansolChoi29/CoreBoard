@@ -19,7 +19,9 @@ jobs:
           java-version: "17"
 
       - name: Test & Build
-        run: ./gradlew clean build
+        run: |
+          chmod +x ./gradlew  
+          ./gradlew clean build
 
       - name: Upload jar to EC2
         uses: appleboy/scp-action@v0.1.7
