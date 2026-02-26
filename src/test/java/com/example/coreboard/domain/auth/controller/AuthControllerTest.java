@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.junit.matchers.JUnitMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -407,9 +408,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그아웃_성공_200_쿠키_삭제")
     void logout() throws Exception {
-        mockMvc.perform(
-                        post(BASE + "/logout")
-                )
+        mockMvc.perform(delete(BASE + "/token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("로그아웃되었습니다."))
                 .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
