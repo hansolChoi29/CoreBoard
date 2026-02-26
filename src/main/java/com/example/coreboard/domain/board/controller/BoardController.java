@@ -73,7 +73,7 @@ public class BoardController {
 
                 BoardValidation.pageableValication(size); // sort 검증해놓고 안 넘기고 있는 거 발견
 
-                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size);
+                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
 
                 return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
         }
