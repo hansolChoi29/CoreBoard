@@ -62,4 +62,30 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
+
+    public static Long getUserId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId", Long.class);
+    }
+
+    public static boolean validationRefreshToken(String token) {
+        try {
+            String type = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("type", String.class);
+            return "refresh".equals(type);
+        } catch (ExpiredJwtException e) {
+            System.out.println("리프레시 토큰 만료!: " + e.getMessage());
+        } catch (JwtException e) {
+            System.out.println("리프레시 토큰 검증 실패!: " + e.getMessage());
+        }
+        return false;
+    }
 }
