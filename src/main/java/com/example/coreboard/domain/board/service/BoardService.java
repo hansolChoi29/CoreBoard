@@ -75,7 +75,7 @@ public class BoardService {
             String sort
     ) {
         Pageable pageable = PageRequest.of(0, size + 1);
-        boolean isAsc = "asc".equalsIgnoreCase(sort);
+        boolean isAsc = "desc".equalsIgnoreCase(sort);
         List<Board> result = (cursorTitle == null || cursorId == null)
                 ? (isAsc ? boardRepository.findFirstPageDesc(pageable)
                 : boardRepository.findFirstPageAsc(pageable))
