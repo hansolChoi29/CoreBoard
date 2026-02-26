@@ -59,9 +59,7 @@ public class BoardService {
                 saved.getCreatedDate());
     }
 
-    public BoardGetOneDto findOne(
-            BoardGetOneCommand boardGetOneCommand) {
-
+    public BoardGetOneDto findOne(BoardGetOneCommand boardGetOneCommand) {
         Board board = boardRepository.findById(boardGetOneCommand.getId())
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
@@ -103,8 +101,7 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardUpdatedDto update(
-            BoardUpdateCommand boardUpdatedCommad) {
+    public BoardUpdatedDto update(BoardUpdateCommand boardUpdatedCommad) {
         Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
@@ -125,7 +122,8 @@ public class BoardService {
     @Transactional
     public void delete(
             String username,
-            Long id) {
+            Long id
+    ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
