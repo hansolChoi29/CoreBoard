@@ -5,12 +5,12 @@ import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
 import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
 import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
 import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
-import com.example.coreboard.domain.board.dto.response.BoardSummaryResponse;
+import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.PageResponse;
+import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,13 +21,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -165,77 +169,132 @@ class BoardServiceTest {
     }
 
     @Test
-    @DisplayName("게시글_전체조회_성공")
-    void findAll() {
-        int page = 0;
-        int size = 10;
-        String sort = "asc";
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title"));
-
+    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_false")
+    void findAll_firstPage_noNextPage() {
         List<Board> boards = List.of(
-                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 10L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
+                new Board(3L, 10L, "title1", "content1", FIXED_TIME, FIXED_TIME),
+                new Board(2L, 10L, "title2", "content2", FIXED_TIME, FIXED_TIME),
+                new Board(1L, 10L, "title3", "content3", FIXED_TIME, FIXED_TIME));
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findFirstPage(pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10);
 
-        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
-        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
+        assertEquals(3, result.getContents().size());
+        assertFalse(result.isHasNext());
+        assertNull(result.getNextCursorTitle());
+        assertNull(result.getNextCursorId());
 
-        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
-
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(boards.size(), result.getTotalElements());
-        assertEquals(boards.size(), result.getContent().size());
-        Board firstEntity = boards.get(0);
-        BoardSummaryResponse firstDto = result.getContent().get(0);
-        assertEquals(firstEntity.getId(), firstDto.id());
-        assertEquals(firstEntity.getUserId(), firstDto.userId());
-        assertEquals(firstEntity.getTitle(), firstDto.title());
-
-        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(boardRepository, times(1)).findAll(captor.capture());
-        Pageable used = captor.getValue();
-        assertEquals(page, used.getPageNumber());
-        assertEquals(size, used.getPageSize());
-        assertEquals(Sort.by(Sort.Direction.ASC, "title"), used.getSort());
-
+        verify(boardRepository, times(1)).findFirstPage(pageable);
         verifyNoMoreInteractions(boardRepository);
     }
 
     @Test
-    @DisplayName("게시글_전체_조회_desc_성공")
-    void findAllDesc() {
-        int page = 0;
-        int size = 10;
-        String sort = "desc";
+    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
+    void findAll_firstPage_hasNextPage() {
+        List<Board> boards = new ArrayList<>();
+        for (long i = 11; i >= 1; i--) {
+            boards.add(new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+        }
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findFirstPage(pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll(null, null, 10);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "title"));
+        assertEquals(10L, result.getContents().size());
+        assertTrue(result.isHasNext());
+        assertEquals("title2", result.getNextCursorTitle());
+        assertEquals(2L, result.getNextCursorId());
 
-        List<Board> boards = List.of(
-                new Board(1L, 10L, "제목1", "내용1", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(2L, 20L, "제목2", "내용2", LocalDateTime.now(), LocalDateTime.now()),
-                new Board(3L, 30L, "제목3", "내용3", LocalDateTime.now(), LocalDateTime.now()));
-
-        Page<Board> pageResult = new PageImpl<>(boards, pageable, boards.size());
-        given(boardRepository.findAll(any(Pageable.class))).willReturn(pageResult);
-
-        PageResponse<BoardSummaryResponse> result = boardService.findAll(page, size, sort);
-
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(boards.size(), result.getTotalElements());
-        assertEquals(boards.size(), result.getContent().size());
-
-        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(boardRepository, times(1)).findAll(captor.capture());
-        Pageable used = captor.getValue();
-
-        assertEquals(page, used.getPageNumber());
-        assertEquals(size, used.getPageSize());
-        assertEquals(Sort.by(Sort.Direction.DESC, "title"), used.getSort());
-
+        verify(boardRepository, times(1)).findFirstPage(pageable);
         verifyNoMoreInteractions(boardRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
+    void findAll_nextPage_noNextPage() {
+        List<Board> boards = List.of(
+                new Board(2L, 10L, "title", "content", FIXED_TIME, FIXED_TIME),
+                new Board(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findNextPage("title", 5L, pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10);
+        assertEquals(2, result.getContents().size());
+        assertFalse(result.isHasNext());
+        assertNull(result.getNextCursorTitle());
+        assertNull(result.getNextCursorId());
+
+        verify(boardRepository, times(1)).findNextPage("title", 5L, pageable);
+        verifyNoMoreInteractions(boardRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
+    void findAll_nextPage_hasNextPage() {
+        List<Board> boards = new ArrayList<>();
+        for (long i = 11; i >= 1; i--) {
+            boards.add(
+                    new Board(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+        }
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findNextPage("title2", 12L, pageable)).willReturn(boards);
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.findAll("title2", 12L, 10);
+
+        assertEquals(10, result.getContents().size());
+        assertTrue(result.isHasNext());
+        assertEquals("title2", result.getNextCursorTitle());
+        assertEquals(2L, result.getNextCursorId());
+
+        verify(boardRepository).findNextPage("title2", 12L, pageable);
+        verifyNoMoreInteractions(boardRepository);
+    }
+
+    @Test
+    @DisplayName("커서가_null이면_findFirstPage_호출")
+    void findAll_title_or_id_null() {
+        List<Board> mockData = createBoards(5);
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findFirstPage(pageable)).willReturn(mockData);
+
+        boardService.findAll(null, null,10);
+
+        verify(boardRepository).findFirstPage(pageable);
+        verify(boardRepository, never()).findNextPage(anyString(), anyLong(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("결과가 size보다 많으면 hasNext true고 size개만 반환")
+    void findAll_size_hasNext_true_size_return() {
+        List<Board> mockData = createBoards(5);
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findNextPage("title", 1L, pageable)).willReturn(mockData);
+
+        boardService.findAll("title", 1L, 10);
+
+        verify(boardRepository).findNextPage("title", 1L, pageable);
+        verify(boardRepository, never()).findFirstPage(pageable);
+    }
+
+    @Test
+    @DisplayName("결과가 size 이하면 hasNext false")
+    void findAll_size_hasNext_false() {
+        Pageable pageable = PageRequest.of(0, 11);
+        given(boardRepository.findFirstPage(pageable)).willReturn(createBoards(5));
+
+        boardService.findAll("title", null, 10);
+
+        verify(boardRepository).findFirstPage(pageable);
+        verify(boardRepository, never()).findNextPage(anyString(), anyLong(), any(Pageable.class));
+    }
+
+    private List<Board> createBoards(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(i -> new Board(
+                        (long) i,
+                        1L,
+                        "title" + i,
+                        "content" + i,
+                        LocalDateTime.now(),
+                        LocalDateTime.now()))
+                .collect(Collectors.toList());
     }
 
     @Test

@@ -1,4 +1,8 @@
 # CoreBoard
+<b>CoreBoard Link</b> :
+<a href="https://winwin0219.tistory.com/category/CoreBoard">
+CoreBoard Tistory
+</a>
 
 CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 **Spring Security/Lombok 없이 TDD로 구현**하며 스프링 동작 원리와 책임 분리를 훈련했습니다.</br>
@@ -9,29 +13,17 @@ CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 * 모니터링 및 부하테스트 예정
 
 
-<details>
-  <summary><b>회고록</b></summary>
-
-  <a href="https://winwin0219.tistory.com/category/CoreBoard">
-    CoreBoard Tistory
-  </a>
-</details>
-
-
 ## Quick Start
-1. JDK : 17.0.15 (Amazon Corretto) 
+1. JDK : 17.0.15 (Amazon Corretto)
 2. MySQL : 8.0.34
 3. Gradle : 8.14.3
 4. Spring Boot : 3.5.6
 
 
-### MySQL 컨테이너 실행
+### 1. MySQL 컨테이너 실행
 
 `application-local.yml`의 기본값은 **3306 포트**를 사용합니다.
 
----
-
-### 3306 사용(권장: 로컬 MySQL이 없을 때)
 
 **Windows (PowerShell)**
 ```powershell
@@ -42,7 +34,7 @@ docker run -d --name coreboard-mysql `
   --restart=always mysql:8.0.34
 ```
 
-### macOS / Linux
+**macOS / Linux**
 
 ```
 docker run -d \
@@ -55,43 +47,65 @@ docker run -d \
   --restart always \
   mysql:8.0.34
 ```
+---
+### 2. Testcontainers Reuse
+- 통합 테스트 실행 시 MySQL Testcontainers가 매번 새로 생성되면 초기 기동 시간이 **20~30초가 소요된 것으로 확인**되었습니다.
+- 로컬 개발 환경에서는 컨테이너 재사용(reuse)을 활성화하여 테스트 실행 속도를 단축할 수 있습니다.
+- 사용자 **홈 디렉토리에 `.testcontainers.properties` 파일을 생성**해야 합니다.
 
+**Windows (PowerShell)**
+```
+@"
+docker.client.strategy=org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy
+testcontainers.reuse.enable=true
+"@ | Out-File -FilePath "$env:USERPROFILE\.testcontainers.properties" -Encoding ascii
+```
+**macOS / Linuk**
+```
+echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
+```
+**확인 방법**
+- 테스트 실행 후 MySQL 컨테이너가 종료되지 않고 유지되면 정상 적용
+- 두 번째 실행부터는 컨테이너 기동 시간이 사라짐
+> ⚠️  해당 설정은 로컬 개발 환경 전용입니다
+> CI 환경에서는 컨테이너 재사용을 권장하지 않습니다
 
+---
 
 ## 목차
 
-- [기능](#기능)
-- [기술 스택](#기술-스택)
-- [프로젝트 구조](#프로젝트-구조)
-- [Quick Start](#quick-start)
-- [인증 사용 방법](#인증-사용-방법)
-- [API 예시](#api-예시)
-- [공통 응답 포맷](#공통-응답-포맷)
-
+[1. 기능](#1-기능) </br>
+[2. 기술 스택](#2-기술-스택) </br>
+[3. 프로젝트 구조](#3-프로젝트-구조)</br>
+[4. 인증 사용 방법](#4-인증-사용-방법)</br>
+[5. API 예시](#5-api-예시)</br>
+[6. 공통 응답 포맷](#6-공통-응답-포맷)</br>
 
 ---
 
-## 기능
+## 1 기능
 
-- 인증
-  - 회원가입: `/auth/users`
-  - 로그인: `/auth/token` (Access Token 발급)
-  - Refresh Token은 **HttpOnly Cookie**로 내려줌(현재 Refresh 재발급 API는 미구현)
-- 게시글
-  - 생성/수정/삭제: JWT 필요
-  - 조회(단건/목록): GET 요청은 인증 없이 허용
-  - 목록 조회: page/size/sort(asc|desc) 지원
-- 공통
-  - `ApiResponse` 기반 공통 응답 포맷
-  - `GlobalExceptionHandler` 기반 공통 예외 응답
-  - Interceptor 기반 인증 처리(`Authorization: Bearer <token>`)
-  - 응답 JSON String XSS escape 처리(WebConfig)
+**1) 인증**
+- 회원가입: `/auth/users`
+- 로그인: `/auth/token` (Access Token 발급)
+- Refresh Token은 **HttpOnly Cookie**로 내려줌(현재 Refresh 재발급 API는 미구현)
+
+**2) 게시글**
+- 생성/수정/삭제: JWT 필요
+- 조회(단건/목록): GET 요청은 인증 없이 허용
+- 목록 조회: page/size/sort(asc|desc) 지원
+
+**3) 공통**
+- `ApiResponse` 기반 공통 응답 포맷
+- `GlobalExceptionHandler` 기반 공통 예외 응답
+- Interceptor 기반 인증 처리(`Authorization: Bearer <token>`)
+- 응답 JSON String XSS escape 처리(WebConfig)
 
 ---
 
-## 기술 스택
+## 2 기술 스택
 
-  ![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=java&logoColor=white)
+![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=java&logoColor=white)
 ![Spring](https://img.shields.io/badge/Spring-6DB33F?style=flat-square&logo=spring&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?style=flat-square&logo=springboot&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white)
@@ -112,21 +126,23 @@ docker run -d \
 
 ---
 
-## 프로젝트 구조
+## 3 프로젝트 구조
 
 > 도메인 단위로 패키징하고, DTO는 목적별로 분리합니다.
 
-- `domain/auth`
-  - controller / service / dto(command, request, response)
-- `domain/board`
-  - controller / service / repository / entity / dto(command, request, response)
-- `domain/common`
-  - config (WebConfig, JwtConfig, 암호화 유틸)
-  - interceptor (JWT 인증)
-  - exception (에러코드/예외/핸들러)
-  - response (ApiResponse, PageResponse)
+**1) `domain/auth`**
+- controller / service / dto(command, request, response)
 
-## 인증 사용 방법
+**2) `domain/board`**
+- controller / service / repository / entity / dto(command, request, response)
+
+**3)  `domain/common`**
+- config (WebConfig, JwtConfig, 암호화 유틸)
+- interceptor (JWT 인증)
+- exception (에러코드/예외/핸들러)
+- response (ApiResponse, CursorResponse)
+
+## 4 인증 사용 방법
 ### 1) 회원가입 (Public)
 #### macOS / Linux / Git Bash
 ```bash
@@ -181,16 +197,16 @@ irm http://localhost:8080/board -Method Post -ContentType 'application/json' `
 ```
 
 
-## API 예시
+## 5 API 예시
 
-CoreBoard 프로젝트의 API 문서는 Swagger UI를 통해 확인 가능합니다.  
+CoreBoard 프로젝트의 API 문서는 Swagger UI를 통해 확인 가능합니다.
 > ⚠️ 서버를 먼저 실행해야 합니다.
 
 - Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 - OpenAPI JSON 스펙: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 
-## 공통 응답 포맷
+## 6 공통 응답 포맷
 ```json
 {
   "success": false,
