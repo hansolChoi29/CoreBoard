@@ -41,8 +41,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("""
              select b from Board b
-            where(b.title < :cursorTitle)
-            or(b.title = :cursorTitle and b.id < :cursorId)
+            where(b.title > :cursorTitle)
+            or(b.title = :cursorTitle and b.id > :cursorId)
             order by b.title asc, b.id asc 
             """)
     List<Board> findNextPageAsc(
