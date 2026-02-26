@@ -21,85 +21,85 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/board")
 public class BoardController {
-        private final BoardService boardService;
+    private final BoardService boardService;
 
-        public BoardController(BoardService boardService) {
-                this.boardService = boardService;
-        }
+    public BoardController(BoardService boardService) {
+        this.boardService = boardService;
+    }
 
-        @PostMapping
-        public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
-                        @RequestBody BoardCreateRequest boardRequestDto,
-                        @RequestAttribute("username") String username) {
-                BoardValidation.createValidation(boardRequestDto);
+    @PostMapping
+    public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
+            @RequestBody BoardCreateRequest boardRequestDto,
+            @RequestAttribute("username") String username) {
+        BoardValidation.createValidation(boardRequestDto);
 
-                BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.title(), boardRequestDto.content());
+        BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.title(), boardRequestDto.content());
 
-                BoardCreateDto out = boardService.create(board, username);
+        BoardCreateDto out = boardService.create(board, username);
 
-                BoardCreateResponse response = new BoardCreateResponse(
-                                out.getId(),
-                                out.getUserId(),
-                                out.getTitle(),
-                                out.getContent(),
-                                out.getCreatedDate());
+        BoardCreateResponse response = new BoardCreateResponse(
+                out.getId(),
+                out.getUserId(),
+                out.getTitle(),
+                out.getContent(),
+                out.getCreatedDate());
 
-                return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
-        }
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
+    }
 
-        @GetMapping("/{id}")
-        public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
-                        @PathVariable("id") Long id) {
-                BoardGetOneCommand board = new BoardGetOneCommand(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
+            @PathVariable("id") Long id) {
+        BoardGetOneCommand board = new BoardGetOneCommand(id);
 
-                BoardGetOneDto out = boardService.findOne(board);
+        BoardGetOneDto out = boardService.findOne(board);
 
-                BoardGetOneResponse response = new BoardGetOneResponse(
-                                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
-                                out.getLastModifiedDate());
+        BoardGetOneResponse response = new BoardGetOneResponse(
+                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
+                out.getLastModifiedDate());
 
-                return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
-        }
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
+    }
 
-        @GetMapping
-        public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
-                        @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
-                        @RequestParam(name = "cursorId", required = false) Long cursorId,
-                        @RequestParam(name = "size", defaultValue = "10") int size,
-                        @RequestParam(name="sort", defaultValue = "asc") String sort
-                ) {
+    @GetMapping
+    public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
+            @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
+            @RequestParam(name = "cursorId", required = false) Long cursorId,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sort", defaultValue = "asc") String sort
+    ) {
 
-                BoardValidation.sortDirection(sort); 
+        BoardValidation.sortDirection(sort);
 
-                BoardValidation.pageableValication(size); // sort 검증해놓고 안 넘기고 있는 거 발견
+        BoardValidation.pageableValication(size);
 
-                CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
+        CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
 
-                return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
-        }
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
+    }
 
-        @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
-                        @RequestBody BoardUpdateRequest updateRequestDto,
-                        @RequestAttribute("username") String username,
-                        @PathVariable("id") Long id) {
-                BoardValidation.updateValidation(updateRequestDto);
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
+            @RequestBody BoardUpdateRequest updateRequestDto,
+            @RequestAttribute("username") String username,
+            @PathVariable("id") Long id) {
+        BoardValidation.updateValidation(updateRequestDto);
 
-                BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.title(),
-                                updateRequestDto.content());
+        BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.title(),
+                updateRequestDto.content());
 
-                BoardUpdatedDto out = boardService.update(board);
+        BoardUpdatedDto out = boardService.update(board);
 
-                BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
+        BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
 
-                return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
-        }
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
+    }
 
-        @DeleteMapping("/{id}")
-        public ResponseEntity<ApiResponse<Void>> delete(
-                        @RequestAttribute("username") String username,
-                        @PathVariable("id") Long id) {
-                boardService.delete(username, id);
-                return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @RequestAttribute("username") String username,
+            @PathVariable("id") Long id) {
+        boardService.delete(username, id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
+    }
 }
