@@ -34,6 +34,7 @@ public class BoardService {
         this.usersRepository = usersRepository;
     }
 
+    @Transactional
     public BoardCreateDto create(
             BoardCreateCommand boardCreateCommand,
             String username) {
@@ -110,17 +111,6 @@ public class BoardService {
         Board board = boardRepository.findById(boardUpdatedCommad.getId())
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
-        /*
-         * TODO : Long != 비교 버그
-         * Long은 객체.
-         * 객체를 == 또는 != 로 비교하면 값이 아니라 메모리 주소(참조) 비교가 됨
-         * 왜 테스트할 때 동작했는가?
-         * JVM이 Long 객체를 -128 ~ 127 범위에서는 미리 만들어놓고 캐싱해서 재사용함
-         * (JVM 뜰 때 Long 객체를 해당 범위만큼 미리 256개 생성해서 메모리에 올림)
-         * 그래서 userId가 그 범위 안에 있으면 Long a = 100L, Long b= 100L이 우연히 같은 객체를 가리키게 되고
-         * != 로 비교해도 false가 나와서 코드가 정상 동작하는 것처럼 보임
-         */
-
         if (!board.getUserId().equals(user.getUserId())) {
             throw new AuthErrorException(FORBIDDEN);
         }
@@ -132,6 +122,7 @@ public class BoardService {
                 board.getId());
     }
 
+    @Transactional
     public void delete(
             String username,
             Long id) {
