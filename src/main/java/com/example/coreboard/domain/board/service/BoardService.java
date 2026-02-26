@@ -116,7 +116,7 @@ public class BoardService {
         * != 로 비교해도 false가 나와서 코드가 정상 동작하는 것처럼 보임
         */
 
-        if (board.getUserId() != user.getUserId()) {
+         if(!board.getUserId().equals(user.getUserId())){
             throw new AuthErrorException(FORBIDDEN);
         }
 
