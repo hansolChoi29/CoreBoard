@@ -393,14 +393,14 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_유효한_리프레시_토근_200")
     void refresh_valid_refreshToken() throws Exception {
-        String accessToken = JwtUtil.createAccessToken(1L, "tester");
+        String refreshToken  = JwtUtil.createAccessToken(1L, "tester");
         mockMvc.perform(
 
                         post(BASE + "/refresh")
-                                .cookie(new Cookie("refresh", accessToken))
+                                .cookie(new Cookie("refresh", refreshToken ))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("토근 재발급 성공!"))
+                .andExpect(jsonPath("$.message").value("토큰 재발급 성공!"))
                 .andExpect(jsonPath("$.data.access_token").isNotEmpty());
         verifyNoInteractions(authService);
     }
