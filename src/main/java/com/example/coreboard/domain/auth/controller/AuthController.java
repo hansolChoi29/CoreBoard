@@ -3,6 +3,7 @@ package com.example.coreboard.domain.auth.controller;
 import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.dto.command.SignInCommand;
 import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
+import com.example.coreboard.domain.auth.dto.request.RefreshRequest;
 import com.example.coreboard.domain.auth.dto.request.SignInRequest;
 import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
 import com.example.coreboard.domain.auth.dto.response.SignUpResponse;
@@ -10,6 +11,7 @@ import com.example.coreboard.domain.auth.dto.response.TokenResponse;
 import com.example.coreboard.domain.auth.service.AuthService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -76,5 +78,12 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookies.toString())
                 .body(ApiResponse.ok(response, "로그인 성공!"));
+    }
+
+    @PostMapping("/refresh")
+    ResponseEntity<ApiResponse<TokenResponse>> refresh(
+        HttpServletRequest request
+    ){
+
     }
 }
