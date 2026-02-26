@@ -10,7 +10,6 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +24,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.junit.matchers.JUnitMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
@@ -369,14 +368,6 @@ class AuthControllerTest {
         verify(authService, never()).signIn(any());
     }
 
-    /*
-     * /auth/refresh
-     * TODO : 쿠키 없음 401
-     * TODO : AccessToken 을 refresh 슬롯에 넣음 (type 불일치) 401
-     * TODO : 유효한 RefreshToken -> 200, accessToken 반환
-     *  /auth/logout
-     * TODO : 정상 요청 200, Set-Cookie 에 Max-Age = 0
-     */
     @Test
     @DisplayName("토근_재발급_쿠키_없음_401")
     void refresh_noCookie() throws Exception {
@@ -396,6 +387,33 @@ class AuthControllerTest {
                                 .cookie(new Cookie("refresh", accessToken))
                 )
                 .andExpect(status().isUnauthorized());
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("토근_재발급_유효한_리프레시_토근_200")
+    void refresh_valid_refreshToken() throws Exception {
+        String accessToken = JwtUtil.createAccessToken(1L, "tester");
+        mockMvc.perform(
+
+                        post(BASE + "/refresh")
+                                .cookie(new Cookie("refresh", accessToken))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("토근 재발급 성공!"))
+                .andExpect(jsonPath("$.data.access_token").isNotEmpty());
+        verifyNoInteractions(authService);
+    }
+
+    @Test
+    @DisplayName("로그아웃_성공_200_쿠키_삭제")
+    void logout() throws Exception {
+        mockMvc.perform(
+                        post(BASE + "/logout")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("로그아웃되었습니다."))
+                .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
         verifyNoInteractions(authService);
     }
 }
