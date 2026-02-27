@@ -35,13 +35,13 @@ class BoardTest {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        board.update("   ","     ");
+        board.update("   ", "     ");
         assertEquals("기존 데이터", board.getTitle());
         assertEquals("기존 데이터", board.getContent());
     }
 
     @Test
-    void update_isEmpty(){
+    void update_isEmpty() {
         Board board = new Board(
                 1L,
                 10L,
@@ -50,7 +50,23 @@ class BoardTest {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        board.update("  ","   ");
+        board.update("  ", "   ");
+
+        assertEquals("기존 데이터", board.getTitle());
+        assertEquals("기존 데이터", board.getContent());
+    }
+
+    @Test
+    void update_null() {
+        Board board = new Board(
+                1L,
+                10L,
+                "기존 데이터",
+                "기존 데이터",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        board.update(null, null);
 
         assertEquals("기존 데이터", board.getTitle());
         assertEquals("기존 데이터", board.getContent());
