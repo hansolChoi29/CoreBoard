@@ -1,34 +1,36 @@
 package com.example.coreboard.domain.common.exception;
 
+
+import org.springframework.http.HttpStatus;
+
+import java.util.List;
+
 public abstract class ErrorException extends RuntimeException {
+    private final HttpStatus status;
+    private final int code;
+    private final List<FieldError> errors;
 
-    private final int status;
-    private final String message;
-
-    public ErrorException(int status, String message) {
+    public ErrorException(
+            HttpStatus status,
+            int code,
+            String message,
+            List<FieldError> errors
+    ) {
+        super(message);
         this.status = status;
-        this.message = message;
+        this.code = code;
+        this.errors = errors;
     }
 
-    public int getStatus() {
+    public int getCode() {
+        return code;
+    }
+    
+    public List<FieldError> getErrors() {
+        return errors;
+    }
+
+    public HttpStatus getStatus() {
         return status;
     }
-
-    public String getMessage() {
-        return message;
-    }
-
-    // HTTP Status Code
-    // 400 Bad Request -> 해석조차 못하겠다
-    // 401 Unauthorized -> 인증 문제, 토큰 없음/만료
-    // 403 Forbidden -> 인가 문제, 접근 권한이 없는 다른 유저 시도
-    // 404 Not Found
-    // 500 Internal Server Error
-
-    // 예시
-    // BAD_REQUEST(400,"다시 작성해 주세요."),
-    // UNAUTHORIZED(401,"다시 로그인해 주세요."),
-    // FORBIDDEN(403, "페이지에 엑세스할 수 없습니다."),
-    // NOT_FOUND(404,"페이지를 찾을 수 없습니다."),
-    // INTERNAL_SERVER_ERROR(500,"페이지가 작동하지 않습니다.")
 }

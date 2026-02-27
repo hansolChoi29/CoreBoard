@@ -1,0 +1,49 @@
+package com.example.coreboard.domain.common.config;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ContextConfiguration(classes = PasswordEncodeTest.class)
+@ExtendWith(SpringExtension.class)
+class PasswordEncodeTest {
+
+    @Test
+    @DisplayName("같은_입력값_다른_해시")
+    void encrypt() {
+        PasswordManager encoder = new PasswordManager();
+        String hash1 = encoder.encrypt("1234zcv");
+        String hash2 = encoder.encrypt("qwer098");
+
+        assertNotEquals(hash1, hash2);
+    }
+
+    @Test
+    @DisplayName("encrypt()된_비밀번호와_원문_일치")
+    void matches() {
+        PasswordManager encoder = new PasswordManager();
+        String password = "qwer1234";
+        String encoded = encoder.encrypt(password);
+
+        assertTrue(encoder.matches(password, encoded));
+        assertFalse(encoder.matches("wrong", encoded));
+    }
+
+    @Test
+    @DisplayName("스토어해시_널_false")
+    void matchesNullHash() {
+        PasswordManager encodr = new PasswordManager();
+        assertFalse(encodr.matches("qwe", null));
+    }
+
+    @Test
+    @DisplayName("스토어해시_빈문자열_false")
+    void matchesEmptyHash() {
+        PasswordManager encodr = new PasswordManager();
+        assertFalse(encodr.matches("qwe", ""));
+    }
+}

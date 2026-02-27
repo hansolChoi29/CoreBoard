@@ -1,13 +1,34 @@
 package com.example.coreboard.domain.common.response;
 
+
 public class ApiResponse<T> {
-    private static final String SUCEESS_STAUS="success";
-    private static final String FAIL_STATUS="fail";
-    private static final String ERROR_STATUS="error";
+    private final boolean success;
+    private final String message;
+    private final T data;
 
-    private String status;
-    private T data;
-    private String message;
+    public ApiResponse(boolean success, String message, T data) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+    }
 
+    public static <T> ApiResponse<T> ok(T data, String message) {
+        return new ApiResponse<>(true, message, data);
+    }
 
+    public static <T>ApiResponse<T> fail(String message, T data) {
+        return new ApiResponse<>(false, message, data);
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

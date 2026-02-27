@@ -1,58 +1,67 @@
 package com.example.coreboard.domain.auth.service;
 
-import com.example.coreboard.domain.auth.dto.SignUpRequest;
-import com.example.coreboard.domain.auth.dto.SignUpResponse;
-import com.example.coreboard.domain.auth.repository.AuthRepository;
-import com.example.coreboard.domain.common.config.PasswordEncode;
+import com.example.coreboard.domain.auth.dto.*;
+import com.example.coreboard.domain.auth.dto.command.SignInCommand;
+import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
+import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
+import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
-import com.example.coreboard.domain.users.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
+
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 
 
 @Service
 public class AuthService {
-    private final AuthRepository authRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncode passwordEncode;
+    private final UsersRepository usersRepository;
+    private final PasswordManager passwordEncoder;
+    private final EmailPhoneNumberManager emailPhoneNumberEncode;
 
-    public AuthService(AuthRepository authRepository, PasswordEncode passwordEncode,UserRepository userRepository){
-        this.authRepository=authRepository;
-        this.passwordEncode=passwordEncode;
-        this.userRepository=userRepository;
+    public AuthService(
+            PasswordManager passwordEncoder,
+            UsersRepository usersRepository,
+            EmailPhoneNumberManager emailPhoneNumberEncode
+    ) {
+        this.passwordEncoder = passwordEncoder;
+        this.usersRepository = usersRepository;
+        this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
-
-   @Transactional
-    public SignUpResponse signup(SignUpRequest signupRequest){
-        // 트러블: getter인데 파라미터를 넣어서 에러났었음
-       //signupRequest.getUsername(username)
-        if(authRepository.existsByUsername(signupRequest.getUsername())){
+    public SignUpDto signUp(SignUpCommand signUpCommand) {
+        if (usersRepository.existsByUsername(signUpCommand.getUsername())) {
             throw new AuthErrorException(CONFLICT);
         }
-        String encodePassword = passwordEncode.encrypt(signupRequest.getPassword());
 
-        Users newUser=new Users(
-                signupRequest.getUsername(),
-                encodePassword
+        String encodedPassword = passwordEncoder.encrypt(signUpCommand.getPassword());
+        String encryptedEmail = emailPhoneNumberEncode.encrypt(signUpCommand.getEmail());
+        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(signUpCommand.getPhoneNumber());
+
+        Users users = Users.createUsers(
+                signUpCommand.getUsername(),
+                encodedPassword,
+                encryptedEmail,
+                encryptPhoneNubmer
         );
-        authRepository.save(newUser);
 
-        return new SignUpResponse(newUser.getUsername(),"가입 성공!");
-   }
+        usersRepository.save(users);
 
-//   @Transactional
-//    public ResponseEntity<TokenResponse> signin(@RequestBody SignInRequest signinRequest){
-//       String username = signinRequest.getUsername();
-//       String password = signinRequest.getPassword();
-////
-////        Users user=userRepository.findByUsername(signinRequest.getUsername()).orElseThrow(()-> new AuthErrorException("회원가입을 먼저 해주세요!"));
-//
-////       TokenResponse tokenResponse = new TokenResponse(accessToken,refreshToken);
-////       return ResponseEntity.ok(tokenResponse);
-//
-//   }
+        return new SignUpDto(users.getUsername());
+    }
 
+    public TokenDto signIn(SignInCommand authSignInCommand) {
+        Users users =
+                usersRepository.findByUsername(authSignInCommand.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
+        if (!passwordEncoder.matches(authSignInCommand.getPassword(), users.getPassword())) {
+            throw new AuthErrorException(UNAUTHORIZED);
+        }
+
+        String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
+        String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
+
+        return new TokenDto(accessToken, refreshToken);
+    }
 }

@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL}?sslMode=REQUIRED&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+aes:
+  secret:
+    key: ${AES_SECRET_KEY}
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: OFF   # DB에 쿼리 몇 번 날렸는지/얼마나 걸렸는지
+    org.hibernate.stat: OFF            # 통계 로그
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
