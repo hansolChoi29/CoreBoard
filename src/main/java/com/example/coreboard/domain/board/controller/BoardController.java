@@ -30,7 +30,8 @@ public class BoardController {
     @PostMapping
     public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
             @RequestBody BoardCreateRequest boardRequestDto,
-            @RequestAttribute("username") String username) {
+            @RequestAttribute("username") String username
+    ) {
         BoardValidation.createValidation(boardRequestDto);
 
         BoardCreateCommand board = new BoardCreateCommand(boardRequestDto.title(), boardRequestDto.content());
@@ -49,7 +50,8 @@ public class BoardController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
-            @PathVariable("id") Long id) {
+            @PathVariable("id") Long id
+    ) {
         BoardGetOneCommand board = new BoardGetOneCommand(id);
 
         BoardGetOneDto out = boardService.findOne(board);
@@ -68,7 +70,6 @@ public class BoardController {
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "sort", defaultValue = "asc") String sort
     ) {
-
         BoardValidation.sortDirection(sort);
 
         BoardValidation.pageableValication(size);
@@ -82,7 +83,8 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
             @RequestBody BoardUpdateRequest updateRequestDto,
             @RequestAttribute("username") String username,
-            @PathVariable("id") Long id) {
+            @PathVariable("id") Long id
+    ) {
         BoardValidation.updateValidation(updateRequestDto);
 
         BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.title(),
@@ -98,8 +100,10 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
-            @PathVariable("id") Long id) {
+            @PathVariable("id") Long id
+    ) {
         boardService.delete(username, id);
+
         return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
     }
 }
