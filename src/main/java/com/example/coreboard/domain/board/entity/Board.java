@@ -62,13 +62,13 @@ public class Board {
         return board;
     }
 
-    public void update(
-            String newTitle,
-            String newContent
-
-    ) {
-        this.title = newTitle;
-        this.content = newContent;
+    public void update(String newTitle, String newContent) {
+        if (newTitle != null && !newTitle.isBlank()) {
+            this.title = newTitle;
+        }
+        if (newContent != null && !newContent.isBlank()) {
+            this.content = newContent;
+        }
     }
 
     public Long getId() {
