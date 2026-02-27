@@ -2,7 +2,7 @@ name: Deploy CoreBoard to EC2
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main"]
 
 jobs:
   deploy:
