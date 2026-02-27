@@ -415,7 +415,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그아웃_성공_200_쿠키_삭제")
     void logout() throws Exception {
-        mockMvc.perform(delete(BASE + "/token"))
+        mockMvc.perform(delete(BASE + "/refresh"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("로그아웃되었습니다."))
                 .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
