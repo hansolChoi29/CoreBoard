@@ -205,14 +205,15 @@ irm http://localhost:8080/board -Method Post -ContentType 'application/json' `
 ```
 
 
-## 5 API 예시
+## API 문서
 
-CoreBoard 프로젝트의 API 문서는 Swagger UI를 통해 확인 가능합니다.
-> ⚠️ 서버를 먼저 실행해야 합니다.
+CoreBoard의 API 문서는 Swagger UI에서 확인할 수 있습니다.
 
-- Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-- OpenAPI JSON 스펙: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+- (배포) Swagger UI: http://3.38.144.47:8080/swagger-ui/index.html
+- (배포) OpenAPI JSON: http://3.38.144.47:8080/v3/api-docs
 
+- (로컬) Swagger UI: http://localhost:8080/swagger-ui/index.html
+- (로컬) OpenAPI JSON: http://localhost:8080/v3/api-docs
 
 ## 6 공통 응답 포맷
 ```json
