@@ -39,6 +39,7 @@ class BoardTest {
         assertEquals("기존 데이터", board.getTitle());
         assertEquals("기존 데이터", board.getContent());
     }
+
     @Test
     void update_null(){
         Board board = new Board(
