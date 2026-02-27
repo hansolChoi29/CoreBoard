@@ -96,7 +96,7 @@ echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
 - 회원가입: `/auth/users`
 - 로그인: `/auth/token` (Access Token 발급)
 - 토큰 재발급: `/auth/refresh` 
-- 로그아웃: `DELETE /auth/token`
+- 로그아웃: `DELETE /auth/refresh`
 
 **2) 게시글**
 - 생성/수정/삭제: JWT 필요
