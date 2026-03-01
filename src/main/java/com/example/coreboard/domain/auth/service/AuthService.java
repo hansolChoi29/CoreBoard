@@ -45,17 +45,21 @@ public class AuthService {
                 encryptedEmail,
                 encryptPhoneNubmer
         );
-
         usersRepository.save(users);
 
         return new SignUpDto(users.getUsername());
     }
 
     public TokenDto signIn(SignInCommand authSignInCommand) {
-        Users users =
-                usersRepository.findByUsername(authSignInCommand.getUsername()).orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+        Users users = usersRepository.findByUsername(
+                authSignInCommand.getUsername()).orElseThrow(
+                () -> new AuthErrorException(NOT_FOUND)
+        );
 
-        if (!passwordEncoder.matches(authSignInCommand.getPassword(), users.getPassword())) {
+        if (!passwordEncoder.matches(
+                authSignInCommand.getPassword(),
+                users.getPassword())
+        ) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
 
