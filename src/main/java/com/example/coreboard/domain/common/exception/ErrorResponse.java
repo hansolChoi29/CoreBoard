@@ -6,7 +6,10 @@ public class ErrorResponse {
     private final String code;
     private final List<FieldError> errors;
 
-    public ErrorResponse(String code, List<FieldError> errors) {
+    public ErrorResponse(
+            String code,
+            List<FieldError> errors
+    ) {
         this.code = code;
         this.errors = errors;
     }

@@ -76,11 +76,11 @@ docker run -d --name coreboard-mysql `
 </details>
 
 ### 애플리케이션 실행
-```bash
-./gradlew bootRun
+```powerShell
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 ### 테스트 실행
-```bash
+```powerShell
 ./gradlew test
 ```
 
@@ -137,20 +137,21 @@ docker run -d --name coreboard-mysql `
 - response: ApiResponse, CursorResponse
 - validation: AuthValidation, BoardValidation
 
-```
+```bash
 CoreBoard/
-└─ src/
-   ├─ main/
-   │  ├─ java/com/example/coreboard/
-   │  │  ├─ CoreBoardApplication.java
-   │  │  └─ domain/
-   │  │     ├─ auth/   (controller/service/dto)
-   │  │     ├─ board/  (controller/service/repository/entity/dto)
-   │  │     ├─ users/  (entity/repository)
-   │  │     └─ common/ (config/interceptor/exception/response/validation/util)
-   │  ├─ resources/   (profile yml)
-   │  └─ monitoring/  (prometheus, docker-compose)
-   └─ test/
-      ├─ java/...      (unit/integration)
-      └─ resources/
+├─ src/main/java/com/example/coreboard/
+│  ├─ CoreBoardApplication.java
+│  └─ domain/
+│     ├─ auth/
+│     ├─ board/
+│     ├─ users/
+│     └─ common/
+├─ src/main/resources/
+│  ├─ application.yml
+│  ├─ application-local.yml
+│  ├─ application-prod.yml
+│  └─ application-test.yml
+└─ src/test/
+   ├─ java/ (unit / integration)
+   └─ resources/
 ```

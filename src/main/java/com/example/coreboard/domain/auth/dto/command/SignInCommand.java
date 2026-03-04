@@ -4,7 +4,6 @@ public class SignInCommand {
     String username;
     String password;
 
-
     public SignInCommand(String username, String password) {
         this.username = username;
         this.password = password;
