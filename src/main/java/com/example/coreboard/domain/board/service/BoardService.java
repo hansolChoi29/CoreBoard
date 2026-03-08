@@ -29,7 +29,8 @@ public class BoardService {
 
     public BoardService(
             BoardRepository boardRepository,
-            UsersRepository usersRepository) {
+            UsersRepository usersRepository
+    ) {
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
     }
@@ -37,7 +38,8 @@ public class BoardService {
     @Transactional
     public BoardCreateDto create(
             BoardCreateCommand boardCreateCommand,
-            String username) {
+            String username
+    ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
