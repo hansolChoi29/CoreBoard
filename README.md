@@ -118,6 +118,11 @@ docker run -d --name coreboard-mysql `
 
 - 테스트 환경: 10만 건, 동시 접속 기준 k6 부하테스트
 
+### 관련 PR
+- [PR #44 - Keyset 페이지네이션 적용 및 테스트 실행 시간 개선](https://github.com/hansolChoi29/CoreBoard/pull/44)
+
+
+
 ## 프로젝트 구조
 
 > 도메인 단위로 패키징하고, DTO는 목적별로 분리합니다. </br>
