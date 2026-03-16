@@ -88,10 +88,12 @@ docker run -d --name coreboard-mysql `
 
 
 ## API 문서
-- (배포) Swagger UI: http://3.38.144.47:8080/swagger-ui/index.html
-- (배포) OpenAPI JSON: http://3.38.144.47:8080/v3/api-docs
+- (배포) Swagger UI: http://<public_Ip>:8080/swagger-ui/index.html
+- (배포) OpenAPI JSON: http://<public_Ip>:8080/v3/api-docs
 - (로컬) Swagger UI: http://localhost:8080/swagger-ui/index.html
 
+> Swagger는 서버에 배포되어 있으며  
+> 요청 주시면 확인 가능하도록 열어드립니다.
 
 ## 공통 응답 포맷
 ```json
