@@ -94,7 +94,7 @@ public class BoardController {
 
         BoardUpdateResponse response = new BoardUpdateResponse(out.getId());
 
-        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 수정 완료!"));
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }
 
     @DeleteMapping("/{id}")
@@ -104,6 +104,6 @@ public class BoardController {
     ) {
         boardService.delete(username, id);
 
-        return ResponseEntity.ok(ApiResponse.ok(null, "게시글 삭제완료!"));
+        return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
     }
 }

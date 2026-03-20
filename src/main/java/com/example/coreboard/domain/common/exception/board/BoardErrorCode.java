@@ -11,7 +11,7 @@ public enum BoardErrorCode {
             400,
             "제목과 내용은 필수입니다.",
             List.of(new FieldError(
-                    "title and content",
+                    "NO TITLE AND CONTENT",
                     "제목과 본문은 필수입니다."
             ))
     ),
@@ -20,7 +20,7 @@ public enum BoardErrorCode {
             400,
             "제목은 필수입니다.",
             List.of(new FieldError(
-                    "title",
+                    "NO TITLE",
                     "제목은 필수입니다."
             ))
     ),
@@ -29,7 +29,7 @@ public enum BoardErrorCode {
             400,
             "내용은 필수입니다.",
             List.of(new FieldError(
-                    "content",
+                    "NO CONTENT",
                     "내용은 필수입니다."
             ))
     ),
@@ -38,7 +38,7 @@ public enum BoardErrorCode {
             400,
             "제목은 255자 이하여야 합니다.",
             List.of(new FieldError(
-                    "title",
+                    "TITLE LENGTH NOT POSSIBLE",
                     "제목은 255자 이하여야 합니다."
             ))
     ),
@@ -47,7 +47,7 @@ public enum BoardErrorCode {
             400,
             "내용은 1000자 이하여야 합니다.",
             List.of(new FieldError(
-                    "content",
+                    "CONTENT LENGTH NOT POSSIBLE",
                     "내용은 1000자 이하여야 합니다."
             ))
     ),
@@ -56,7 +56,7 @@ public enum BoardErrorCode {
             404,
             "존재하지 않는 게시글입니다.",
             List.of(new FieldError(
-                    "not found board",
+                    "NOT FOUND BOARD",
                     "존재하지 않는 게시글입니다."
             ))
     ),
@@ -65,7 +65,7 @@ public enum BoardErrorCode {
             409,
             "이미 사용 중인 제목입니다.",
             List.of(new FieldError(
-                    "title",
+                    "TITLE DUPLICATION",
                     "이미 사용 중인 제목입니다."
             ))
     ),
@@ -74,7 +74,7 @@ public enum BoardErrorCode {
             400,
             "page는 0이상이어야 합니다.",
             List.of(new FieldError(
-                    "pageable",
+                    "FIND ALL SIZE NOT POSSIBLE",
                     "page는 0이상이어야 합니다"
             ))
     ),
@@ -83,7 +83,7 @@ public enum BoardErrorCode {
             400,
             "size는 최대 10이하이어야 합니다.",
             List.of(new FieldError(
-                    "pageable",
+                    "FIND ALL SIZE NOT POSSIBLE",
                     "size는 최대 10이하이어야 합니다."
             ))
     ),
@@ -92,7 +92,7 @@ public enum BoardErrorCode {
             400,
             "정렬 방향은 asc 또는 desc만 허용됩니다.",
             List.of(new FieldError(
-                    "pageable",
+                    "FIND ALL SORT POSSIBLE",
                     "정렬방향 asc/desc만 허용합니다."
             ))
     ),
@@ -101,7 +101,7 @@ public enum BoardErrorCode {
             404,
             "삭제된 게시글입니다.",
             List.of(new FieldError(
-                    "board",
+                    "NOT FOUND BOARD",
                     "삭제된 게시글입니다."
             ))
     );
