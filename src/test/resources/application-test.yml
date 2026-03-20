@@ -5,8 +5,8 @@ spring:
       ddl-auto: create-drop
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
 
 jwt:
   secret:
@@ -18,3 +18,8 @@ aes:
 security:
   bcrypt:
     strength: 4
+
+logging:
+  level:
+    org.springframework.test.web.servlet: WARN
+    org.springframework.mock.web: WARN

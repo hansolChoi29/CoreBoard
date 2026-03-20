@@ -88,9 +88,11 @@ public class AuthController {
         if (refreshToken == null || !JwtUtil.validationRefreshToken(refreshToken)) {
             throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
         }
+
         String username = JwtUtil.getUsername(refreshToken);
         Long userId = JwtUtil.getUserId(refreshToken);
         String newAccessToken = JwtUtil.createAccessToken(userId, username);
+
         return ResponseEntity.ok(ApiResponse.ok(new TokenResponse(newAccessToken), "토큰이 성공적으로 재발급되었습니다."));
     }
 
@@ -103,6 +105,7 @@ public class AuthController {
                 .path("/auth/refresh")
                 .maxAge(0)
                 .build();
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .body(ApiResponse.ok(null, "로그아웃되었습니다."));

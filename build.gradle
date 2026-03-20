@@ -48,7 +48,6 @@ jacoco {
 }
 tasks.named('test') {
     useJUnitPlatform()
-    finalizedBy tasks.jacocoTestReport
 }
 
 tasks.jacocoTestReport {

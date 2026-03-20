@@ -1,8 +1,6 @@
 # CoreBoard
-<b>CoreBoard Link</b> :
-<a href="https://winwin0219.tistory.com/category/CoreBoard">
-CoreBoard Tistory
-</a>
+
+**CoreBoard Tistory**: https://winwin0219.tistory.com/category/CoreBoard
 
 CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 **Spring Security/Lombok 없이 TDD로 구현**하며 스프링 동작 원리와 책임 분리를 훈련했습니다.</br>
@@ -11,27 +9,64 @@ CoreBoard는 **기본기 검증용 미니 게시판**입니다. </br>
 
 ## 프로젝트 진행 상태
 
-| 항목 | 상태 |
-|------|------|
-| EC2 배포 + CI/CD | ✅ 완료 |
-| 모니터링 + 부하테스트 | ✅ 완료 |
-| Refresh / Logout API | ✅ 완료 |
-| CSP 헤더 적용 | 🔧 개선 예정 |
+| 우선순위 | 항목 | 상태 |
+|------|---|---|
+| 1    | EC2 배포 + CI/CD | ✅ 완료 |
+| 2    | 모니터링 + 부하테스트 | ✅ 완료 |
+| 3    | Refresh / Logout API | ✅ 완료 |
+| 4    | 게시글 검색/필터 전용 조회 API  | 🔧 진행 예정 |
+| 5    | 조회수 기능 + Redis 기반 중복 조회 제한 | 🔧 진행 예정 |
+| 6    | CSP 헤더 적용 | 🔧 개선 예정 |
+
+
+## 기능
+### 인증
+
+- 회원가입: `POST /auth/users`
+- 로그인(Access Token 발급): `POST /auth/token`
+- 토큰 재발급: `POST /auth/refresh`
+- 로그아웃: `DELETE /auth/refresh`
+
+### 게시글
+
+- 생성/수정/삭제: JWT 필요
+- 조회(단건/목록): GET 요청은 인증 없이 허용
+- 목록 조회: `cursorTitle / cursorId` 기반 Keyset Pagination
+
+### 공통
+
+- `ApiResponse` 기반 공통 응답 포맷
+- `GlobalExceptionHandler` 기반 공통 예외 응답
+- Interceptor 기반 인증(`Authorization: Bearer <token>`)
+- 응답 JSON String XSS escape 처리(WebConfig)
+
 
 
 ## Quick Start
-1. JDK : 17.0.15 (Amazon Corretto)
-2. MySQL : 8.0.34
-3. Gradle : 8.14.3
-4. Spring Boot : 3.5.6
+
+**Requirements**
+
+- JDK: 17.0.15 (Amazon Corretto)
+- MySQL: 8.0.34
+- Gradle: 8.14.3
+- Spring Boot: 3.5.6
+
+### MySQL 실행 (Docker)
 
 
-### 1. MySQL 컨테이너 실행
+```bash
+docker run -d --name coreboard-mysql \
+  -e MYSQL_ROOT_PASSWORD=password \
+  -e MYSQL_DATABASE=CoreBoard \
+  -p 3306:3306 \
+  --restart=always mysql:8.0.34
+```
 
-`application-local.yml`의 기본값은 **3306 포트**를 사용합니다.
+> application-local.yml 기본값은 3306 포트를 사용합니다.
 
+<details>
+<summary>Windows(PowerShell) 명령어 보기</summary>
 
-**Windows (PowerShell)**
 ```powershell
 docker run -d --name coreboard-mysql `
   -e MYSQL_ROOT_PASSWORD=password `
@@ -40,198 +75,92 @@ docker run -d --name coreboard-mysql `
   --restart=always mysql:8.0.34
 ```
 
-**macOS / Linux**
+</details>
 
+### 애플리케이션 실행
+```powerShell
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
-docker run -d \
-  --name coreboard-mysql \
-  -e MYSQL_ROOT_PASSWORD=password \
-  -e MYSQL_DATABASE=CoreBoard \
-  -p 3306:3306 \
-  -v "${PWD}/docker/mysql/data:/var/lib/mysql" \
-  -v "${PWD}/docker/mysql/init:/docker-entrypoint-initdb.d" \
-  --restart always \
-  mysql:8.0.34
-```
----
-### 2. Testcontainers Reuse
-- 통합 테스트 실행 시 MySQL Testcontainers가 매번 새로 생성되면 초기 기동 시간이 **20~30초가 소요된 것으로 확인**되었습니다.
-- 로컬 개발 환경에서는 컨테이너 재사용(reuse)을 활성화하여 테스트 실행 속도를 단축할 수 있습니다.
-- 사용자 **홈 디렉토리에 `.testcontainers.properties` 파일을 생성**해야 합니다.
-
-**Windows (PowerShell)**
-```
-@"
-docker.client.strategy=org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy
-testcontainers.reuse.enable=true
-"@ | Out-File -FilePath "$env:USERPROFILE\.testcontainers.properties" -Encoding ascii
-```
-**macOS / Linux**
-```
-echo "testcontainers.reuse.enable=true" >> ~/.testcontainers.properties
-```
-**확인 방법**
-- 테스트 실행 후 MySQL 컨테이너가 종료되지 않고 유지되면 정상 적용
-- 두 번째 실행부터는 컨테이너 기동 시간이 사라짐
-> ⚠️  해당 설정은 로컬 개발 환경 전용입니다
-> CI 환경에서는 컨테이너 재사용을 권장하지 않습니다
-
----
-
-## 목차
-
-[1. 기능](#1-기능) </br>
-[2. 기술 스택](#2-기술-스택) </br>
-[3. 프로젝트 구조](#3-프로젝트-구조)</br>
-[4. 인증 사용 방법](#4-인증-사용-방법)</br>
-[5. API 예시](#5-api-예시)</br>
-[6. 공통 응답 포맷](#6-공통-응답-포맷)</br>
-[7. 성능 개선](#7-성능-개선)</br>
-
----
-
-## 1 기능
-
-**1) 인증**
-- 회원가입: `/auth/users`
-- 로그인: `/auth/token` (Access Token 발급)
-- 토큰 재발급: `/auth/refresh` 
-- 로그아웃: `DELETE /auth/refresh`
-
-**2) 게시글**
-- 생성/수정/삭제: JWT 필요
-- 조회(단건/목록): GET 요청은 인증 없이 허용
-- 목록 조회: cursorTitle / cursorId 기반 Keyset
-
-**3) 공통**
-- `ApiResponse` 기반 공통 응답 포맷
-- `GlobalExceptionHandler` 기반 공통 예외 응답
-- Interceptor 기반 인증 처리(`Authorization: Bearer <token>`)
-- 응답 JSON String XSS escape 처리(WebConfig)
-
----
-
-## 2 기술 스택
-
-![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=java&logoColor=white)
-![Spring](https://img.shields.io/badge/Spring-6DB33F?style=flat-square&logo=spring&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
-
-![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=flat-square&logo=junit5&logoColor=white)
-![Mockito](https://img.shields.io/badge/Mockito-78A641?style=flat-square)
-![AssertJ](https://img.shields.io/badge/AssertJ-3F51B5?style=flat-square)
-![MockMvc](https://img.shields.io/badge/MockMvc-6DB33F?style=flat-square&logo=spring&logoColor=white)
-![Testcontainers](https://img.shields.io/badge/Testcontainers-2D2D2D?style=flat-square&logo=testcontainers&logoColor=white)
-![JaCoCo](https://img.shields.io/badge/JaCoCo-Coverage-BF360C?style=flat-square)
-
-![OpenAPI](https://img.shields.io/badge/OpenAPI-6BA539?style=flat-square&logo=openapiinitiative&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat-square&logo=swagger&logoColor=black)
-
-
-
----
-
-## 3 프로젝트 구조
-
-> 도메인 단위로 패키징하고, DTO는 목적별로 분리합니다.
-
-**1) `domain/auth`**
-- controller / service / dto(command, request, response)
-
-**2) `domain/board`**
-- controller / service / repository / entity / dto(command, request, response)
-
-**3)  `domain/common`**
-- config (WebConfig, JwtConfig, 암호화 유틸)
-- interceptor (JWT 인증)
-- exception (에러코드/예외/핸들러)
-- response (ApiResponse, CursorResponse)
-
-## 4 인증 사용 방법
-### 1) 회원가입 (Public)
-#### macOS / Linux / Git Bash
-```bash
-curl -X POST "http://localhost:8080/auth/users" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "dssaa",
-    "email": "user012@naver.com",
-    "phoneNumber": "01012345678",
-    "password": "user01",
-    "confirmPassword": "user01"
-  }'
-```
-
-#### Windows PowerShell
-```bash
-irm http://localhost:8080/auth/users -Method Post -ContentType 'application/json' -Body '{
-"username":"qwerqwer2"
-,"email":"qwerqwer2@naver.com"
-,"phoneNumber":"01012345678"
-,"password":"qwerqwer2"
-,"confirmPassword":"qwerqwer2"
-}'
-```
-
-
-### 2) 로그인 (Public)
-#### macOS / Linux / Git Bash
-```bash
-curl -i -X POST "http://localhost:8080/auth/token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "qwerqwer2",
-    "password": "qwerqwer2"
-  }'
-```
-
-#### Windows PowerShell (로그인 + 토큰 저장)
-```bash
-$token = (irm http://localhost:8080/auth/token -Method Post -ContentType 'application/json' -Body (@{
-  username='qwerqwer2'
-  password='qwerqwer2'
-} | ConvertTo-Json)).data.accessToken
-
-```
-### 3) 게시글 생성
-#### Windows PowerShell
-```bash
-irm http://localhost:8080/board -Method Post -ContentType 'application/json' `
-  -Headers @{ Authorization = "Bearer $token" } `
-  -Body (@{ title='title1'; content='content1' } | ConvertTo-Json)
+### 테스트 실행
+```powerShell
+./gradlew test
 ```
 
 
 ## API 문서
-
-CoreBoard의 API 문서는 Swagger UI에서 확인할 수 있습니다.
-
-- (배포) Swagger UI: http://3.38.144.47:8080/swagger-ui/index.html
-- (배포) OpenAPI JSON: http://3.38.144.47:8080/v3/api-docs
-
+- (배포) Swagger UI: http://<public_Ip>:8080/swagger-ui/index.html
+- (배포) OpenAPI JSON: http://<public_Ip>:8080/v3/api-docs
 - (로컬) Swagger UI: http://localhost:8080/swagger-ui/index.html
-- (로컬) OpenAPI JSON: http://localhost:8080/v3/api-docs
 
-## 6 공통 응답 포맷
+> Swagger는 서버에 배포되어 있으며  
+> 요청 주시면 확인 가능하도록 열어드립니다.
+
+## 공통 응답 포맷
 ```json
 {
   "success": false,
   "message": "제목은 필수입니다.",
   "data": {
     "code": "400",
-    "errors": { "field": "title", "reason": "제목은 필수입니다." }
+    "errors": {
+      "field": "title",
+      "reason": "제목은 필수입니다."
+    }
   }
 }
 ```
-## 7. 성능 개선
 
-| 단계 | 방식 | p95 응답시간 | 개선 내용 |
-|------|------|-------------|----------|
-| 1단계 | OFFSET + 인덱스 없음 | 1,660ms | - |
-| 2단계 | OFFSET + 인덱스 추가 | 369ms | title 컬럼 인덱스 추가 |
-| 3단계 | Keyset 페이지네이션 | 12.56ms | 구조적 한계 해소 |
+## 성능 개선
+
+| 단계  | 방식              | p95 응답시간 | 개선 내용           |
+|-----|-----------------|---------:|-----------------|
+| 1단계 | OFFSET + 인덱스 없음 |  1,660ms | -               |
+| 2단계 | OFFSET + 인덱스 추가 |    369ms | title 컬럼 인덱스 추가 |
+| 3단계 | Keyset 페이지네이션   |  12.56ms | 구조적 한계 해소       |
 
 - 테스트 환경: 10만 건, 동시 접속 기준 k6 부하테스트
+
+### 관련 PR
+- [PR #44 - Keyset 페이지네이션 적용 및 테스트 실행 시간 개선](https://github.com/hansolChoi29/CoreBoard/pull/44)
+
+
+
+## 프로젝트 구조
+
+> 도메인 단위로 패키징하고, DTO는 목적별로 분리합니다. </br>
+(request: 입력 검증/요청, command: 서비스 입력 모델, response: 응답 전용)
+
+**1) domain/auth**
+
+- controller / service / dto(command, request, response)
+
+**2) domain/board**
+
+- controller / service / repository / entity / dto(command, request, response)
+
+**3) domain/common**
+
+- config: WebConfig, JwtConfig, SwaggerConfig, 암호화 유틸
+- interceptor: JWT 인증(AuthInterceptor)
+- exception: 에러코드/예외/핸들러(GlobalExceptionHandler)
+- response: ApiResponse, CursorResponse
+- validation: AuthValidation, BoardValidation
+
+```bash
+CoreBoard/
+├─ src/main/java/com/example/coreboard/
+│  ├─ CoreBoardApplication.java
+│  └─ domain/
+│     ├─ auth/
+│     ├─ board/
+│     ├─ users/
+│     └─ common/
+├─ src/main/resources/
+│  ├─ application.yml
+│  ├─ application-local.yml
+│  ├─ application-prod.yml
+│  └─ application-test.yml
+└─ src/test/
+   ├─ java/ (unit / integration)
+   └─ resources/
+```

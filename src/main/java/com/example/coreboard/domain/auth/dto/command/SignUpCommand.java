@@ -14,8 +14,7 @@ public class SignUpCommand {
             String username,
             String password,
             String confirmPassword,
-            String email,
-            String phoneNumber
+            String email, String phoneNumber
     ) {
         this.username = username;
         this.password = password;
