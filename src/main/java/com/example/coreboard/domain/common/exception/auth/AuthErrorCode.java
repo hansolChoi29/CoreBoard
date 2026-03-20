@@ -11,7 +11,7 @@ public enum AuthErrorCode {
             400,
             "비밀번호 또는 아이디가 일치하지 않습니다.",
             List.of(new FieldError(
-                    "SIGNIN ID OR PW",
+                    "SIGNIN ID OR PASSWORD MISMATCH",
                     "아이디 또는 비번 불일치입니다."
             ))
     ),
@@ -38,7 +38,7 @@ public enum AuthErrorCode {
             404,
             "존재하지 않는 사용자입니다.",
             List.of(new FieldError(
-                    "SIGNIN BOARD",
+                    "USER NOT FOUND",
                     "존재하지 않는 사용자입니다."
             ))
     ),
@@ -47,7 +47,7 @@ public enum AuthErrorCode {
             400,
             "비밀번호 확인이 일치하지 않습니다.",
             List.of(new FieldError(
-                    "SIGNUP NO PW",
+                    "SIGNUP PASSWORD MISMATCH",
                     "비밀번호 확인이 일치하지 않습니다."
             ))
     ),
@@ -56,7 +56,7 @@ public enum AuthErrorCode {
             400,
             "아이디 또는 비밀번호를 필수입니다.",
             List.of(new FieldError(
-                    "SIGNUP ID or PW BLANK",
+                    "SIGNUP NO ID OR PASSWORD",
                     "아이디 또는 비번 필수입니다."
             ))
     ),
@@ -74,7 +74,7 @@ public enum AuthErrorCode {
             400,
             "이메일은 필수입니다.",
             List.of(new FieldError(
-                    "SIGNUP EMAIL",
+                    "SIGNUP NO EMAIL",
                     "이메일은 필수입니다."
             ))
     ),
@@ -83,7 +83,7 @@ public enum AuthErrorCode {
             400,
             "아이디는 필수입니다.",
             List.of(new FieldError(
-                    "SIGNUP ID",
+                    "SIGNUP NO ID",
                     "아이디는 필수입니다."
             ))
     ),
@@ -92,7 +92,7 @@ public enum AuthErrorCode {
             400,
             "전화번호는 필수입니다.",
             List.of(new FieldError(
-                    "SIGNUP PHONENUMBER",
+                    "SIGNUP NO PHONE NUMBER",
                     "전화번호는 필수입니다."
             ))
     ),
@@ -101,7 +101,7 @@ public enum AuthErrorCode {
             400,
             "비밀번호는 필수입니다.",
             List.of(new FieldError(
-                    "SIGNUP PASSWORD",
+                    "SIGNUP NO PASSWORD",
                     "비밀번호는 필수입니다."
             ))
     );
