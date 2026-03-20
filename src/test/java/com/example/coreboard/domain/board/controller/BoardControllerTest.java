@@ -410,7 +410,7 @@ class BoardControllerTest {
                                 .content(json))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 수정 완료!"));
+                .andExpect(jsonPath("$.message").value("게시글이 성공적으로 수정되었습니다."));
 
         verify(boardService).update(any());
         verifyNoMoreInteractions(boardService);
@@ -572,7 +572,7 @@ class BoardControllerTest {
                                 .requestAttr("username", username))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글 삭제완료!"));
+                .andExpect(jsonPath("$.message").value("게시글이 성공적으로 삭제되었습니다."));
         verify(boardService).delete(eq(username), eq(id));
         verifyNoMoreInteractions(boardService);
     }
