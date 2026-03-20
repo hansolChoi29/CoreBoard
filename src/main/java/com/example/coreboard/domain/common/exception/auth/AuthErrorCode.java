@@ -11,7 +11,7 @@ public enum AuthErrorCode {
             400,
             "비밀번호 또는 아이디가 일치하지 않습니다.",
             List.of(new FieldError(
-                    "SIGNIN ID or PW",
+                    "SIGNIN ID OR PW",
                     "아이디 또는 비번 불일치입니다."
             ))
     ),
