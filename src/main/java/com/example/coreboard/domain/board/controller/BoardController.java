@@ -15,9 +15,13 @@ import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.CursorResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "Board", description = "게시글 관련 API")
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -27,6 +31,7 @@ public class BoardController {
         this.boardService = boardService;
     }
 
+    @Operation(summary = "게시글 생성", description = "로그인 후 title, content 넣고 생성")
     @PostMapping
     public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
             @RequestBody BoardCreateRequest boardRequestDto,

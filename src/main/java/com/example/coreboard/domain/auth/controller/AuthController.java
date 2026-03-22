@@ -13,6 +13,7 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "Auth", description = "인증 관련 API")
 @RequestMapping("/auth")
 @RestController
 public class AuthController {
