@@ -103,6 +103,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(new TokenResponse(newAccessToken), "토큰이 성공적으로 재발급되었습니다."));
     }
 
+    @Operation(summary = "로그아웃", description = "RefreshToken 쿠키 삭제")
     @DeleteMapping("/refresh")
     public ResponseEntity<ApiResponse<Void>> logout() {
         ResponseCookie deleteCookie = ResponseCookie.from("refresh", "")
