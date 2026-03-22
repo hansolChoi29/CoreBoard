@@ -53,6 +53,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
+    @Operation(summary = "게시글 단건 조회", description = "로그인 없이도 id로 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable("id") Long id

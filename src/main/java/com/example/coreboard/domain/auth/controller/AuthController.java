@@ -13,6 +13,7 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +34,7 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @Operation(summary = "회원가입")
     @PostMapping("/users")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) {
         AuthValidation.signUpValidation(request);
