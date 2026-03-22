@@ -86,6 +86,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
+    @Operation(summary = "게시글 수정", description = "본인 게시글만 수정 가능")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
             @RequestBody BoardUpdateRequest updateRequestDto,
