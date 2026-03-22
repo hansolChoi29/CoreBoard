@@ -15,9 +15,13 @@ import com.example.coreboard.domain.common.validation.BoardValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.CursorResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "Board", description = "게시글 관련 API")
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -27,6 +31,7 @@ public class BoardController {
         this.boardService = boardService;
     }
 
+    @Operation(summary = "게시글 생성", description = "로그인 후 title, content 넣고 생성")
     @PostMapping
     public ResponseEntity<ApiResponse<BoardCreateResponse>> create(
             @RequestBody BoardCreateRequest boardRequestDto,
@@ -48,6 +53,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
+    @Operation(summary = "게시글 단건 조회", description = "로그인 없이도 id로 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardGetOneResponse>> getOne(
             @PathVariable("id") Long id
@@ -63,6 +69,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
+    @Operation(summary = "게시글 전체 조회", description = "커서 기반 페이지네이션, sort: asc/desc")
     @GetMapping
     public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
             @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
@@ -79,6 +86,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
 
+    @Operation(summary = "게시글 수정", description = "본인 게시글만 수정 가능")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BoardUpdateResponse>> update(
             @RequestBody BoardUpdateRequest updateRequestDto,
@@ -97,6 +105,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }
 
+    @Operation(summary = "게시글 삭제", description = "본인 게시글만 삭제 가능")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
