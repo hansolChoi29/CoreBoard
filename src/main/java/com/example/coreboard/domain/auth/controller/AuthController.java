@@ -53,6 +53,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
 
+    @Operation(summary = "로그인", description = "AccessToken 반환, RefreshToken은 쿠키에 저장")
     @PostMapping("/token")
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(
             @RequestBody SignInRequest request) {
