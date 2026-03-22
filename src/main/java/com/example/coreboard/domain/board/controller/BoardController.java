@@ -69,6 +69,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
+    @Operation(summary = "게시글 전체 조회", description = "커서 기반 페이지네이션, sort: asc/desc")
     @GetMapping
     public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> getAll(
             @RequestParam(name = "cursorTitle", required = false) String cursorTitle,
