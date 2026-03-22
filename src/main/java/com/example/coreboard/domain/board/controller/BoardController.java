@@ -105,6 +105,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }
 
+    @Operation(summary = "게시글 삭제", description = "본인 게시글만 삭제 가능")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
