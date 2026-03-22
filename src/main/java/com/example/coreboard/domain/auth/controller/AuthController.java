@@ -78,6 +78,7 @@ public class AuthController {
                 .body(ApiResponse.ok(response, "로그인 성공!"));
     }
 
+    @Operation(summary = "토큰 재발급", description = "쿠키의 RefreshToken으로 새 AccessToken 발급")
     @PostMapping("/refresh")
     ResponseEntity<ApiResponse<TokenResponse>> refresh(
             HttpServletRequest request
