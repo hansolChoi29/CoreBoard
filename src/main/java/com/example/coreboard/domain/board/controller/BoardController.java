@@ -63,8 +63,13 @@ public class BoardController {
         BoardGetOneDto out = boardService.findOne(board);
 
         BoardGetOneResponse response = new BoardGetOneResponse(
-                out.getId(), out.getUserId(), out.getTitle(), out.getContent(), out.getCreatedDate(),
-                out.getLastModifiedDate());
+                out.getId(),
+                out.getUserId(),
+                out.getTitle(),
+                out.getContent(),
+                out.getCreatedDate(),
+                out.getLastModifiedDate()
+        );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
@@ -81,7 +86,12 @@ public class BoardController {
 
         BoardValidation.pageableValication(size);
 
-        CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(cursorTitle, cursorId, size, sort);
+        CursorResponse<BoardSummaryKeysetResponse> response = boardService.findAll(
+                cursorTitle,
+                cursorId,
+                size,
+                sort
+        );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
@@ -95,8 +105,12 @@ public class BoardController {
     ) {
         BoardValidation.updateValidation(updateRequestDto);
 
-        BoardUpdateCommand board = new BoardUpdateCommand(username, id, updateRequestDto.title(),
-                updateRequestDto.content());
+        BoardUpdateCommand board = new BoardUpdateCommand(
+                username,
+                id,
+                updateRequestDto.title(),
+                updateRequestDto.content()
+        );
 
         BoardUpdatedDto out = boardService.update(board);
 

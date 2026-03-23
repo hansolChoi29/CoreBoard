@@ -25,7 +25,12 @@ public class Users {
     protected Users() {
     }
 
-    public Users(String username, String encodePassword, String email, String phoneNumber) {
+    public Users(
+            String username,
+            String encodePassword,
+            String email,
+            String phoneNumber
+    ) {
         this.username = username;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
@@ -38,7 +43,12 @@ public class Users {
             String email,
             String phoneNumber
     ) {
-        return new Users(username, encodedPassword, email, phoneNumber);
+        return new Users(
+                username,
+                encodedPassword,
+                email,
+                phoneNumber
+        );
     }
 
     public String getPhoneNumber() {

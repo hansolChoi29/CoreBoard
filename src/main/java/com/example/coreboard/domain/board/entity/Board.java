@@ -54,7 +54,11 @@ public class Board {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Board create(long userId, String title, String content) {
+    public static Board create(
+            long userId,
+            String title,
+            String content
+    ) {
         Board board = new Board();
         board.userId = userId;
         board.title = title;
@@ -62,7 +66,10 @@ public class Board {
         return board;
     }
 
-    public void update(String newTitle, String newContent) {
+    public void update(
+            String newTitle,
+            String newContent
+    ) {
         if (newTitle != null && !newTitle.isBlank()) {
             this.title = newTitle;
         }
