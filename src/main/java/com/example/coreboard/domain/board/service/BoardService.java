@@ -65,8 +65,14 @@ public class BoardService {
         Board board = boardRepository.findById(boardGetOneCommand.getId())
                 .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
 
-        return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
-                board.getCreatedDate(), board.getLastModifiedDate());
+        return new BoardGetOneDto(
+                board.getId(),
+                board.getUserId(),
+                board.getTitle(),
+                board.getContent(),
+                board.getCreatedDate(),
+                board.getLastModifiedDate()
+        );
     }
 
     public CursorResponse<BoardSummaryKeysetResponse> findAll(
@@ -99,7 +105,12 @@ public class BoardService {
         String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
         Long nextCursorId = hasNext ? result.get(result.size() - 1).getId() : null;
 
-        return new CursorResponse<>(contents, nextCursorTitle, nextCursorId, hasNext);
+        return new CursorResponse<>(
+                contents,
+                nextCursorTitle,
+                nextCursorId,
+                hasNext
+        );
     }
 
     @Transactional
