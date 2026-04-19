@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -410,5 +411,33 @@ class BoardServiceTest {
 
         verify(usersRepository, times(1)).findByUsername("tester");
         verify(boardRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    @DisplayName("게시글_검색_성공")
+    void search() {
+        String keyword = "key";
+
+        Board board1 = new Board(
+                1L, 10L, "key title", "content1",
+                LocalDateTime.of(2026, 1, 1, 0, 0),
+                LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
+        Board board2 = new Board(
+                2L, 10L, "title2", "contentkey",
+                LocalDateTime.of(2026, 1, 1, 0, 0),
+                LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
+
+        when(boardRepository.searchByKeyword(keyword))
+                .thenReturn(List.of(board1, board2));
+
+        CursorResponse<BoardSummaryKeysetResponse> result = boardService.search(keyword);
+
+        assertEquals(2, result.getContents().size());
+        assertTrue(result.getContents().stream()
+                .anyMatch(board -> board.title().equals("key title")));
+        assertTrue(result.getContents().stream()
+                .anyMatch(board -> board.title().equals("title2")));
     }
 }
