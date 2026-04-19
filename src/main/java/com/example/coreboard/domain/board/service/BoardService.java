@@ -149,4 +149,25 @@ public class BoardService {
                 })
                 .ifPresent(boardRepository::delete);
     }
+
+    @Transactional
+    public CursorResponse<BoardSummaryKeysetResponse> search(String keyword) {
+        List<Board> boards = boardRepository.searchByKeyword(keyword);
+
+        List<BoardSummaryKeysetResponse> contents = boards.stream().map(
+                board -> new BoardSummaryKeysetResponse(
+                        board.getId(),
+                        board.getUserId(),
+                        board.getTitle(),
+                        board.getCreatedDate()
+                )
+        ).toList();
+
+        return new CursorResponse<>(
+                contents,
+                null,
+                null,
+                false
+        );
+    }
 }

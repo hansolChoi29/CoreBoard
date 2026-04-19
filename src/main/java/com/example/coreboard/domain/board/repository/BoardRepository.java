@@ -50,4 +50,13 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    // concat : 문자열 붙이기
+    @Query("""
+            select b
+            from Board b
+            where b.title like concat('%', :keyword, '%')
+            or b.content like concat('%', :keyword, '%')    
+            """)
+    List<Board> searchByKeyword(@Param("keyword") String keyword);
 }
