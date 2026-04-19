@@ -129,4 +129,13 @@ public class BoardController {
 
         return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
     }
+
+    @Operation(summary = "게시글 검색")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<CursorResponse<BoardSummaryKeysetResponse>>> search(
+            @RequestParam("keyword") String keyword
+    ) {
+        CursorResponse<BoardSummaryKeysetResponse> response = boardService.search(keyword);
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 검색 성공!"));
+    }
 }
