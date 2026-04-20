@@ -30,7 +30,6 @@ public class WebConfig implements WebMvcConfigurer {
                 );
     }
 
-    // TODO : 프론트 생기고 문제점 1
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
