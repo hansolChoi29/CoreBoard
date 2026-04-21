@@ -440,4 +440,8 @@ class BoardServiceTest {
         assertTrue(result.getContents().stream()
                 .anyMatch(board -> board.title().equals("title2")));
     }
+    // TODO : 검색 페이지네이션 기준 정하기
+    // TODO : 검색 Repository 쿼리 구체화하기
+    // TODO : 검색 입력값 검증 추가하기
+    // TODO : 검색 결과 없음, 공백 keyword, 대소문자/부분일치, 정렬, 페이지 분할 같은 케이스 추가
 }
