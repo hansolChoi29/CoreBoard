@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PasswordManager {
-
     private static final int COST = 12;
 
     public String encrypt(String password) {

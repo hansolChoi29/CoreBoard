@@ -13,7 +13,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 @Component
-
 public class EmailPhoneNumberManager {
 
     private static final String ALGORITHM = "AES";
