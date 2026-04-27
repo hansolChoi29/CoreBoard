@@ -1,9 +1,9 @@
 package com.example.coreboard.domain.integration;
 
-import com.example.coreboard.domain.board.dto.request.BoardCreateRequest;
-import com.example.coreboard.domain.board.dto.request.BoardUpdateRequest;
-import com.example.coreboard.domain.board.entity.Board;
-import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
+import com.example.coreboard.domain.post.dto.request.PostUpdateRequest;
+import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class BoardTest extends IntegrationTestBase {
     @Autowired
-    BoardRepository boardRepository;
+    PostRepository boardRepository;
 
     @Autowired
     UsersRepository usersRepository;
@@ -70,7 +70,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("POST/board")
     void boardCreate() throws Exception {
-        BoardCreateRequest request = new BoardCreateRequest("title", "content");
+        PostCreateRequest request = new PostCreateRequest("title", "content");
 
         mockMvc.perform(
                         post("/board")
@@ -86,14 +86,14 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board/id")
     void getOn() throws Exception {
-        Board board = new Board(
+        Post board = new Post(
                 null,
                 10L,
                 "title",
                 "content",
                 LocalDateTime.now(),
                 LocalDateTime.now());
-        Board saved = boardRepository.save(board);
+        Post saved = boardRepository.save(board);
         Long realId = saved.getId();
         mockMvc.perform(
                         get("/board/{id}", realId)
@@ -107,7 +107,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board")
     void getAll() throws Exception {
-        Board board = new Board(
+        Post board = new Post(
                 null,
                 10L,
                 "title",
@@ -127,7 +127,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("PUT/board/id")
     void put() throws Exception {
-        Board board = new Board(
+        Post board = new Post(
                 null,
                 savedUserId,
                 "title",
@@ -135,9 +135,9 @@ class BoardTest extends IntegrationTestBase {
                 LocalDateTime.now(),
                 LocalDateTime.now());
 
-        Board saved = boardRepository.save(board);
+        Post saved = boardRepository.save(board);
         Long realId = saved.getId();
-        BoardUpdateRequest reqeust = new BoardUpdateRequest("newtitle", "newcontent");
+        PostUpdateRequest reqeust = new PostUpdateRequest("newtitle", "newcontent");
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/board/{id}", realId)
@@ -151,14 +151,14 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("DELETE/board/id")
     void delete() throws Exception {
-        Board board = new Board(
+        Post board = new Post(
                 null,
                 savedUserId,
                 "title",
                 "content",
                 LocalDateTime.now(),
                 LocalDateTime.now());
-        Board saved = boardRepository.save(board);
+        Post saved = boardRepository.save(board);
         Long realId = saved.getId();
 
         mockMvc.perform(

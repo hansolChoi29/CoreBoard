@@ -22,6 +22,10 @@ public class Users {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private UserRole role = UserRole.USER;
+
     protected Users() {
     }
 
@@ -29,12 +33,14 @@ public class Users {
             String username,
             String encodePassword,
             String email,
-            String phoneNumber
+            String phoneNumber,
+            UserRole role
     ) {
         this.username = username;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
+        this.role = role;
     }
 
     public static Users createUsers(
@@ -47,8 +53,13 @@ public class Users {
                 username,
                 encodedPassword,
                 email,
-                phoneNumber
+                phoneNumber,
+                UserRole.USER
         );
+    }
+
+    public UserRole getRole() {
+        return role;
     }
 
     public String getPhoneNumber() {

@@ -1,14 +1,8 @@
 package com.example.coreboard.domain.board.entity;
 
+import com.example.coreboard.domain.users.entity.UserRole;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-
-@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name = "board")
 public class Board {
@@ -16,91 +10,47 @@ public class Board {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "제목은 필수입니다")
-    @Column(name = "title", nullable = false)
-    private String title;
+    private String name;
 
-    @NotBlank(message = "내용은 필수입니다")
-    @Column(name = "content", nullable = false, length = 1000)
-    private String content;
+    private String slug;
 
-    @Column(nullable = false)
-    private Long userId;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column
-    private LocalDateTime lastModifiedDate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "required_write_role", nullable = false, length = 20)
+    private UserRole requiredWriteRole = UserRole.USER;
 
     protected Board() {
     }
 
     public Board(
             Long id,
-            Long userId,
-            String title,
-            String content,
-            LocalDateTime createdDate,
-            LocalDateTime lastModifiedDate
+            String name,
+            String slug,
+            UserRole requiredWriteRole
     ) {
         this.id = id;
-        this.title = title;
-        this.content = content;
-        this.userId = userId;
-        this.createdDate = createdDate;
-        this.lastModifiedDate = lastModifiedDate;
-    }
-
-    public static Board create(
-            long userId,
-            String title,
-            String content
-    ) {
-        Board board = new Board();
-        board.userId = userId;
-        board.title = title;
-        board.content = content;
-        return board;
-    }
-
-    public void update(
-            String newTitle,
-            String newContent
-    ) {
-        if (newTitle != null && !newTitle.isBlank()) {
-            this.title = newTitle;
-        }
-        if (newContent != null && !newContent.isBlank()) {
-            this.content = newContent;
-        }
+        this.name = name;
+        this.slug = slug;
+        this.requiredWriteRole = requiredWriteRole;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public String getContent() {
-        return content;
+    public String getSlug() {
+        return slug;
     }
 
-    public Long getUserId() {
-        return userId;
+    public UserRole getRequiredWriteRole() {
+        return requiredWriteRole;
     }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public LocalDateTime getLastModifiedDate() {
-        return lastModifiedDate;
-    }
+    /*
+     * 공지사항 게시판은 관리자만 작성 가능하다
+     * 갤러리 게시판은 첨부파일이 필수다
+     * 자료실 게시판은 첨부파일이 최대 5개다
+     * */
 }
-
-
