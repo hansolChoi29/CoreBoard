@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.integration;
 
 import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
 import com.example.coreboard.domain.post.dto.request.PostUpdateRequest;
 import com.example.coreboard.domain.post.entity.ContentFormat;
@@ -25,7 +26,6 @@ import org.springframework.http.MediaType;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -36,10 +36,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class BoardTest extends IntegrationTestBase {
     @Autowired
-    PostRepository boardRepository;
+    UsersRepository usersRepository;
 
     @Autowired
-    UsersRepository usersRepository;
+    BoardRepository boardRepository;
+    @Autowired
+    PostRepository postRepository;
 
     @Autowired
     MockMvc mockMvc;
@@ -53,7 +55,7 @@ class BoardTest extends IntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        Users user = usersRepository.save(new Users("username", "password", "email@naver.com", "01012341234"));
+        Users user = usersRepository.save(new Users("username", "password", "email@naver.com", "01012341234", UserRole.USER));
 
         String secret = "test-jwt-secret-key-for-coreboard";
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -73,7 +75,8 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("POST/board")
     void boardCreate() throws Exception {
-        PostCreateRequest request = new PostCreateRequest("title", "content");
+        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+        PostCreateRequest request = new PostCreateRequest(board.getId(), "title", "content", ContentFormat.MARKDOWN);
 
         mockMvc.perform(
                         post("/board")
@@ -83,20 +86,17 @@ class BoardTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("title"))
                 .andExpect(jsonPath("$.data.content").value("content"));
-        assertThat(boardRepository.count()).isEqualTo(1);
+        assertThat(postRepository.count()).isEqualTo(1);
     }
 
     @Test
     @DisplayName("GET/board/id")
     void getOn() throws Exception {
-        Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
-                "title",
-                "conent",
-                ContentFormat.TEXT);
-        Post saved = boardRepository.save(post);
+        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+        Users user = usersRepository.save(new Users("username2", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
+        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
         Long realId = saved.getId();
+
         mockMvc.perform(
                         get("/board/{id}", realId)
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -109,13 +109,10 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board")
     void getAll() throws Exception {
-        Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
-                "title",
-                "conent",
-                ContentFormat.TEXT);
-        boardRepository.save(post);
+        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+        Users user = usersRepository.save(new Users("username2", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
+        postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
+
         mockMvc.perform(
                         get("/board")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -128,16 +125,13 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("PUT/board/id")
     void put() throws Exception {
-        Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
-                "title",
-                "conent",
-                ContentFormat.TEXT);
+        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
 
-        Post saved = boardRepository.save(post);
+        Users user = usersRepository.findByUsername("username").orElseThrow();
+        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
+
         Long realId = saved.getId();
-        PostUpdateRequest reqeust = new PostUpdateRequest("newtitle", "newcontent");
+        PostUpdateRequest reqeust = new PostUpdateRequest("newtitle", "newcontent", ContentFormat.MARKDOWN);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/board/{id}", realId)
@@ -151,13 +145,11 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("DELETE/board/id")
     void delete() throws Exception {
-        Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
-                "title",
-                "conent",
-                ContentFormat.TEXT);
-        Post saved = boardRepository.save(post);
+        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+
+        Users user = usersRepository.findByUsername("username").orElseThrow();
+        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
+
         Long realId = saved.getId();
 
         mockMvc.perform(

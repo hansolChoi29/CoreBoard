@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.service;
 
 import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
 import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
@@ -29,7 +30,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,80 +44,88 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BoardServiceTest {
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2026, 1, 1, 0, 0);
+    @Mock
+    BoardRepository boardRepository;
 
     @Mock
-    PostRepository boardRepository;
+    PostRepository postRepository;
 
     @Mock
     UsersRepository usersRepository;
 
     @InjectMocks
-    PostService boardService;
+    PostService postService;
 
     PostCreateRequest boardCreateRequest;
     PostCreateCommand boardCreateCommand;
-    Post post = new Post(
-            new Board("free", false, 0, 8000, UserRole.USER),
-            new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-            "title1", "content", ContentFormat.TEXT
-    );
-
-    Board("free",false,0,8000,UserRole.USER),
-
-    Users("username1","password1","qwe1@qwe.com","010-1234-1231",UserRole.USER),
 
     @BeforeEach
     void setUpCreate() {
-        boardCreateRequest = new PostCreateRequest("제목", "내용");
-        boardCreateCommand = new PostCreateCommand("제목", "내용");
+        boardCreateRequest = new PostCreateRequest(
+                1L,
+                "title",
+                "content",
+                ContentFormat.MARKDOWN
+        );
+
+        boardCreateCommand = new PostCreateCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
     }
 
     @Test
     @DisplayName("게시글_생성")
     void create() {
         Users users = new Users("tester", "password", "user01@naver.com", "01012341234", UserRole.USER);
-
         ReflectionTestUtils.setField(users, "userId", 10L);
 
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
+
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-        given(boardRepository.existsByTitle("제목")).willReturn(false);
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
 
-        Post saved = new Post(1L, 10L, "제목", "내용", FIXED_TIME, FIXED_TIME);
+        Post saved = new Post(board, users, "제목", "내용", ContentFormat.MARKDOWN);
+        ReflectionTestUtils.setField(saved, "id", 1L);
 
-        given(boardRepository.save(any(Post.class))).willReturn(saved);
+        given(postRepository.save(any(Post.class))).willReturn(saved);
 
-        PostCreateDto result = boardService.create(boardCreateCommand, "tester");
+        PostCreateDto result = postService.create(boardCreateCommand, "tester");
 
         assertNotNull(result);
         assertEquals("제목", result.getTitle());
         assertEquals("내용", result.getContent());
 
         ArgumentCaptor<Post> captor = ArgumentCaptor.forClass(Post.class);
-        verify(boardRepository).save(captor.capture());
+        verify(postRepository).save(captor.capture());
+
         Post toSave = captor.getValue();
 
-        assertEquals(10L, toSave.getUserId());
+        assertEquals(10L, toSave.getUser().getUserId());
         assertEquals("제목", toSave.getTitle());
         assertEquals("내용", toSave.getContent());
 
         verify(usersRepository).findByUsername("tester");
-        verify(boardRepository).existsByTitle("제목");
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
     }
 
     @Test
     @DisplayName("게시글_생성_예외_유저없음_404")
     void createUserNotFound() {
         given(usersRepository.findByUsername("tester")).willReturn(Optional.empty());
+
         AuthErrorException notFoundUser = assertThrows(
                 AuthErrorException.class,
-                () -> boardService.create(
-                        boardCreateCommand,
-                        "tester"));
+                () -> postService.create(boardCreateCommand, "tester"));
+
         assertEquals(HttpStatus.NOT_FOUND, notFoundUser.getStatus());
 
-        verify(boardRepository, never()).existsByTitle(anyString());
-        verify(boardRepository, never()).save(any());
+        verify(postRepository, never()).existsByTitle(anyString());
+        verify(postRepository, never()).save(any());
     }
 
     @Test
@@ -125,57 +133,58 @@ class BoardServiceTest {
     void createTitleDuplicated() {
         Users users = mock(Users.class);
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-        given(boardRepository.existsByTitle("제목")).willReturn(true);
+        given(postRepository.existsByTitle("제목")).willReturn(true);
 
         PostErrorException duplicatedBoard = assertThrows(
                 PostErrorException.class,
-                () -> boardService.create(
-                        boardCreateCommand,
-                        "tester"));
+                () -> postService.create(boardCreateCommand, "tester"));
+
         assertEquals(HttpStatus.CONFLICT, duplicatedBoard.getStatus());
 
         verify(usersRepository).findByUsername("tester");
-        verify(boardRepository).existsByTitle("제목");
-        verify(boardRepository, never()).save(any());
+        verify(postRepository).existsByTitle("제목");
+        verify(postRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
         Long id = 1L;
+
+        Users user = new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER);
+        ReflectionTestUtils.setField(user, "userId", 5L);  // userId null 방지
+
         Post post = new Post(
                 new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                "title1", "content1", ContentFormat.TEXT);
+                user,
+                "title1", "content1", ContentFormat.MARKDOWN);
+        ReflectionTestUtils.setField(post, "id", id);
 
-        given(boardRepository.findById(id)).willReturn(Optional.of(post));
+        given(postRepository.findById(id)).willReturn(Optional.of(post));
 
-        PostGetOneCommand boardGetOneCommand = new PostGetOneCommand(id);
-
-        PostGetOneDto out = boardService.findOne(boardGetOneCommand);
+        PostGetOneDto out = postService.findOne(new PostGetOneCommand(id));
 
         assertNotNull(out);
         assertEquals(id, out.getId());
-        assertEquals("제목", out.getTitle());
-        assertEquals("본문", out.getContent());
-        assertNotNull(out.getCreatedDate());
-
-        verify(boardRepository, times(1)).findById(id);
-        verifyNoMoreInteractions(boardRepository);
+        assertEquals("title1", out.getTitle());
+        assertEquals("content1", out.getContent());
+        verify(postRepository, times(1)).findById(id);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @Test
     @DisplayName("게시글_단건_조회_미존재_404")
     void findOnNotFound() {
         Long id = 1L;
-        given(boardRepository.findById(id)).willReturn(Optional.empty());
+        given(postRepository.findById(id)).willReturn(Optional.empty());
         PostGetOneCommand command = new PostGetOneCommand(id);
-        PostErrorException findOneNotFound = assertThrows(
-                PostErrorException.class,
-                () -> boardService.findOne(command));
+
+        PostErrorException findOneNotFound = assertThrows(PostErrorException.class,
+                () -> postService.findOne(command));
+
         assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
-        verify(boardRepository, times(1)).findById(id);
-        verifyNoMoreInteractions(boardRepository);
+        verify(postRepository, times(1)).findById(id);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @Test
@@ -185,51 +194,59 @@ class BoardServiceTest {
                 new Post(
                         new Board("free", false, 0, 8000, UserRole.USER),
                         new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title1", "content1", ContentFormat.TEXT),
+                        "title1", "content1", ContentFormat.MARKDOWN),
                 new Post(
                         new Board("free", false, 0, 8000, UserRole.USER),
                         new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title2", "content2", ContentFormat.TEXT),
+                        "title2", "content2", ContentFormat.MARKDOWN),
                 new Post(
-                        (new Board("free", false, 0, 8000, UserRole.USER),
+                        new Board("free", false, 0, 8000, UserRole.USER),
                         new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title3", "content3", ContentFormat.TEXT));
+                        "title3", "content3", ContentFormat.MARKDOWN));
 
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll(null, null, 10, "desc");
+        given(postRepository.findFirstPageDesc(pageable)).willReturn(boards);
+        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll(null, null, 10, "desc");
 
         assertEquals(3, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
         assertNull(result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findFirstPageDesc(pageable);
-        verifyNoMoreInteractions(boardRepository);
+        verify(postRepository, times(1)).findFirstPageDesc(pageable);
+        verifyNoMoreInteractions(postRepository);
     }
-
-    new
 
     @Test
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
     void findAll_firstPage_hasNextPage() {
-        List<Post> boards = new ArrayList<>();
-        for (long i = 11; i >= 1; i--) {
-            boards.add(new Post(board, users, "title" + i, "content" + i, ContentFormat.TEXT));
-        }
-        Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll(null, null, 10, "desc");
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
 
-        assertEquals(10L, result.getContents().size());
+        Users user = new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        List<Post> posts = new ArrayList<>();
+
+        for (long i = 11; i >= 1; i--) {
+            Post post = new Post(board, user, "title" + i, "content" + i, ContentFormat.MARKDOWN);
+            ReflectionTestUtils.setField(post, "id", i);
+            posts.add(post);
+        }
+
+        Pageable pageable = PageRequest.of(0, 11);
+        given(postRepository.findFirstPageDesc(pageable)).willReturn(posts);
+
+        CursorResponse<PostSummaryKeysetResponse> result =
+                postService.findAll(null, null, 10, "desc");
+
+        assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
         assertEquals("title2", result.getNextCursorTitle());
         assertEquals(2L, result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findFirstPageDesc(pageable);
-        verifyNoMoreInteractions(boardRepository);
+        verify(postRepository, times(1)).findFirstPageDesc(pageable);
+        verifyNoMoreInteractions(postRepository);
     }
-                    new
 
     @Test
     @DisplayName("게시글_전체_조회_다음_페이지에서_asc_분기")
@@ -238,21 +255,21 @@ class BoardServiceTest {
         for (long i = 11; i >= 1; i--) {
             boards.add(new Post(
                     new Board("free", false, 0, 8000, UserRole.USER),
-                    new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER), "title" + i, "content" + i, ContentFormat.TEXT));
+                    new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER), "title" + i, "content" + i, ContentFormat.MARKDOWN));
         }
 
-        given(boardRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
+        given(postRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
                 .willReturn(boards);
 
         CursorResponse<PostSummaryKeysetResponse> result =
-                boardService.findAll("title2", 12L, 10, "asc");
+                postService.findAll("title2", 12L, 10, "asc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
 
-        verify(boardRepository, times(1))
+        verify(postRepository, times(1))
                 .findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class));
-        verify(boardRepository, never())
+        verify(postRepository, never())
                 .findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
     }
 
@@ -263,91 +280,118 @@ class BoardServiceTest {
                 new Post(
                         new Board("free", false, 0, 8000, UserRole.USER),
                         new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title1", "content1", ContentFormat.TEXT),
+                        "title1", "content1", ContentFormat.MARKDOWN),
                 new Post(new Board("free", false, 0, 8000, UserRole.USER),
                         new Users("username2", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
-                        "title2", "content2", ContentFormat.TEXT));
+                        "title2", "content2", ContentFormat.MARKDOWN));
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10, "desc");
+        given(postRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
+        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll("title", 5L, 10, "desc");
         assertEquals(2, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
         assertNull(result.getNextCursorId());
 
-        verify(boardRepository, times(1)).findNextPageDesc("title", 5L, pageable);
-        verifyNoMoreInteractions(boardRepository);
+        verify(postRepository, times(1)).findNextPageDesc("title", 5L, pageable);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @Test
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
     void findAll_nextPage_hasNextPage() {
-        List<Post> boards = new ArrayList<>();
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
+
+        Users user = new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        List<Post> posts = new ArrayList<>();
+
         for (long i = 11; i >= 1; i--) {
-            boards.add(
-                    new Post(
-                            i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+            Post post = new Post(board, user, "title" + i, "content" + i, ContentFormat.MARKDOWN);
+            ReflectionTestUtils.setField(post, "id", i);
+            posts.add(post);
         }
+
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll("title2", 12L, 10, "desc");
+        given(postRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(posts);
+
+        CursorResponse<PostSummaryKeysetResponse> result =
+                postService.findAll("title2", 12L, 10, "desc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
         assertEquals("title2", result.getNextCursorTitle());
         assertEquals(2L, result.getNextCursorId());
 
-        verify(boardRepository).findNextPageDesc("title2", 12L, pageable);
-        verifyNoMoreInteractions(boardRepository);
+        verify(postRepository).findNextPageDesc("title2", 12L, pageable);
+        verifyNoMoreInteractions(postRepository);
     }
 
     @Test
     @DisplayName("커서가_null이면_findFirstPage_호출")
     void findAll_title_or_id_null() {
-        List<Post> mockData = createBoards(5);
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
+        Users user = new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
+
+        List<Post> mockData = createBoards(5, board, user);
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPageDesc(pageable)).willReturn(mockData);
+        given(postRepository.findFirstPageDesc(pageable)).willReturn(mockData);
 
-        boardService.findAll(null, null, 10, "desc");
+        postService.findAll(null, null, 10, "desc");
 
-        verify(boardRepository).findFirstPageDesc(pageable);
-        verify(boardRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
+        verify(postRepository).findFirstPageDesc(pageable);
+        verify(postRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
     }
 
     @Test
     @DisplayName("결과가_size보다_많으면_hasNext_true고_size개만_반환")
     void findAll_size_hasNext_true_size_return() {
-        List<Post> mockData = createBoards(5);
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
+        Users user = new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
+
+        List<Post> mockData = createBoards(5, board, user);
+
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findNextPageDesc("title", 1L, pageable)).willReturn(mockData);
+        given(postRepository.findNextPageDesc("title", 1L, pageable)).willReturn(mockData);
 
-        boardService.findAll("title", 1L, 10, "desc");
+        postService.findAll("title", 1L, 10, "desc");
 
-        verify(boardRepository).findNextPageDesc("title", 1L, pageable);
-        verify(boardRepository, never()).findFirstPageDesc(pageable);
+        verify(postRepository).findNextPageDesc("title", 1L, pageable);
+        verify(postRepository, never()).findFirstPageDesc(pageable);
     }
 
     @Test
     @DisplayName("결과가_size_이하면_hasNext_false")
     void findAll_size_hasNext_false() {
+        Board board = new Board("free", false, 0, 8000, UserRole.USER);
+        Users user = new Users("username", "password", "qwe@qew.com", "01012341234", UserRole.USER);
+
         Pageable pageable = PageRequest.of(0, 11);
-        given(boardRepository.findFirstPageDesc(pageable)).willReturn(createBoards(5));
 
-        boardService.findAll("title", null, 10, "desc");
+        given(postRepository.findFirstPageDesc(pageable))
+                .willReturn(createBoards(5, board, user));
 
-        verify(boardRepository).findFirstPageDesc(pageable);
-        verify(boardRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
+        CursorResponse<PostSummaryKeysetResponse> result =
+                postService.findAll(null, null, 10, "desc");
+
+        assertEquals(5, result.getContents().size());
+        assertFalse(result.isHasNext());
+        assertNull(result.getNextCursorTitle());
+        assertNull(result.getNextCursorId());
+
+        verify(postRepository).findFirstPageDesc(pageable);
+        verify(postRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
+        verifyNoMoreInteractions(postRepository);
     }
 
-    private List<Post> createBoards(int count) {
+    private List<Post> createBoards(int count, Board board, Users user) {
         return IntStream.range(0, count)
-                .mapToObj(i -> new Post(
-                        (long) i,
-                        1L,
+                .mapToObj(i -> Post.create(
+                        board,
+                        user,
                         "title" + i,
-                        "content" + i,
-                        LocalDateTime.now(),
-                        LocalDateTime.now()))
+                        "content" + i
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -355,93 +399,118 @@ class BoardServiceTest {
     @DisplayName("게시글_수정_성공")
     void update() {
         Long id = 1L;
-        Users users = mock(Users.class);
-        Post board = mock(Post.class);
+
+        Users loginUser = mock(Users.class);
+        Post post = mock(Post.class);
+        Users postWriter = mock(Users.class);
+
         PostUpdateCommand cmd = new PostUpdateCommand(
                 "tester",
                 id,
                 "새제목",
-                "새본문");
-        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-        given(boardRepository.findById(id)).willReturn(Optional.of(board));
-        given(users.getUserId()).willReturn(10L);
-        given(board.getUserId()).willReturn(10L);
-        given(board.getId()).willReturn(id);
+                "새본문",
+                ContentFormat.MARKDOWN
+        );
 
-        PostUpdatedDto result = boardService.update(cmd);
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(loginUser));
+        given(postRepository.findById(id)).willReturn(Optional.of(post));
+
+        given(loginUser.getUserId()).willReturn(10L);
+        given(post.getUser()).willReturn(postWriter);
+        given(postWriter.getUserId()).willReturn(10L);
+
+        given(post.getId()).willReturn(id);
+
+        PostUpdatedDto result = postService.update(cmd);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        verify(board).update("새제목", "새본문");
+        assertEquals(id, result.getId());
+
+        verify(post).update("새제목", "새본문", ContentFormat.MARKDOWN);
     }
 
     @Test
     @DisplayName("게시글_수정_권한없음_403")
     void updateFobiddern() {
-        Users users = mock(Users.class);
-        Post board = mock(Post.class);
+        Users loginUser = mock(Users.class);
+        Post post = mock(Post.class);
+        Users postWriter = mock(Users.class);
 
         PostUpdateCommand cmd = new PostUpdateCommand(
                 "tester",
                 1L,
                 "title",
-                "content");
+                "content",
+                ContentFormat.MARKDOWN
+        );
 
-        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
-        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(loginUser));
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
-        given(users.getUserId()).willReturn(10L);
-        given(board.getUserId()).willReturn(98L);
+        given(loginUser.getUserId()).willReturn(10L);
+        given(post.getUser()).willReturn(postWriter);
+        given(postWriter.getUserId()).willReturn(98L);
 
-        AuthErrorException forbiddern = assertThrows(
+        AuthErrorException exception = assertThrows(
                 AuthErrorException.class,
-                () -> boardService.update(cmd));
+                () -> postService.update(cmd)
+        );
 
-        assertEquals(HttpStatus.FORBIDDEN, forbiddern.getStatus());
-        verify(board, never()).update(anyString(), anyString());
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+
+        verify(post, never()).update(anyString(), anyString(), any(ContentFormat.class));
     }
 
     @Test
     @DisplayName("게시글_삭제_성공")
     void delete() {
+        Users loginUser = mock(Users.class);
+        Post post = mock(Post.class);
+        Users postWriter = mock(Users.class);
 
-        Users users = mock(Users.class);
-        Post board = mock(Post.class);
         String username = "tester";
         Long id = 1L;
 
-        given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
-        given(boardRepository.findById(id)).willReturn(Optional.of(board));
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
+        given(postRepository.findById(id)).willReturn(Optional.of(post));
 
-        given(users.getUserId()).willReturn(10L);
-        given(board.getUserId()).willReturn(10L);
+        given(loginUser.getUserId()).willReturn(10L);
+        given(post.getUser()).willReturn(postWriter);
+        given(postWriter.getUserId()).willReturn(10L);
 
-        boardService.delete(username, id);
+        postService.delete(username, id);
 
         verify(usersRepository, times(1)).findByUsername(username);
-        verify(boardRepository, times(1)).findById(id);
+        verify(postRepository, times(1)).findById(id);
+        verify(postRepository, times(1)).delete(post);
     }
 
     @Test
     @DisplayName("게시글_삭제_권한없음_403")
     void deleteFobiddern() {
-        Users users = mock(Users.class);
-        Post board = mock(Post.class);
+        Users loginUser = mock(Users.class);
+        Post post = mock(Post.class);
+        Users postWriter = mock(Users.class);
+
         String username = "tester";
 
-        given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
-        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
 
-        given(users.getUserId()).willReturn(10L);
-        given(board.getUserId()).willReturn(98L);
+        given(loginUser.getUserId()).willReturn(10L);
+        given(post.getUser()).willReturn(postWriter);
+        given(postWriter.getUserId()).willReturn(98L);
 
-        AuthErrorException fodibbern = assertThrows(
+        AuthErrorException exception = assertThrows(
                 AuthErrorException.class,
-                () -> boardService.delete("tester", 1L));
-        assertEquals(HttpStatus.FORBIDDEN, fodibbern.getStatus());
+                () -> postService.delete(username, 1L)
+        );
 
-        verify(usersRepository, times(1)).findByUsername("tester");
-        verify(boardRepository, times(1)).findById(1L);
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+
+        verify(usersRepository, times(1)).findByUsername(username);
+        verify(postRepository, times(1)).findById(1L);
+        verify(postRepository, never()).delete(any(Post.class));
     }
 
     @Test
@@ -452,21 +521,21 @@ class BoardServiceTest {
         Post post = new Post(
                 new Board("free", false, 0, 8000, UserRole.USER),
                 new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                "title1", "content", ContentFormat.TEXT
+                "title1", "content", ContentFormat.MARKDOWN
         );
         Post post2 = new Post(
                 new Board("free", false, 0, 8000, UserRole.USER),
                 new Users("username2", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
-                "title2", "content", ContentFormat.TEXT
+                "title2", "content", ContentFormat.MARKDOWN
         );
-        when(boardRepository.searchByKeyword(keyword))
+        when(postRepository.searchByKeyword(keyword))
                 .thenReturn(List.of(post, post2));
 
-        CursorResponse<PostSummaryKeysetResponse> result = boardService.search(keyword);
+        CursorResponse<PostSummaryKeysetResponse> result = postService.search(keyword);
 
         assertEquals(2, result.getContents().size());
         assertTrue(result.getContents().stream()
-                .anyMatch(board -> board.title().equals("key title")));
+                .anyMatch(board -> board.title().equals("title1")));
         assertTrue(result.getContents().stream()
                 .anyMatch(board -> board.title().equals("title2")));
     }

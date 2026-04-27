@@ -46,7 +46,7 @@ public class PostService {
     public PostCreateDto create(
             PostCreateCommand boardCreateCommand,
             String username
-    )  {
+    ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
@@ -61,8 +61,7 @@ public class PostService {
                 board,
                 user,
                 boardCreateCommand.getTitle(),
-                boardCreateCommand.getContent(),
-                boardCreateCommand.getContentFormat());
+                boardCreateCommand.getContent());
 
         Post saved = postRepository.save(post);
 

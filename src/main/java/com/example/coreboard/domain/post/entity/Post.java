@@ -3,7 +3,6 @@ package com.example.coreboard.domain.post.entity;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -81,15 +80,14 @@ public class Post {
             Board board,
             Users user,
             String title,
-            String content,
-            ContentFormat contentFormat
+            String content
     ) {
         return new Post(
                 board,
                 user,
                 title,
                 content,
-                contentFormat
+                ContentFormat.MARKDOWN
         );
     }
 

@@ -25,7 +25,7 @@ public class Board {
     private int maxAttachmentCount;      // 첨부파일 몇 개까지 (자료실=5)
 
     @Column(name = "max_content_length", nullable = false)
-    private int maxContentLength;        // 본문 최대 길이
+    private int maxContentLength = 10000;        // 본문 최대 길이
 
     @Enumerated(EnumType.STRING)
     @Column(name = "required_write_role", nullable = false, length = 20)

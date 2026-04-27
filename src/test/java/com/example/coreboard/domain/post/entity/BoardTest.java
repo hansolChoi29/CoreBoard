@@ -1,8 +1,10 @@
 package com.example.coreboard.domain.post.entity;
 
+import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.users.entity.UserRole;
+import com.example.coreboard.domain.users.entity.Users;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,65 +12,62 @@ class BoardTest {
 
     @Test
     void update() {
-        Post board = new Post(
-                1L,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 제목",
                 "기존 내용",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                ContentFormat.MARKDOWN
         );
 
-        board.update("새 제목", "새 내용");
+        post.update("새 제목", "새 내용", ContentFormat.MARKDOWN);
 
-        assertEquals("새 제목", board.getTitle());
-        assertEquals("새 내용", board.getContent());
+        assertEquals("새 제목", post.getTitle());
+        assertEquals("새 내용", post.getContent());
     }
 
     @Test
     void update_isBlank() {
-        Post board = new Post(
-                1L,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                ContentFormat.MARKDOWN
         );
-        board.update("   ", "     ");
-        assertEquals("기존 데이터", board.getTitle());
-        assertEquals("기존 데이터", board.getContent());
+
+        post.update("   ", "     ", ContentFormat.MARKDOWN);
+        assertEquals("기존 데이터", post.getTitle());
+        assertEquals("기존 데이터", post.getContent());
     }
 
     @Test
     void update_isEmpty() {
-        Post board = new Post(
-                1L,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                ContentFormat.MARKDOWN
         );
-        board.update("  ", "   ");
+        post.update("  ", "   ", ContentFormat.MARKDOWN);
 
-        assertEquals("기존 데이터", board.getTitle());
-        assertEquals("기존 데이터", board.getContent());
+        assertEquals("기존 데이터", post.getTitle());
+        assertEquals("기존 데이터", post.getContent());
     }
 
     @Test
     void update_null() {
-        Post board = new Post(
-                1L,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                ContentFormat.MARKDOWN
         );
-        board.update(null, null);
+        post.update(null, null, ContentFormat.MARKDOWN);
 
-        assertEquals("기존 데이터", board.getTitle());
-        assertEquals("기존 데이터", board.getContent());
+        assertEquals("기존 데이터", post.getTitle());
+        assertEquals("기존 데이터", post.getContent());
     }
 }
