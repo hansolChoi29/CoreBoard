@@ -25,10 +25,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/board")
 public class PostController {
-    private final PostService boardService;
+    private final PostService postService;
 
-    public PostController(PostService boardService) {
-        this.boardService = boardService;
+    public PostController(PostService postService) {
+        this.postService = postService;
     }
 
     @Operation(summary = "게시글 생성", description = "로그인 후 title, content 넣고 생성")
@@ -39,9 +39,13 @@ public class PostController {
     ) {
         PostValidation.createValidation(boardRequestDto);
 
-        PostCreateCommand board = new PostCreateCommand(boardRequestDto.title(), boardRequestDto.content());
+        PostCreateCommand board = new PostCreateCommand(
+                boardRequestDto.boardId(),
+                boardRequestDto.title(),
+                boardRequestDto.content(),
+                boardRequestDto.contentFormat());
 
-        PostCreateDto out = boardService.create(board, username);
+        PostCreateDto out = postService.create(board, username);
 
         PostCreateResponse response = new PostCreateResponse(
                 out.getId(),
@@ -60,7 +64,7 @@ public class PostController {
     ) {
         PostGetOneCommand board = new PostGetOneCommand(id);
 
-        PostGetOneDto out = boardService.findOne(board);
+        PostGetOneDto out = postService.findOne(board);
 
         PostGetOneResponse response = new PostGetOneResponse(
                 out.getId(),
@@ -86,7 +90,7 @@ public class PostController {
 
         PostValidation.pageableValication(size);
 
-        CursorResponse<PostSummaryKeysetResponse> response = boardService.findAll(
+        CursorResponse<PostSummaryKeysetResponse> response = postService.findAll(
                 cursorTitle,
                 cursorId,
                 size,
@@ -109,10 +113,11 @@ public class PostController {
                 username,
                 id,
                 updateRequestDto.title(),
-                updateRequestDto.content()
+                updateRequestDto.content(),
+                updateRequestDto.contentFormat()
         );
 
-        PostUpdatedDto out = boardService.update(board);
+        PostUpdatedDto out = postService.update(board);
 
         PostUpdateResponse response = new PostUpdateResponse(out.getId());
 
@@ -125,7 +130,7 @@ public class PostController {
             @RequestAttribute("username") String username,
             @PathVariable("id") Long id
     ) {
-        boardService.delete(username, id);
+        postService.delete(username, id);
 
         return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
     }
@@ -135,7 +140,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<CursorResponse<PostSummaryKeysetResponse>>> search(
             @RequestParam("keyword") String keyword
     ) {
-        CursorResponse<PostSummaryKeysetResponse> response = boardService.search(keyword);
+        CursorResponse<PostSummaryKeysetResponse> response = postService.search(keyword);
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 검색 성공!"));
     }
 }

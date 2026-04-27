@@ -1,16 +1,19 @@
 package com.example.coreboard.domain.post.service;
 
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
 import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
 import com.example.coreboard.domain.post.dto.command.PostUpdateCommand;
 import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
+import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
 import com.example.coreboard.domain.common.response.CursorResponse;
+import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +57,15 @@ class BoardServiceTest {
 
     PostCreateRequest boardCreateRequest;
     PostCreateCommand boardCreateCommand;
+    Post post = new Post(
+            new Board("free", false, 0, 8000, UserRole.USER),
+            new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+            "title1", "content", ContentFormat.TEXT
+    );
+
+    Board("free",false,0,8000,UserRole.USER),
+
+    Users("username1","password1","qwe1@qwe.com","010-1234-1231",UserRole.USER),
 
     @BeforeEach
     void setUpCreate() {
@@ -64,7 +76,7 @@ class BoardServiceTest {
     @Test
     @DisplayName("게시글_생성")
     void create() {
-        Users users = new Users("tester", "password", "user01@naver.com", "01012341234");
+        Users users = new Users("tester", "password", "user01@naver.com", "01012341234", UserRole.USER);
 
         ReflectionTestUtils.setField(users, "userId", 10L);
 
@@ -131,14 +143,12 @@ class BoardServiceTest {
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
         Long id = 1L;
-        Post entity = new Post(
-                1L,
-                10L,
-                "제목",
-                "본문",
-                LocalDateTime.now(),
-                LocalDateTime.now());
-        given(boardRepository.findById(id)).willReturn(Optional.of(entity));
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                "title1", "content1", ContentFormat.TEXT);
+
+        given(boardRepository.findById(id)).willReturn(Optional.of(post));
 
         PostGetOneCommand boardGetOneCommand = new PostGetOneCommand(id);
 
@@ -172,9 +182,19 @@ class BoardServiceTest {
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_false")
     void findAll_firstPage_noNextPage() {
         List<Post> boards = List.of(
-                new Post(3L, 10L, "title1", "content1", FIXED_TIME, FIXED_TIME),
-                new Post(2L, 10L, "title2", "content2", FIXED_TIME, FIXED_TIME),
-                new Post(1L, 10L, "title3", "content3", FIXED_TIME, FIXED_TIME));
+                new Post(
+                        new Board("free", false, 0, 8000, UserRole.USER),
+                        new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                        "title1", "content1", ContentFormat.TEXT),
+                new Post(
+                        new Board("free", false, 0, 8000, UserRole.USER),
+                        new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                        "title2", "content2", ContentFormat.TEXT),
+                new Post(
+                        (new Board("free", false, 0, 8000, UserRole.USER),
+                        new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                        "title3", "content3", ContentFormat.TEXT));
+
         Pageable pageable = PageRequest.of(0, 11);
         given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
         CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll(null, null, 10, "desc");
@@ -188,12 +208,14 @@ class BoardServiceTest {
         verifyNoMoreInteractions(boardRepository);
     }
 
+    new
+
     @Test
     @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
     void findAll_firstPage_hasNextPage() {
         List<Post> boards = new ArrayList<>();
         for (long i = 11; i >= 1; i--) {
-            boards.add(new Post(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+            boards.add(new Post(board, users, "title" + i, "content" + i, ContentFormat.TEXT));
         }
         Pageable pageable = PageRequest.of(0, 11);
         given(boardRepository.findFirstPageDesc(pageable)).willReturn(boards);
@@ -207,13 +229,16 @@ class BoardServiceTest {
         verify(boardRepository, times(1)).findFirstPageDesc(pageable);
         verifyNoMoreInteractions(boardRepository);
     }
+                    new
 
     @Test
     @DisplayName("게시글_전체_조회_다음_페이지에서_asc_분기")
     void findAll_nextPage_asc_branch_cover() {
         List<Post> boards = new ArrayList<>();
         for (long i = 11; i >= 1; i--) {
-            boards.add(new Post(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+            boards.add(new Post(
+                    new Board("free", false, 0, 8000, UserRole.USER),
+                    new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER), "title" + i, "content" + i, ContentFormat.TEXT));
         }
 
         given(boardRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
@@ -235,8 +260,13 @@ class BoardServiceTest {
     @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
     void findAll_nextPage_noNextPage() {
         List<Post> boards = List.of(
-                new Post(2L, 10L, "title", "content", FIXED_TIME, FIXED_TIME),
-                new Post(1L, 10L, "title", "content", FIXED_TIME, FIXED_TIME));
+                new Post(
+                        new Board("free", false, 0, 8000, UserRole.USER),
+                        new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                        "title1", "content1", ContentFormat.TEXT),
+                new Post(new Board("free", false, 0, 8000, UserRole.USER),
+                        new Users("username2", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
+                        "title2", "content2", ContentFormat.TEXT));
         Pageable pageable = PageRequest.of(0, 11);
         given(boardRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
         CursorResponse<PostSummaryKeysetResponse> result = boardService.findAll("title", 5L, 10, "desc");
@@ -255,7 +285,8 @@ class BoardServiceTest {
         List<Post> boards = new ArrayList<>();
         for (long i = 11; i >= 1; i--) {
             boards.add(
-                    new Post(i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
+                    new Post(
+                            i, 10L, "title" + i, "content" + i, FIXED_TIME, FIXED_TIME));
         }
         Pageable pageable = PageRequest.of(0, 11);
         given(boardRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(boards);
@@ -418,19 +449,18 @@ class BoardServiceTest {
     void search() {
         String keyword = "key";
 
-        Post board1 = new Post(
-                1L, 10L, "key title", "content1",
-                LocalDateTime.of(2026, 1, 1, 0, 0),
-                LocalDateTime.of(2026, 1, 1, 0, 0)
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username1", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
+                "title1", "content", ContentFormat.TEXT
         );
-        Post board2 = new Post(
-                2L, 10L, "title2", "contentkey",
-                LocalDateTime.of(2026, 1, 1, 0, 0),
-                LocalDateTime.of(2026, 1, 1, 0, 0)
+        Post post2 = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username2", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
+                "title2", "content", ContentFormat.TEXT
         );
-
         when(boardRepository.searchByKeyword(keyword))
-                .thenReturn(List.of(board1, board2));
+                .thenReturn(List.of(post, post2));
 
         CursorResponse<PostSummaryKeysetResponse> result = boardService.search(keyword);
 

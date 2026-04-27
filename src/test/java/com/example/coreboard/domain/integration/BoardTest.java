@@ -1,9 +1,12 @@
 package com.example.coreboard.domain.integration;
 
+import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
 import com.example.coreboard.domain.post.dto.request.PostUpdateRequest;
+import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
+import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,14 +89,13 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board/id")
     void getOn() throws Exception {
-        Post board = new Post(
-                null,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
                 "title",
-                "content",
-                LocalDateTime.now(),
-                LocalDateTime.now());
-        Post saved = boardRepository.save(board);
+                "conent",
+                ContentFormat.TEXT);
+        Post saved = boardRepository.save(post);
         Long realId = saved.getId();
         mockMvc.perform(
                         get("/board/{id}", realId)
@@ -107,14 +109,13 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board")
     void getAll() throws Exception {
-        Post board = new Post(
-                null,
-                10L,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
                 "title",
-                "content",
-                LocalDateTime.now(),
-                LocalDateTime.now());
-        boardRepository.save(board);
+                "conent",
+                ContentFormat.TEXT);
+        boardRepository.save(post);
         mockMvc.perform(
                         get("/board")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -127,15 +128,14 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("PUT/board/id")
     void put() throws Exception {
-        Post board = new Post(
-                null,
-                savedUserId,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
                 "title",
-                "content",
-                LocalDateTime.now(),
-                LocalDateTime.now());
+                "conent",
+                ContentFormat.TEXT);
 
-        Post saved = boardRepository.save(board);
+        Post saved = boardRepository.save(post);
         Long realId = saved.getId();
         PostUpdateRequest reqeust = new PostUpdateRequest("newtitle", "newcontent");
 
@@ -151,14 +151,13 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("DELETE/board/id")
     void delete() throws Exception {
-        Post board = new Post(
-                null,
-                savedUserId,
+        Post post = new Post(
+                new Board("free", false, 0, 8000, UserRole.USER),
+                new Users("username", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER),
                 "title",
-                "content",
-                LocalDateTime.now(),
-                LocalDateTime.now());
-        Post saved = boardRepository.save(board);
+                "conent",
+                ContentFormat.TEXT);
+        Post saved = boardRepository.save(post);
         Long realId = saved.getId();
 
         mockMvc.perform(

@@ -1,5 +1,9 @@
 package com.example.coreboard.domain.post.service;
 
+import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
 import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
@@ -24,13 +28,16 @@ import java.util.List;
 
 @Service
 public class PostService {
-    private final PostRepository boardRepository;
+    private final PostRepository postRepository;
+    private final BoardRepository boardRepository;
     private final UsersRepository usersRepository;
 
     public PostService(
-            PostRepository boardRepository,
+            PostRepository postRepository,
+            BoardRepository boardRepository,
             UsersRepository usersRepository
     ) {
+        this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
     }
@@ -39,35 +46,41 @@ public class PostService {
     public PostCreateDto create(
             PostCreateCommand boardCreateCommand,
             String username
-    ) {
+    )  {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
+        if (postRepository.existsByTitle(boardCreateCommand.getTitle())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
 
-        Post board = Post.create(
-                user.getUserId(),
+        Board board = boardRepository.findById(boardCreateCommand.getBoardId())
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        Post post = Post.create(
+                board,
+                user,
                 boardCreateCommand.getTitle(),
-                boardCreateCommand.getContent());
-        Post saved = boardRepository.save(board);
+                boardCreateCommand.getContent(),
+                boardCreateCommand.getContentFormat());
+
+        Post saved = postRepository.save(post);
 
         return new PostCreateDto(
                 saved.getId(),
-                saved.getUserId(),
+                saved.getUser().getUserId(),
                 saved.getTitle(),
                 saved.getContent(),
                 saved.getCreatedDate());
     }
 
     public PostGetOneDto findOne(PostGetOneCommand boardGetOneCommand) {
-        Post board = boardRepository.findById(boardGetOneCommand.getId())
+        Post board = postRepository.findById(boardGetOneCommand.getId())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
         return new PostGetOneDto(
                 board.getId(),
-                board.getUserId(),
+                board.getUser().getUserId(),
                 board.getTitle(),
                 board.getContent(),
                 board.getCreatedDate(),
@@ -84,10 +97,10 @@ public class PostService {
         Pageable pageable = PageRequest.of(0, size + 1);
         boolean isDesc = "desc".equalsIgnoreCase(sort);
         List<Post> result = (cursorTitle == null || cursorId == null)
-                ? (isDesc ? boardRepository.findFirstPageDesc(pageable)
-                : boardRepository.findFirstPageAsc(pageable))
-                : (isDesc ? boardRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
-                : boardRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
+                ? (isDesc ? postRepository.findFirstPageDesc(pageable)
+                : postRepository.findFirstPageAsc(pageable))
+                : (isDesc ? postRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
+                : postRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
 
         boolean hasNext = result.size() > size;
         if (hasNext) {
@@ -97,7 +110,7 @@ public class PostService {
         List<PostSummaryKeysetResponse> contents = result.stream()
                 .map(b -> new PostSummaryKeysetResponse(
                         b.getId(),
-                        b.getUserId(),
+                        b.getUser().getUserId(),
                         b.getTitle(),
                         b.getCreatedDate()))
                 .toList();
@@ -118,16 +131,17 @@ public class PostService {
         Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Post board = boardRepository.findById(boardUpdatedCommad.getId())
+        Post board = postRepository.findById(boardUpdatedCommad.getId())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!board.getUserId().equals(user.getUserId())) {
+        if (!board.getUser().getUserId().equals(user.getUserId())) {
             throw new AuthErrorException(FORBIDDEN);
         }
 
         board.update(
                 boardUpdatedCommad.getTitle(),
-                boardUpdatedCommad.getContent());
+                boardUpdatedCommad.getContent(),
+                boardUpdatedCommad.getContentFormat());
         return new PostUpdatedDto(
                 board.getId());
     }
@@ -140,24 +154,24 @@ public class PostService {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        boardRepository.findById(id)
+        postRepository.findById(id)
                 .filter(board -> {
-                    if (!board.getUserId().equals(user.getUserId())) {
+                    if (!board.getUser().getUserId().equals(user.getUserId())) {
                         throw new AuthErrorException(FORBIDDEN);
                     }
                     return true;
                 })
-                .ifPresent(boardRepository::delete);
+                .ifPresent(postRepository::delete);
     }
 
     @Transactional
     public CursorResponse<PostSummaryKeysetResponse> search(String keyword) {
-        List<Post> boards = boardRepository.searchByKeyword(keyword);
+        List<Post> boards = postRepository.searchByKeyword(keyword);
 
         List<PostSummaryKeysetResponse> contents = boards.stream().map(
                 board -> new PostSummaryKeysetResponse(
                         board.getId(),
-                        board.getUserId(),
+                        board.getUser().getUserId(),
                         board.getTitle(),
                         board.getCreatedDate()
                 )
