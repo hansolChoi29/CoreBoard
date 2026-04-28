@@ -7,7 +7,6 @@ import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
 import com.example.coreboard.domain.common.config.PasswordManager;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
-import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
@@ -67,8 +66,14 @@ public class AuthService {
             throw new AuthErrorException(UNAUTHORIZED);
         }
 
-        String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
-        String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
+        String accessToken = JwtUtil.createAccessToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
+        String refreshToken = JwtUtil.createRefreshToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
 
         return new TokenDto(accessToken, refreshToken);
     }

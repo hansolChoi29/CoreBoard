@@ -1,5 +1,8 @@
 package com.example.coreboard.domain.common.util;
 
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.users.entity.UserRole;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -10,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+
 public class JwtUtil {
     private static final long ACCESS_TOKEN = 1000L * 60 * 30;
     private static final long REFRESH_TOKEN = 1000L * 60 * 60 * 24 * 7;
@@ -19,17 +23,26 @@ public class JwtUtil {
         secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String createAccessToken(Long userId, String username) {
+    public static String createAccessToken(
+            Long userId,
+            String username,
+            UserRole role
+    ) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId)
+                .claim("role", role.name())
                 .claim("type", "access")
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public static String createRefreshToken(Long userId, String username) {
+    public static String createRefreshToken(
+            Long userId,
+            String username,
+            UserRole role
+    ) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId)
@@ -61,6 +74,20 @@ public class JwtUtil {
                 .parseClaimsJws(accessToken)
                 .getBody()
                 .getSubject();
+    }
+
+    public static UserRole getRole(String token) {
+        String role = Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
+        if (role == null) {
+            throw new AuthErrorException(AuthErrorCode.UNAUTHORIZED);
+        }
+
+        return UserRole.valueOf(role);
     }
 
     public static Long getUserId(String token) {

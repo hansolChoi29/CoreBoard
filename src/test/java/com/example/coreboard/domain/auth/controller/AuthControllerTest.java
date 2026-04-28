@@ -389,7 +389,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_AccessToken을_refresh슬롯에_401")
     void refresh_accessToken_inRefresh_slot() throws Exception {
-        String accessToken = JwtUtil.createAccessToken(1L, "tester");
+        String accessToken = JwtUtil.createAccessToken(1L, "tester", UserRole.USER);
         mockMvc.perform(
                         post(BASE + "/refresh")
                                 .cookie(new Cookie("refresh", accessToken))
@@ -401,7 +401,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_유효한_리프레시_토근_200")
     void refresh_valid_refreshToken() throws Exception {
-        String refreshToken = JwtUtil.createRefreshToken(1L, "tester");
+        String refreshToken = JwtUtil.createRefreshToken(1L, "tester", UserRole.USER);
         mockMvc.perform(
                         post(BASE + "/refresh")
                                 .cookie(new Cookie("refresh", refreshToken))

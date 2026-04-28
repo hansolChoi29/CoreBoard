@@ -2,6 +2,7 @@ package com.example.coreboard.domain.common.interceptor;
 
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.users.entity.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -119,7 +120,7 @@ class AuthInterceptorTest {
     @DisplayName("유효한_토큰_username저장")
     void validToken_success() {
 
-        String token = JwtUtil.createAccessToken(10L, "tester");
+        String token = JwtUtil.createAccessToken(10L, "tester", UserRole.USER);
         mockHttpServletRequest.setMethod("POST");
         mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
 
