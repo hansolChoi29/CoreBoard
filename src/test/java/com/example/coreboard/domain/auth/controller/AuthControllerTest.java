@@ -41,9 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
-    ObjectMapper objectMapper = new ObjectMapper();
-
     private static final String BASE = "/auth";
+    ObjectMapper objectMapper = new ObjectMapper();
     String username = "tester";
 
     @Mock
@@ -73,7 +72,7 @@ class AuthControllerTest {
         SignUpDto dummy = new SignUpDto(
                 username);
         given(authService.signUp(any())).willReturn(dummy);
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "gksthf20@naver.com",
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "gksthf20@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
 
@@ -89,7 +88,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_불일치_400")
     void signUpConfirmMismatch() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkwst", "gksthf20@naver.com",
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkwst", "gksthf20@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         given(authService.signUp(any()))
@@ -107,7 +106,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이미_가입한_계정_409")
     void signUpConflict() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "gksthf20@naver.com",
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "gksthf20@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
 
@@ -124,7 +123,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이메일_누락_400")
     void signUpEmailRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "",
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -139,7 +138,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이메일_null_400")
     void signUpEmailNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", null,
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", null,
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -155,7 +154,7 @@ class AuthControllerTest {
     @DisplayName("회원가입_Username_누락_400")
     void signUpUsernameRequired() throws Exception {
 
-        SignUpRequest request = new SignUpRequest("", "gkst", "gkst", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("", "nickname", "gkst", "gkst", "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -170,7 +169,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_Username_null_400")
     void signUpUsernameNull() throws Exception {
-        SignUpRequest request = new SignUpRequest(null, "gkst", "gkst", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest(null, "nickname", "gkst", "gkst", "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -185,7 +184,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_누락_400")
     void signUpPasswordRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "", "", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "", "", "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
 
@@ -200,7 +199,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_null_400")
     void signUpPasswordNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", null, null, "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", null, null, "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
 
@@ -216,7 +215,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_누락_400")
     void signUpConfirmPasswordRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "", "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -230,7 +229,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_null_400")
     void signUpConfirmPasswordNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", null, "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", null, "user03@naver.com",
                 "02012341234");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -244,7 +243,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_전화번호_누락_400")
     void signUpPhoneNumberRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "qwer1", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "qwer1", "user03@naver.com",
                 "");
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -259,7 +258,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_전화번호_null_400")
     void signUpPhoneNumberNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "qwer1", "user03@naver.com",
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "qwer1", "user03@naver.com",
                 null);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(

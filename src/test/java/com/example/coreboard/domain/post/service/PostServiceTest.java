@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
 import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 
 @ExtendWith(MockitoExtension.class)
-class BoardServiceTest {
+class PostServiceTest {
     @Mock
     BoardRepository boardRepository;
 

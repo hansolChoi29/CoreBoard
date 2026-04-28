@@ -20,6 +20,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 
 @Tag(name = "Board", description = "게시글 관련 API")
 @RestController
@@ -52,7 +54,8 @@ public class PostController {
                 out.getUserId(),
                 out.getTitle(),
                 out.getContent(),
-                out.getCreatedDate());
+                out.getCreatedAt(),
+                out.getUpdateAt());
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
@@ -119,7 +122,10 @@ public class PostController {
 
         PostUpdatedDto out = postService.update(board);
 
-        PostUpdateResponse response = new PostUpdateResponse(out.getId());
+        PostUpdateResponse response = new PostUpdateResponse(
+                out.getId(),
+                out.getCreatedAt(),
+                out.getUpdatedAt());
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }

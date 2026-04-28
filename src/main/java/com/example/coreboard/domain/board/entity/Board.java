@@ -7,7 +7,8 @@ import jakarta.persistence.*;
 @Table(
         name = "board",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_board_name", columnNames = "name")
+                @UniqueConstraint(name = "uk_board_name", columnNames = "name"),
+                @UniqueConstraint(name = "uk_board_slug", columnNames = "slug")
         }
 )
 public class Board {
@@ -15,37 +16,86 @@ public class Board {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 사람이 보는 이름: 자유게시판, Q&A, 공지사항
     @Column(name = "name", nullable = false)
     private String name;
 
+    // 시스템 주소 이름: free, qna, notice
+    @Column(nullable = false, unique = true)
+    private String slug;
+    // 첨부파일 필수냐 (갤러리=true)
     @Column(name = "require_attachment", nullable = false)
-    private boolean requireAttachment;   // 첨부파일 필수냐 (갤러리=true)
-
+    private boolean requireAttachment;
+    // 첨부파일 몇 개까지 (자료실=5)
     @Column(name = "max_attachment_count", nullable = false)
-    private int maxAttachmentCount;      // 첨부파일 몇 개까지 (자료실=5)
-
+    private int maxAttachmentCount;
+    // 본문 최대 길이
     @Column(name = "max_content_length", nullable = false)
-    private int maxContentLength = 10000;        // 본문 최대 길이
+    private int maxContentLength = 10000;
+    /* TODO : adr 004
 
+        1. 사용자 지정 V - 커스텀 취지
+        2. 임의 지정
+        /boards/job-interview/posts
+        {
+            "name": "취업/면접",
+            "slug": "job-interview"
+        }
+        */
+
+    // 답변 채택 허용 여부
+    @Column(nullable = false)
+    private boolean answerAcceptedEnabled;
+    // 댓글 허용 여부
+    @Column(nullable = false)
+    private boolean commentEnabled;
+
+    // 누가 쓸 수 있냐 (공지사항=ADMIN)
     @Enumerated(EnumType.STRING)
     @Column(name = "required_write_role", nullable = false, length = 20)
-    private UserRole requiredWriteRole; // 누가 쓸 수 있냐 (공지사항=ADMIN)
+    private UserRole requiredWriteRole;
+    // 게시판 사용 여부 - 게시판 비활성화
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     public Board(
             String name,
+            String slug,
+            boolean commentEnabled,
+            boolean answerAcceptedEnabled,
             boolean requireAttachment,
             int maxAttachmentCount,
             int maxContentLength,
             UserRole requiredWriteRole
     ) {
         this.name = name;
+        this.slug = slug;
+        this.commentEnabled = commentEnabled;
+        this.answerAcceptedEnabled = answerAcceptedEnabled;
         this.requireAttachment = requireAttachment;
         this.maxAttachmentCount = maxAttachmentCount;
         this.maxContentLength = maxContentLength;
         this.requiredWriteRole = requiredWriteRole;
+        this.active = true;
     }
 
     protected Board() {
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public boolean isAnswerAcceptedEnabled() {
+        return answerAcceptedEnabled;
+    }
+
+    public boolean isCommentEnabled() {
+        return commentEnabled;
     }
 
     public Long getId() {

@@ -13,6 +13,9 @@ public class Users {
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
+
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -31,12 +34,14 @@ public class Users {
 
     public Users(
             String username,
+            String nickname,
             String encodePassword,
             String email,
             String phoneNumber,
             UserRole role
     ) {
         this.username = username;
+        this.nickname = nickname;
         this.password = encodePassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
@@ -45,17 +50,23 @@ public class Users {
 
     public static Users createUsers(
             String username,
+            String nickname,
             String encodedPassword,
             String email,
             String phoneNumber
     ) {
         return new Users(
                 username,
+                nickname,
                 encodedPassword,
                 email,
                 phoneNumber,
                 UserRole.USER
         );
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     public UserRole getRole() {

@@ -7,5 +7,7 @@ public record PostCreateResponse(
         Long userId,
         String title,
         String content,
-        LocalDateTime createdDate) {
+        LocalDateTime createdAt,
+        LocalDateTime updateAt
+) {
 }

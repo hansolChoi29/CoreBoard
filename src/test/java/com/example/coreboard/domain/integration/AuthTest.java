@@ -43,6 +43,7 @@ class AuthTest extends IntegrationTestBase {
         long start = System.currentTimeMillis();
         Users user = new Users(
                 "username",
+                "nickname",
                 passwordEncode.encrypt("password"),
                 emailPhoneNumberEncode.encrypt("email@naver.com"),
                 emailPhoneNumberEncode.encrypt("01012341234"),
@@ -57,6 +58,7 @@ class AuthTest extends IntegrationTestBase {
     void authUsers() throws Exception {
         SignUpRequest request = new SignUpRequest(
                 "username1",
+                "nickname",
                 "password",
                 "password",
                 "email@naver.com",

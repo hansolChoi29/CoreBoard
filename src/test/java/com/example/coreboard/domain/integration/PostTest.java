@@ -34,12 +34,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class BoardTest extends IntegrationTestBase {
+class PostTest extends IntegrationTestBase {
     @Autowired
     UsersRepository usersRepository;
 
     @Autowired
     BoardRepository boardRepository;
+
     @Autowired
     PostRepository postRepository;
 
@@ -75,7 +76,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("POST/board")
     void boardCreate() throws Exception {
-        Board board = freeBoard();
+        Board board = boardRepository.save(freeBoard());
         PostCreateRequest request = new PostCreateRequest(board.getId(), "title", "content", ContentFormat.MARKDOWN);
 
         mockMvc.perform(
@@ -91,8 +92,8 @@ class BoardTest extends IntegrationTestBase {
 
     @Test
     @DisplayName("GET/board/id")
-    void getOn() throws Exception {
-        Board board = freeBoard();
+    void getOne() throws Exception {
+        Board board = boardRepository.save(freeBoard());
         Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
         Long realId = saved.getId();
@@ -109,7 +110,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board")
     void getAll() throws Exception {
-        Board board = freeBoard();
+        Board board = boardRepository.save(freeBoard());
         Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
         postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
 
@@ -125,7 +126,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("PUT/board/id")
     void put() throws Exception {
-        Board board = freeBoard();
+        Board board = boardRepository.save(freeBoard());
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
 
@@ -144,7 +145,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("DELETE/board/id")
     void delete() throws Exception {
-        Board board = freeBoard();
+        Board board = boardRepository.save(freeBoard());
 
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));

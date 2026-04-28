@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
-class BoardControllerTest {
+class PostControllerTest {
     private static final String BASE = "/board";
     ObjectMapper objectMapper = new ObjectMapper();
     String username = "tester";

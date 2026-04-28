@@ -9,6 +9,7 @@ public record PostGetOneResponse(
         Long userId,
         @NotBlank String title,
         @NotBlank String content,
-        LocalDateTime createdDate,
-        LocalDateTime lastModifiedDate) {
+        LocalDateTime createdAt,
+        LocalDateTime updateAt
+) {
 }

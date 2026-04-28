@@ -41,6 +41,7 @@ public class AuthService {
 
         Users users = Users.createUsers(
                 signUpCommand.getUsername(),
+                signUpCommand.getNickname(),
                 encodedPassword,
                 encryptedEmail,
                 encryptPhoneNubmer

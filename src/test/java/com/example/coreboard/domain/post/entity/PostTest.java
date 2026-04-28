@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class BoardTest {
+class PostTest {
 
     @Test
     void update() {

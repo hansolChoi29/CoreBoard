@@ -70,7 +70,8 @@ public class PostService {
                 saved.getUser().getUserId(),
                 saved.getTitle(),
                 saved.getContent(),
-                saved.getCreatedDate());
+                saved.getCreatedAt(),
+                saved.getUpdatedAt());
     }
 
     public PostGetOneDto findOne(PostGetOneCommand boardGetOneCommand) {
@@ -82,8 +83,8 @@ public class PostService {
                 board.getUser().getUserId(),
                 board.getTitle(),
                 board.getContent(),
-                board.getCreatedDate(),
-                board.getLastModifiedDate()
+                board.getCreatedAt(),
+                board.getUpdatedAt()
         );
     }
 
@@ -111,7 +112,8 @@ public class PostService {
                         b.getId(),
                         b.getUser().getUserId(),
                         b.getTitle(),
-                        b.getCreatedDate()))
+                        b.getCreatedAt(),
+                        b.getUpdatedAt()))
                 .toList();
 
         String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
@@ -142,7 +144,9 @@ public class PostService {
                 boardUpdatedCommad.getContent(),
                 boardUpdatedCommad.getContentFormat());
         return new PostUpdatedDto(
-                board.getId());
+                board.getId(),
+                board.getCreatedAt(),
+                board.getUpdatedAt());
     }
 
     @Transactional
@@ -172,7 +176,8 @@ public class PostService {
                         board.getId(),
                         board.getUser().getUserId(),
                         board.getTitle(),
-                        board.getCreatedDate()
+                        board.getCreatedAt(),
+                        board.getUpdatedAt()
                 )
         ).toList();
 

@@ -1,4 +1,7 @@
 package com.example.coreboard.domain.comments.repository;
 
-public class CommentRepository {
+import com.example.coreboard.domain.comments.entity.Comment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 }

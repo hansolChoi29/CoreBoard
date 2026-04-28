@@ -6,5 +6,7 @@ public record PostSummaryKeysetResponse(
         Long id,
         Long userId,
         String title,
-        LocalDateTime createdDate) {
+        LocalDateTime createdAt,
+        LocalDateTime updateAt
+) {
 }

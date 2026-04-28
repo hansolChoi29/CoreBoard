@@ -57,6 +57,7 @@ class AuthServiceTest {
     void setUp() {
         request = new SignUpRequest(
                 "tester",
+                "nickname",
                 "password",
                 "password",
                 "email@naver.com",
@@ -72,6 +73,7 @@ class AuthServiceTest {
         given(emailPhoneNumberEncode.encrypt("01012341234")).willReturn("encPhoneNumber");
         Users savedUser = new Users(
                 "tester",
+                "nickname",
                 "encodedPassword",
                 "encEmail",
                 "encPhoneNumber",
@@ -79,6 +81,7 @@ class AuthServiceTest {
         given(usersRepository.save(any(Users.class))).willReturn(savedUser);
         SignUpCommand command = new SignUpCommand(
                 "tester",
+                "nickname",
                 "password",
                 "password",
                 "email@naver.com",
@@ -89,7 +92,7 @@ class AuthServiceTest {
         assertNotNull(result);
         assertEquals("tester", result.getUsername());
 
-        Users user = new Users("tester", "encodedPassword", "encEmail", "encPhoneNumber", UserRole.USER);
+        Users user = new Users("tester", "nickname","encodedPassword", "encEmail", "encPhoneNumber", UserRole.USER);
         assertEquals("encEmail", user.getEmail());
         assertEquals("encPhoneNumber", user.getPhoneNumber());
         result.setUsername("renamedUser");
@@ -109,6 +112,7 @@ class AuthServiceTest {
         AuthErrorException usernameIsConflict = assertThrows(AuthErrorException.class,
                 () -> authService.signUp(new SignUpCommand(
                         "tester",
+                        "nickname",
                         "password",
                         "password",
                         "email@naver.com",
@@ -123,6 +127,7 @@ class AuthServiceTest {
 
         Users dummyUser = new Users(
                 "tester",
+                "nickname",
                 "encodedPassword",
                 "email@naver.com",
                 "01012341234",
@@ -168,6 +173,7 @@ class AuthServiceTest {
     void signIn_isUnAuthorized() {
         Users dummy = new Users(
                 "tester",
+                "nickname",
                 "encodedPassword",
                 "email@naver.com",
                 "01012341234",

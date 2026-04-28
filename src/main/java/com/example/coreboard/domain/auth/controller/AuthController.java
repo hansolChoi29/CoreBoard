@@ -41,6 +41,7 @@ public class AuthController {
 
         SignUpCommand users = new SignUpCommand(
                 request.username(),
+                request.nickname(),
                 request.password(),
                 request.confirmPassword(),
                 request.email(),
