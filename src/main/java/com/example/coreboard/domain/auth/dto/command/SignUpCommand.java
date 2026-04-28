@@ -10,6 +10,7 @@ public class SignUpCommand {
     private String confirmPassword;
     private String email;
     private String phoneNumber;
+
     public SignUpCommand(
             String username,
             String nickname,

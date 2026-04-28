@@ -49,7 +49,10 @@ public class AuthController {
 
         SignUpDto out = authService.signUp(users);
 
-        SignUpResponse response = new SignUpResponse(out.getUsername());
+        SignUpResponse response = new SignUpResponse(
+                out.getUsername(),
+                out.getRole()
+        );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
