@@ -6,15 +6,17 @@ import com.example.coreboard.domain.users.entity.Users;
 import org.junit.jupiter.api.Test;
 
 
+import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BoardTest {
 
     @Test
     void update() {
+        Board board = freeBoard();
         Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
+                board,
+                new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 제목",
                 "기존 내용",
                 ContentFormat.MARKDOWN
@@ -28,9 +30,11 @@ class BoardTest {
 
     @Test
     void update_isBlank() {
+        Board board = freeBoard();
+
         Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
+                board,
+                new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
                 ContentFormat.MARKDOWN
@@ -43,9 +47,11 @@ class BoardTest {
 
     @Test
     void update_isEmpty() {
+        Board board = freeBoard();
+
         Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
+                board,
+                new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
                 ContentFormat.MARKDOWN
@@ -58,9 +64,11 @@ class BoardTest {
 
     @Test
     void update_null() {
+        Board board = freeBoard();
+
         Post post = new Post(
-                new Board("free", false, 0, 8000, UserRole.USER),
-                new Users("username", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
+                board,
+                new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER),
                 "기존 데이터",
                 "기존 데이터",
                 ContentFormat.MARKDOWN

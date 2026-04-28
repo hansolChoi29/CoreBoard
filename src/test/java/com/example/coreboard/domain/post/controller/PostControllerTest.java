@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.post.controller;
 
-import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
 import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
@@ -15,8 +14,6 @@ import com.example.coreboard.domain.common.exception.post.PostErrorCode;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
 import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.CursorResponse;
-import com.example.coreboard.domain.users.entity.UserRole;
-import com.example.coreboard.domain.users.entity.Users;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -92,6 +89,7 @@ class BoardControllerTest {
                 userId,
                 "제목",
                 "본문",
+                LocalDateTime.now(),
                 LocalDateTime.now());
         given(boardService.create(any(), eq(username))).willReturn(dummy);
 
@@ -109,7 +107,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("본문"))
-                .andExpect(jsonPath("$.data.createdDate", notNullValue()));
+                .andExpect(jsonPath("$.data.createdAt", notNullValue()));
         verify(boardService).create(any(), eq(username));
     }
 
@@ -298,7 +296,7 @@ class BoardControllerTest {
     @DisplayName("게시글_전체_조회")
     void getAll() throws Exception {
         List<PostSummaryKeysetResponse> items = List.of(
-                new PostSummaryKeysetResponse(1L, 10L, "title", LocalDateTime.of(2025, 1, 1, 0, 0)));
+                new PostSummaryKeysetResponse(1L, 10L, "title", LocalDateTime.now(), LocalDateTime.now()));
         CursorResponse<PostSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
 
@@ -367,7 +365,7 @@ class BoardControllerTest {
     @DisplayName("게시글_전체_조회_desc_정상")
     void getAllDesc() throws Exception {
         List<PostSummaryKeysetResponse> items = List.of(
-                new PostSummaryKeysetResponse(10L, 11L, "title", LocalDateTime.of(2025, 1, 1, 0, 0)));
+                new PostSummaryKeysetResponse(10L, 11L, "title", LocalDateTime.now(), LocalDateTime.now()));
         CursorResponse<PostSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
         given(boardService.findAll("title", 10L, 10, "desc")).willReturn(cursorResponse);
@@ -403,8 +401,7 @@ class BoardControllerTest {
     @Test
     @DisplayName("게시글_수정")
     void update() throws Exception {
-        PostUpdatedDto dummy = new PostUpdatedDto(
-                id);
+        PostUpdatedDto dummy = new PostUpdatedDto(id, LocalDateTime.now(), LocalDateTime.now());
         PostUpdateRequest request = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 

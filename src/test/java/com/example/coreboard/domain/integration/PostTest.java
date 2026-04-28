@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
+import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 import org.springframework.http.MediaType;
 
 import javax.crypto.SecretKey;
@@ -55,7 +55,7 @@ class BoardTest extends IntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        Users user = usersRepository.save(new Users("username", "password", "email@naver.com", "01012341234", UserRole.USER));
+        Users user = usersRepository.save(new Users("username", "nickname", "password", "email@naver.com", "01012341234", UserRole.USER));
 
         String secret = "test-jwt-secret-key-for-coreboard";
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -75,7 +75,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("POST/board")
     void boardCreate() throws Exception {
-        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+        Board board = freeBoard();
         PostCreateRequest request = new PostCreateRequest(board.getId(), "title", "content", ContentFormat.MARKDOWN);
 
         mockMvc.perform(
@@ -92,8 +92,8 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board/id")
     void getOn() throws Exception {
-        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
-        Users user = usersRepository.save(new Users("username2", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
+        Board board = freeBoard();
+        Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
         Long realId = saved.getId();
 
@@ -109,8 +109,8 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("GET/board")
     void getAll() throws Exception {
-        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
-        Users user = usersRepository.save(new Users("username2", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
+        Board board = freeBoard();
+        Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
         postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
 
         mockMvc.perform(
@@ -125,8 +125,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("PUT/board/id")
     void put() throws Exception {
-        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
-
+        Board board = freeBoard();
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
 
@@ -145,7 +144,7 @@ class BoardTest extends IntegrationTestBase {
     @Test
     @DisplayName("DELETE/board/id")
     void delete() throws Exception {
-        Board board = boardRepository.save(new Board("free", false, 0, 8000, UserRole.USER));
+        Board board = freeBoard();
 
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
