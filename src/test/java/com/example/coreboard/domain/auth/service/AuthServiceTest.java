@@ -61,7 +61,8 @@ class AuthServiceTest {
                 "password",
                 "password",
                 "email@naver.com",
-                "01012341234");
+                "01012341234",
+                UserRole.USER);
     }
 
     @Test
