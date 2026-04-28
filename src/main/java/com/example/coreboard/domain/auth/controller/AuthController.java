@@ -13,6 +13,7 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import com.example.coreboard.domain.users.entity.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -41,6 +42,7 @@ public class AuthController {
 
         SignUpCommand users = new SignUpCommand(
                 request.username(),
+                request.nickname(),
                 request.password(),
                 request.confirmPassword(),
                 request.email(),
@@ -48,7 +50,10 @@ public class AuthController {
 
         SignUpDto out = authService.signUp(users);
 
-        SignUpResponse response = new SignUpResponse(out.getUsername());
+        SignUpResponse response = new SignUpResponse(
+                out.getUsername(),
+                out.getRole()
+        );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
@@ -98,7 +103,8 @@ public class AuthController {
 
         String username = JwtUtil.getUsername(refreshToken);
         Long userId = JwtUtil.getUserId(refreshToken);
-        String newAccessToken = JwtUtil.createAccessToken(userId, username);
+        UserRole role = JwtUtil.getRole(refreshToken);
+        String newAccessToken = JwtUtil.createAccessToken(userId, username, role);
 
         return ResponseEntity.ok(ApiResponse.ok(new TokenResponse(newAccessToken), "토큰이 성공적으로 재발급되었습니다."));
     }

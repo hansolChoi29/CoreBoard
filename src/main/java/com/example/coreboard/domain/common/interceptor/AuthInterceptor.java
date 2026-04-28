@@ -3,6 +3,7 @@ package com.example.coreboard.domain.common.interceptor;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.users.entity.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -33,7 +34,14 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         String username = JwtUtil.getUsername(accessToken);
+        UserRole role = JwtUtil.getRole(accessToken);
+
+        request.setAttribute("role", role);
         request.setAttribute("username", username);
+
+        if (request.getRequestURI().startsWith("/admin") && role != UserRole.ADMIN) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
         return true;
     }
 }

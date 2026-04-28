@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.common.config;
 
 import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.users.entity.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +21,7 @@ class JwtConfigTest {
     @Test
     @DisplayName("자동으로_JWT_준비")
     void init() {
-        String token = JwtUtil.createAccessToken(1L, "tester");
+        String token = JwtUtil.createAccessToken(1L, "tester", UserRole.USER);
 
         assertNotNull(token);
         assertFalse(token.isBlank());

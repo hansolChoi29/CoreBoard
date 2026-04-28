@@ -41,13 +41,16 @@ public class AuthService {
 
         Users users = Users.createUsers(
                 signUpCommand.getUsername(),
+                signUpCommand.getNickname(),
                 encodedPassword,
                 encryptedEmail,
                 encryptPhoneNubmer
         );
         usersRepository.save(users);
 
-        return new SignUpDto(users.getUsername());
+        return new SignUpDto(
+                users.getUsername(),
+                users.getRole());
     }
 
     public TokenDto signIn(SignInCommand authSignInCommand) {
@@ -63,8 +66,14 @@ public class AuthService {
             throw new AuthErrorException(UNAUTHORIZED);
         }
 
-        String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
-        String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
+        String accessToken = JwtUtil.createAccessToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
+        String refreshToken = JwtUtil.createRefreshToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
 
         return new TokenDto(accessToken, refreshToken);
     }

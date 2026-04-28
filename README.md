@@ -1,9 +1,12 @@
 # CoreBoard
 ## 프로젝트 개요
 
-CoreBoard는 **Spring 동작 원리와 책임 분리를 훈련하기 위한 기본기 검증용 미니 게시판**입니다.
+CoreBoard는 기존 학습용 CRUD 게시판을 기반으로, **운영 중 게시판 메뉴를 확장할 수 있는 개발 공유 게시판**으로 개선 중인 프로젝트입니다.
 
-취업 준비 과정에서 프레임워크 추상화에 의존하지 않고 직접 구현 능력을 검증하고 싶었습니다.
+
+초기 버전은 Spring 동작 원리와 책임 분리를 검증하기 위한 미니 게시판이었지만,
+피드백을 반영하면서 단순 게시글 CRUD를 넘어 **게시판 메뉴 관리, 게시글 구조 분리, 권한 정책, 조회 전략**까지 고려하는 방향으로 재설계했습니다.
+
 그래서 **Spring Security와 Lombok을 의도적으로 배제하고, TDD 방식으로 처음부터 구현**했습니다.
 
 인증은 `HandlerInterceptor`로 직접 구현해 요청 처리 파이프라인 흐름을 이해했고,
@@ -120,11 +123,20 @@ http://localhost:8080/swagger-ui/index.html
 
 | Method | URL | 설명 | 인증 |
 |--------|-----|------|------|
-| POST | `/board` | 게시글 생성 | Bearer Token |
-| GET | `/board/{id}` | 게시글 단건 조회 | 불필요 |
-| GET | `/board?cursorTitle=&cursorId=&size=10&sort=asc` | 게시글 목록 조회 (Keyset Pagination) | 불필요 |
-| PUT | `/board/{id}` | 게시글 수정 (본인만 가능) | Bearer Token |
-| DELETE | `/board/{id}` | 게시글 삭제 (본인만 가능) | Bearer Token |
+| POST | `/admin/boards` | 게시판 메뉴 생성 | ADMIN |
+| GET | `/boards` | 활성 게시판 목록 조회 | 불필요 |
+| PATCH | `/admin/boards/{boardId}` | 게시판 메뉴 수정 | ADMIN |
+| PATCH | `/admin/boards/{boardId}/inactive` | 게시판 비활성화 | ADMIN |
+
+#### Post API
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| POST | `/boards/{boardId}/posts` | 게시글 생성 | USER |
+| GET | `/boards/{boardId}/posts` | 특정 게시판 게시글 목록 조회 | 불필요 |
+| GET | `/posts/{postId}` | 게시글 단건 조회 | 불필요 |
+| PATCH | `/posts/{postId}` | 게시글 수정 | 작성자 |
+| DELETE | `/posts/{postId}` | 게시글 삭제 | 작성자 또는 ADMIN |
 
 ---
 
@@ -144,16 +156,32 @@ http://localhost:8080/swagger-ui/index.html
 
 #### Board
 
-게시글 본문과 작성 이력을 관리하는 엔티티입니다.
+게시판 메뉴를 관리하는 엔티티입니다.
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| id | Long | 게시글 ID (PK, AUTO_INCREMENT) |
-| title | String | 제목 (NOT NULL, 최대 255자, 인덱스 적용) |
-| content | String | 본문 (NOT NULL, 최대 1000자) |
-| userId | Long | 작성자 FK (users.userId 참조) |
-| createdDate | LocalDateTime | JPA Auditing 자동 관리 |
-| lastModifiedDate | LocalDateTime | JPA Auditing 자동 관리 |
+| id | Long | 게시판 ID |
+| name | String | 게시판 이름 |
+| slug | String | URL 식별자 |
+| skinType | String | 게시판 화면/기능 유형 |
+| isActive | Boolean | 게시판 활성화 여부 |
+
+#### Post
+
+특정 게시판에 작성되는 게시글 엔티티입니다.
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| id | Long | 게시글 ID |
+| boardId | Long | 소속 게시판 ID |
+| userId | Long | 작성자 ID |
+| title | String | 제목 |
+| content | String | 본문 |
+| contentFormat | String | 본문 저장 형식 |
+| status | String | 게시글 상태 |
+| viewCount | Long | 조회수 |
+| createdAt | LocalDateTime | 생성일 |
+| updatedAt | LocalDateTime | 수정일 |
 
 #### 관계
 
@@ -292,3 +320,11 @@ Docker가 실행 중이면 별도 MySQL 설정 없이 동작합니다.
 > 도메인 레이어 테스트 커버리지 100% 달성
 
 ---
+## Architecture Decision Records
+
+프로젝트의 주요 설계 결정은 ADR로 기록합니다.
+
+| ADR | 내용 |
+|-----|------|
+| [ADR-0001](docs/adr/0001-manage-boards-as-data.md) | 운영 중 변경 가능한 게시판 메뉴를 DB 데이터로 관리한 이유 |
+| [ADR-0002](docs/adr/0002-pagination-strategy-by-use-case.md) | 게시글 목록 조회에서 조회 목적별 페이지네이션 전략을 분리한 이유 |
