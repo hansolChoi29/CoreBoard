@@ -51,6 +51,15 @@ public enum AuthErrorCode {
                     "관리자 권한이 필요한 요청입니다."
             ))
     ),
+    ADMIN_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            409,
+            "이미 관리자 계정이 존재합니다.",
+            List.of(new FieldError(
+                    "ADMIN_ALREADY_EXISTS",
+                    "이미 관리자 계정이 존재합니다."
+            ))
+    ),
     TARGET_USER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             404,

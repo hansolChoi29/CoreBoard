@@ -16,6 +16,7 @@ import com.example.coreboard.domain.common.validation.AuthValidation;
 import com.example.coreboard.domain.users.entity.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -33,6 +34,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+//    @Profile({"local", "dev"})
     @Operation(summary = "AMDIN 회원가입")
     @PostMapping("/setup")
     public ResponseEntity<ApiResponse<SignUpResponse>> setup(

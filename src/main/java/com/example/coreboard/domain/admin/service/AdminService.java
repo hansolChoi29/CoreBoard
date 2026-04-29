@@ -39,6 +39,10 @@ public class AdminService {
 
     @Transactional
     public SignUpDto adminSetup(SignUpCommand command) {
+        if (usersRepository.countByRole(UserRole.ADMIN) > 0) {
+            throw new AuthErrorException(AuthErrorCode.ADMIN_ALREADY_EXISTS);
+        }
+        
         if (usersRepository.existsByUsername(command.username())) {
             throw new AuthErrorException(AuthErrorCode.CONFLICT);
         }
@@ -86,6 +90,7 @@ public class AdminService {
 
     @Transactional
     public AdminPatchDto promoteToAdmin(AdminPatchCommand command) {
+
         Users user = (usersRepository.findById(command.id()))
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.TARGET_USER_NOT_FOUND));
 

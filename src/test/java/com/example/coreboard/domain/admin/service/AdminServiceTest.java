@@ -60,6 +60,7 @@ class AdminServiceTest {
                 "01012345678"
         );
 
+        given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(0L);
         given(usersRepository.existsByUsername("admin01")).willReturn(false);
         given(passwordManager.encrypt("password123!")).willReturn("encodedPassword");
         given(emailPhoneNumberManager.encrypt("admin@test.com")).willReturn("encryptedEmail");
@@ -77,6 +78,7 @@ class AdminServiceTest {
         assertThat(savedUser.getUsername()).isEqualTo("admin01");
         assertThat(savedUser.getRole()).isEqualTo(UserRole.ADMIN);
 
+        verify(usersRepository).countByRole(UserRole.ADMIN);
         verify(usersRepository).existsByUsername("admin01");
         verify(passwordManager).encrypt("password123!");
         verify(emailPhoneNumberManager).encrypt("admin@test.com");
@@ -96,12 +98,15 @@ class AdminServiceTest {
                 "01012345678"
         );
 
+        given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(0L);
         given(usersRepository.existsByUsername("admin01")).willReturn(true);
 
         assertThatThrownBy(() -> adminService.adminSetup(command))
                 .isInstanceOf(AuthErrorException.class);
 
+        verify(usersRepository).countByRole(UserRole.ADMIN);
         verify(usersRepository).existsByUsername("admin01");
+        verify(usersRepository, never()).save(any(Users.class));
         verifyNoMoreInteractions(usersRepository, passwordManager, emailPhoneNumberManager);
     }
 
@@ -321,5 +326,30 @@ class AdminServiceTest {
         verify(usersRepository, never()).countByRole(UserRole.ADMIN);
         verify(usersRepository).save(user);
         verifyNoMoreInteractions(usersRepository);
+    }
+
+    @Test
+    @DisplayName("ADMIN이_이미_존재하면_setup에_실패한다")
+    void adminSetup_fail_adminAlreadyExists() {
+        SignUpCommand command = new SignUpCommand(
+                "admin02",
+                "관리자2",
+                "password123!",
+                "password123!",
+                "admin2@test.com",
+                "01098765432"
+        );
+
+        given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(1L);
+
+        AuthErrorException exception = assertThrows(AuthErrorException.class,
+                () -> adminService.adminSetup(command));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).countByRole(UserRole.ADMIN);
+        verify(usersRepository, never()).existsByUsername(anyString());
+        verify(usersRepository, never()).save(any(Users.class));
+        verifyNoMoreInteractions(usersRepository, passwordManager, emailPhoneNumberManager);
     }
 }
