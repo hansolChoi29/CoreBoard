@@ -30,18 +30,18 @@ public class AuthService {
         this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
-    public SignUpDto signUp(SignUpCommand signUpCommand) {
-        if (usersRepository.existsByUsername(signUpCommand.getUsername())) {
+    public SignUpDto signUp(SignUpCommand command) {
+        if (usersRepository.existsByUsername(command.username())) {
             throw new AuthErrorException(CONFLICT);
         }
 
-        String encodedPassword = passwordEncoder.encrypt(signUpCommand.getPassword());
-        String encryptedEmail = emailPhoneNumberEncode.encrypt(signUpCommand.getEmail());
-        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(signUpCommand.getPhoneNumber());
+        String encodedPassword = passwordEncoder.encrypt(command.password());
+        String encryptedEmail = emailPhoneNumberEncode.encrypt(command.email());
+        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(command.phoneNumber());
 
         Users users = Users.createUsers(
-                signUpCommand.getUsername(),
-                signUpCommand.getNickname(),
+                command.username(),
+                command.nickname(),
                 encodedPassword,
                 encryptedEmail,
                 encryptPhoneNubmer
@@ -53,14 +53,14 @@ public class AuthService {
                 users.getRole());
     }
 
-    public TokenDto signIn(SignInCommand authSignInCommand) {
+    public TokenDto signIn(SignInCommand command) {
         Users users = usersRepository.findByUsername(
-                authSignInCommand.getUsername()).orElseThrow(
+                command.username()).orElseThrow(
                 () -> new AuthErrorException(NOT_FOUND)
         );
 
         if (!passwordEncoder.matches(
-                authSignInCommand.getPassword(),
+                command.password(),
                 users.getPassword())
         ) {
             throw new AuthErrorException(UNAUTHORIZED);
