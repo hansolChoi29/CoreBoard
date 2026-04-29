@@ -48,6 +48,23 @@ public class Users {
         this.role = role;
     }
 
+    public static Users createAdmin(
+            String username,
+            String nickname,
+            String encodedPassword,
+            String email,
+            String phoneNumber
+    ) {
+        return new Users(
+                username,
+                nickname,
+                encodedPassword,
+                email,
+                phoneNumber,
+                UserRole.ADMIN
+        );
+    }
+
     public static Users createUsers(
             String username,
             String nickname,
