@@ -10,6 +10,7 @@ import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 
@@ -30,6 +31,7 @@ public class AuthService {
         this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
+    @Transactional
     public SignUpDto signUp(SignUpCommand command) {
         if (usersRepository.existsByUsername(command.username())) {
             throw new AuthErrorException(CONFLICT);
@@ -48,21 +50,15 @@ public class AuthService {
         );
         usersRepository.save(users);
 
-        return new SignUpDto(
-                users.getUsername(),
-                users.getRole());
+        return new SignUpDto(users.getUsername(), users.getRole());
     }
 
+    @Transactional(readOnly = true)
     public TokenDto signIn(SignInCommand command) {
-        Users users = usersRepository.findByUsername(
-                command.username()).orElseThrow(
-                () -> new AuthErrorException(NOT_FOUND)
-        );
+        Users users = usersRepository.findByUsername(command.username())
+                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        if (!passwordEncoder.matches(
-                command.password(),
-                users.getPassword())
-        ) {
+        if (!passwordEncoder.matches(command.password(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
 

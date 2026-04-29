@@ -37,6 +37,7 @@ public class AdminService {
         this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
+    @Transactional
     public SignUpDto adminSetup(SignUpCommand command) {
         if (usersRepository.existsByUsername(command.username())) {
             throw new AuthErrorException(AuthErrorCode.CONFLICT);
@@ -54,10 +55,7 @@ public class AdminService {
                 encryptPhoneNubmer
         );
         usersRepository.save(user);
-        return new SignUpDto(
-                user.getUsername(),
-                user.getRole()
-        );
+        return new SignUpDto(user.getUsername(), user.getRole());
     }
 
     @Transactional(readOnly = true)
@@ -86,7 +84,13 @@ public class AdminService {
         return new OffsetPageResponse<>(contents, pageInfo);
     }
 
-    public AdminPatchDto updateAdmin(AdminPatchCommand command) {
-        return null;
+    @Transactional
+    public AdminPatchDto promoteToAdmin(AdminPatchCommand command) {
+        Users user = (usersRepository.findById(command.id()))
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+
+        user.promoteToAdmin(command.role());
+        usersRepository.save(user);
+        return new AdminPatchDto(user.getUserId(), user.getRole(), user.getUsername());
     }
 }

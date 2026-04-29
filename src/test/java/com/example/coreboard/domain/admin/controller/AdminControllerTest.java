@@ -25,7 +25,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +61,7 @@ class AdminControllerTest {
         mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(adminController);
         objectMapper = new ObjectMapper();
     }
+
     @Test
     @DisplayName("관리자_setup_성공")
     void setup_success() throws Exception {
@@ -151,23 +154,29 @@ class AdminControllerTest {
         String username = "username";
         UserRole role = UserRole.ADMIN;
 
-        AdminPatchDto result = new AdminPatchDto(1L, role, username);
-        given(adminService.updateAdmin(any(AdminPatchCommand.class))).willReturn(result);
+        AdminPatchDto result = new AdminPatchDto(userId, role, username);
+
+        given(adminService.promoteToAdmin(any(AdminPatchCommand.class)))
+                .willReturn(result);
+
         mockMvc.perform(
-                        patch("/admin/users/{id}", userId)
+                        patch("/admin/users/{id}/role", userId)
                                 .requestAttr("username", username)
                                 .param("role", role.name())
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("사용자 권한이 변경되었습니다."))
-                .andExpect(jsonPath("$.data").exists());
-
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.username").value("username"))
+                .andExpect(jsonPath("$.data.role").value("ADMIN"));
         ArgumentCaptor<AdminPatchCommand> commandCaptor = ArgumentCaptor.forClass(AdminPatchCommand.class);
-        verify(adminService).updateAdmin(commandCaptor.capture());
+
+        verify(adminService).promoteToAdmin(commandCaptor.capture());
+
         AdminPatchCommand command = commandCaptor.getValue();
 
         assertThat(command.id()).isEqualTo(userId);
-        assertThat(command.username()).isEqualTo(username);
         assertThat(command.role()).isEqualTo(UserRole.ADMIN);
     }
 }

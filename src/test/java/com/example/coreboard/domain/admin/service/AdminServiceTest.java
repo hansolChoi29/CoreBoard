@@ -1,5 +1,7 @@
 package com.example.coreboard.domain.admin.service;
 
+import com.example.coreboard.domain.admin.dto.AdminPatchDto;
+import com.example.coreboard.domain.admin.dto.command.AdminPatchCommand;
 import com.example.coreboard.domain.admin.dto.query.AdminUserListQuery;
 import com.example.coreboard.domain.admin.dto.response.AdminGetResponse;
 import com.example.coreboard.domain.auth.dto.SignUpDto;
@@ -25,6 +27,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -101,10 +104,9 @@ class AdminServiceTest {
         verifyNoMoreInteractions(usersRepository, passwordManager, emailPhoneNumberManager);
     }
 
-
     @Test
-    @DisplayName("관리자_전체_조회")
-    void createAdmin() {
+    @DisplayName("관리자_전체_조회_성공")
+    void getAdmin() {
         String username = "admin";
 
         Pageable pageable = PageRequest.of(
@@ -163,14 +165,54 @@ class AdminServiceTest {
         verify(usersRepository).findByRole(UserRole.ADMIN, pageable);
     }
 
-    // TODO: 사용자 권한 변경 ADMIN으로
-    // TODO : 요청자 없음
-    // TODO : 요청자가 ADMIN이 아님
-    // TODO : 이미 ADMIN인 경우
     @Test
-    @DisplayName("")
-    void updateAdmin(){
+    @DisplayName("사용자_권한_변경_성공")
+    void promoteToAdmin() {
+        Long userId = 1L;
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwr@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
 
+        given(usersRepository.findById(userId))
+                .willReturn(Optional.of(user));
+
+        AdminPatchDto result = adminService.promoteToAdmin(new AdminPatchCommand(userId, UserRole.ADMIN));
+        assertEquals(UserRole.ADMIN, result.role());
+        verify(usersRepository).findById(userId);
     }
 
+    @Test
+    @DisplayName("관리자가_아니면_관리자_목록_조회에_실패한다")
+    void getAdmin_forbidden() {
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "user@test.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        Pageable pageable = PageRequest.of(0, 20);
+
+        AdminUserListQuery query = new AdminUserListQuery(
+                UserRole.ADMIN,
+                pageable,
+                "username"
+        );
+
+        given(usersRepository.findByUsername("username"))
+                .willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> adminService.getAdmins(query))
+                .isInstanceOf(AuthErrorException.class);
+
+        verify(usersRepository).findByUsername("username");
+        verifyNoMoreInteractions(usersRepository);
+    }
 }

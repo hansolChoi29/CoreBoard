@@ -82,6 +82,10 @@ public class Users {
         );
     }
 
+    public void promoteToAdmin(UserRole role) {
+        this.role = role;
+    }
+
     public String getNickname() {
         return nickname;
     }
