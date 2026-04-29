@@ -61,10 +61,10 @@ public class AdminService {
     @Transactional(readOnly = true)
     public OffsetPageResponse<AdminGetResponse> getAdmins(AdminUserListQuery query) {
         Users user = usersRepository.findByUsername(query.username())
-                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.ADMIN_REQUESTER_NOT_FOUND));
 
         if (user.getRole() != UserRole.ADMIN) {
-            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+            throw new AuthErrorException(AuthErrorCode.ADMIN_PERMISSION_REQUIRED);
         }
         Page<Users> admin = usersRepository.findByRole(query.role(), query.pageable());
 
@@ -87,7 +87,13 @@ public class AdminService {
     @Transactional
     public AdminPatchDto promoteToAdmin(AdminPatchCommand command) {
         Users user = (usersRepository.findById(command.id()))
-                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.TARGET_USER_NOT_FOUND));
+
+        if (user.getRole() == UserRole.ADMIN &&
+                command.role() == UserRole.USER &&
+                usersRepository.countByRole(UserRole.ADMIN) <= 1) {
+            throw new AuthErrorException(AuthErrorCode.LAST_ADMIN_CANNOT_BE_DEMOTED);
+        }
 
         user.promoteToAdmin(command.role());
         usersRepository.save(user);

@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +29,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -213,6 +214,112 @@ class AdminServiceTest {
                 .isInstanceOf(AuthErrorException.class);
 
         verify(usersRepository).findByUsername("username");
+        verifyNoMoreInteractions(usersRepository);
+    }
+
+    @Test
+    @DisplayName("마지막_ADMIN은_USER로_전환할_수_없다")
+    void promoteToAdmin_no_last_user() {
+        Users admin = new Users(
+                "admin01",
+                "관리자",
+                "password",
+                "admin@test.com",
+                "01012345678",
+                UserRole.ADMIN
+        );
+
+        AdminPatchCommand command = new AdminPatchCommand(1L, UserRole.USER);
+
+        given(usersRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(1L);
+        AuthErrorException exception = assertThrows(AuthErrorException.class,
+                () -> adminService.promoteToAdmin(command));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).findById(1L);
+        verify(usersRepository).countByRole(UserRole.ADMIN);
+        verifyNoMoreInteractions(usersRepository);
+    }
+
+    @Test
+    @DisplayName("ADMIN이_2명_이상이면_ADMIN을_USER로_전환할_수_있다")
+    void promoteToAdmin_2admin_no() {
+        Users admin = new Users(
+                "admin01",
+                "관리자",
+                "password",
+                "admin@test.com",
+                "01012345678",
+                UserRole.ADMIN
+        );
+
+        AdminPatchCommand command = new AdminPatchCommand(1L, UserRole.USER);
+
+        given(usersRepository.findById(1L)).willReturn(Optional.of(admin));
+        given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(2L);
+
+        AdminPatchDto result = adminService.promoteToAdmin(command);
+
+        assertEquals(UserRole.USER, result.role());
+
+        verify(usersRepository).findById(1L);
+        verify(usersRepository).countByRole(UserRole.ADMIN);
+        verify(usersRepository).save(admin);
+        verifyNoMoreInteractions(usersRepository);
+    }
+
+    @Test
+    @DisplayName("요청_role이_ADMIN이면_마지막_ADMIN_검사를_하지_않는다")
+    void promoteToAdmin_no_error() {
+        Users admin = new Users(
+                "admin01",
+                "관리자",
+                "password",
+                "admin@test.com",
+                "01012345678",
+                UserRole.ADMIN
+        );
+
+        AdminPatchCommand command = new AdminPatchCommand(1L, UserRole.ADMIN);
+
+        given(usersRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        AdminPatchDto result = adminService.promoteToAdmin(command);
+
+        assertEquals(UserRole.ADMIN, result.role());
+
+        verify(usersRepository).findById(1L);
+        verify(usersRepository, never()).countByRole(UserRole.ADMIN);
+        verify(usersRepository).save(admin);
+        verifyNoMoreInteractions(usersRepository);
+    }
+
+    @Test
+    @DisplayName("대상_사용자가_USER이면_마지막_ADMIN_검사를_하지_않는다")
+    void changeUserRole_doesNotCheckLastAdminWhenTargetUserIsUser() {
+        Users user = new Users(
+                "user01",
+                "일반사용자",
+                "password",
+                "user@test.com",
+                "01012345678",
+                UserRole.USER
+        );
+
+        AdminPatchCommand command = new AdminPatchCommand(1L, UserRole.USER);
+
+        given(usersRepository.findById(1L)).willReturn(Optional.of(user));
+
+        AdminPatchDto result = adminService.promoteToAdmin(command);
+
+        assertEquals(UserRole.USER, result.role());
+
+        verify(usersRepository).findById(1L);
+        verify(usersRepository, never()).countByRole(UserRole.ADMIN);
+        verify(usersRepository).save(user);
         verifyNoMoreInteractions(usersRepository);
     }
 }

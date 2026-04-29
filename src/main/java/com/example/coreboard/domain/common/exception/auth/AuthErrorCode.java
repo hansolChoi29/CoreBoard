@@ -33,6 +33,42 @@ public enum AuthErrorCode {
                     "접근 권한이 없습니다."
             ))
     ),
+    ADMIN_REQUESTER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            404,
+            "요청한 사용자를 찾을 수 없습니다.",
+            List.of(new FieldError(
+                    "ADMIN_REQUESTER_NOT_FOUND",
+                    "요청한 사용자를 찾을 수 없습니다."
+            ))
+    ),
+    ADMIN_PERMISSION_REQUIRED(
+            HttpStatus.FORBIDDEN,
+            403,
+            "관리자 권한이 필요한 요청입니다.",
+            List.of(new FieldError(
+                    "ADMIN_PERMISSION_REQUIRED",
+                    "관리자 권한이 필요한 요청입니다."
+            ))
+    ),
+    TARGET_USER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            404,
+            "권한을 변경할 사용자를 찾을 수 없습니다.",
+            List.of(new FieldError(
+                    "TARGET_USER_NOT_FOUND",
+                    "권한을 변경할 사용자를 찾을 수 없습니다."
+            ))
+    ),
+    LAST_ADMIN_CANNOT_BE_DEMOTED(
+            HttpStatus.CONFLICT,
+            409,
+            "LAST_ADMIN_CANNOT_BE_DEMOTED",
+            List.of(new FieldError(
+                    "LAST_ADMIN_CANNOT_BE_DEMOTED",
+                    "마지막 관리자 계정을 일반 사용자로 변경할 수 없습니다."
+            ))
+    ),
     NOT_FOUND(
             HttpStatus.NOT_FOUND,
             404,
