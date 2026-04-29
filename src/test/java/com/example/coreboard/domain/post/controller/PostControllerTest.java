@@ -7,13 +7,12 @@ import com.example.coreboard.domain.post.dto.request.PostUpdateRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
-import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorCode;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
-import com.example.coreboard.domain.common.interceptor.AuthInterceptor;
 import com.example.coreboard.domain.common.response.CursorResponse;
+import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,15 +22,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,7 +43,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-@Import(GlobalExceptionHandler.class)
 class PostControllerTest {
     private static final String BASE = "/board";
     ObjectMapper objectMapper = new ObjectMapper();
@@ -66,18 +61,8 @@ class PostControllerTest {
 
     @BeforeEach
     void setup() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(boardController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .setMessageConverters(new MappingJackson2HttpMessageConverter())
-                .build();
-
-        mockMvcWithInterceptor = MockMvcBuilders
-                .standaloneSetup(boardController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .setMessageConverters(new MappingJackson2HttpMessageConverter())
-                .addInterceptors(new AuthInterceptor())
-                .build();
+        mockMvc = MockMvcSupport.create(boardController);
+        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(boardController);
     }
 
     @Test

@@ -46,6 +46,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId)
+                .claim("role", role.name())
                 .claim("type", "refresh")
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN))
                 .signWith(secretKey, SignatureAlgorithm.HS256)

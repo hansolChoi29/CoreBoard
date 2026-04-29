@@ -51,8 +51,8 @@ public class AuthController {
         SignUpDto out = authService.signUp(users);
 
         SignUpResponse response = new SignUpResponse(
-                out.getUsername(),
-                out.getRole()
+                out.username(),
+                out.role()
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));

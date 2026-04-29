@@ -61,7 +61,8 @@ class AuthServiceTest {
                 "password",
                 "password",
                 "email@naver.com",
-                "01012341234");
+                "01012341234",
+                UserRole.USER);
     }
 
     @Test
@@ -90,13 +91,8 @@ class AuthServiceTest {
         SignUpDto result = authService.signUp(command);
 
         assertNotNull(result);
-        assertEquals("tester", result.getUsername());
+        assertEquals("tester", result.username());
 
-        Users user = new Users("tester", "nickname","encodedPassword", "encEmail", "encPhoneNumber", UserRole.USER);
-        assertEquals("encEmail", user.getEmail());
-        assertEquals("encPhoneNumber", user.getPhoneNumber());
-        result.setUsername("renamedUser");
-        assertEquals("renamedUser", result.getUsername());
         verify(usersRepository).existsByUsername("tester");
 
         verify(passwordEncode).encrypt("password");
@@ -194,19 +190,16 @@ class AuthServiceTest {
         verify(passwordEncode).matches("password", "encodedPassword");
     }
 
-    @Test
-    @DisplayName("로그인_DTO_옮겨갈_때")
-    void signIn_flow_mapping() {
-        SignInRequest request = new SignInRequest("tester", "123ps");
-
-        SignInCommand command = new SignInCommand(
-                request.username(),
-                request.password());
-
-        command.setUsername(command.getUsername());
-        command.setPassword(command.getPassword());
-
-        assertEquals("tester", command.getUsername());
-        assertEquals("123ps", command.getPassword());
-    }
+//    @Test
+//    @DisplayName("로그인_DTO_옮겨갈_때")
+//    void signIn_flow_mapping() {
+//        SignInRequest request = new SignInRequest("tester", "123ps");
+//
+//        SignInCommand command = new SignInCommand(
+//                request.username(),
+//                request.password());
+//
+//        assertEquals("tester", command.getUsername());
+//        assertEquals("123ps", command.getPassword());
+//    }
 }

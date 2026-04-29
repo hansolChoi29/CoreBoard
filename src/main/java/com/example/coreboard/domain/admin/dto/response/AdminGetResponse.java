@@ -1,8 +1,9 @@
-package com.example.coreboard.domain.auth.dto;
+package com.example.coreboard.domain.admin.dto.response;
 
 import com.example.coreboard.domain.users.entity.UserRole;
 
-public record SignUpDto(
+public record AdminGetResponse(
+        Long userId,
         String username,
         UserRole role
 ) {

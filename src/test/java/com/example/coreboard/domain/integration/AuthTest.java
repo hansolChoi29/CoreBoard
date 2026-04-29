@@ -62,7 +62,8 @@ class AuthTest extends IntegrationTestBase {
                 "password",
                 "password",
                 "email@naver.com",
-                "01012341234");
+                "01012341234",
+                UserRole.USER);
 
         mockMvc.perform(
                         post("/auth/users")
