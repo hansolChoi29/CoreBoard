@@ -14,7 +14,23 @@ public enum BoardErrorCode {
                     "NO TITLE AND CONTENT",
                     "제목과 본문은 필수입니다."
             ))
-
+    ), BOARD_SLUG_DUPLICATE(
+            HttpStatus.CONFLICT,
+            409,
+            "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요.",
+            List.of(new FieldError(
+                    "SLUG DUPLICATE",
+                    "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요."
+            ))
+    ),
+    BOARD_NAME_DUPLICATE(
+            HttpStatus.CONFLICT,
+            409,
+            "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요.",
+            List.of(new FieldError(
+                    "SLUG DUPLICATE",
+                    "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요."
+            ))
     );
 
     private final HttpStatus status;

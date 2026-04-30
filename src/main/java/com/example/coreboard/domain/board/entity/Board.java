@@ -79,6 +79,28 @@ public class Board {
         this.active = true;
     }
 
+    public static Board create(
+            String name,
+            String slug,
+            boolean commentEnabled,
+            boolean answerAcceptedEnabled,
+            boolean requireAttachment,
+            int maxAttachmentCount,
+            int maxContentLength
+    ) {
+        Board board = new Board();
+        board.name = name;
+        board.slug = slug;
+        board.commentEnabled = commentEnabled;
+        board.answerAcceptedEnabled = answerAcceptedEnabled;
+        board.requireAttachment = requireAttachment;
+        board.maxAttachmentCount = maxAttachmentCount;
+        board.maxContentLength = maxContentLength;
+        board.requiredWriteRole = UserRole.USER;
+        board.active = true;
+        return board;
+    }
+
     protected Board() {
     }
 

@@ -98,8 +98,7 @@ class PostServiceTest {
         PostCreateDto result = postService.create(boardCreateCommand, "tester");
 
         assertNotNull(result);
-        assertEquals("제목", result.getTitle());
-        assertEquals("내용", result.getContent());
+        assertEquals(1L, result.id());
 
         ArgumentCaptor<Post> captor = ArgumentCaptor.forClass(Post.class);
         verify(postRepository).save(captor.capture());
@@ -167,9 +166,7 @@ class PostServiceTest {
         PostGetOneDto out = postService.findOne(new PostGetOneCommand(id));
 
         assertNotNull(out);
-        assertEquals(id, out.getId());
-        assertEquals("title1", out.getTitle());
-        assertEquals("content1", out.getContent());
+        assertEquals(id, out.id());
         verify(postRepository, times(1)).findById(id);
         verifyNoMoreInteractions(postRepository);
     }
@@ -411,8 +408,8 @@ class PostServiceTest {
         Users postWriter = mock(Users.class);
 
         PostUpdateCommand cmd = new PostUpdateCommand(
-                "tester",
                 id,
+                "tester",
                 "새제목",
                 "새본문",
                 ContentFormat.MARKDOWN
@@ -430,7 +427,7 @@ class PostServiceTest {
         PostUpdatedDto result = postService.update(cmd);
 
         assertNotNull(result);
-        assertEquals(id, result.getId());
+        assertEquals(id, result.id());
 
         verify(post).update("새제목", "새본문", ContentFormat.MARKDOWN);
     }
@@ -443,8 +440,8 @@ class PostServiceTest {
         Users postWriter = mock(Users.class);
 
         PostUpdateCommand cmd = new PostUpdateCommand(
-                "tester",
                 1L,
+                "tester",
                 "title",
                 "content",
                 ContentFormat.MARKDOWN

@@ -69,13 +69,7 @@ class PostControllerTest {
     @DisplayName("게시글_생성")
     void create() throws Exception {
         String username = "tester";
-        PostCreateDto dummy = new PostCreateDto(
-                id,
-                userId,
-                "제목",
-                "본문",
-                LocalDateTime.now(),
-                LocalDateTime.now());
+        PostCreateDto dummy = new PostCreateDto(id);
         given(boardService.create(any(), eq(username))).willReturn(dummy);
 
         PostCreateRequest request = new PostCreateRequest(

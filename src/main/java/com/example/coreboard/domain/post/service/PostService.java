@@ -50,32 +50,26 @@ public class PostService {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        if (postRepository.existsByTitle(boardCreateCommand.getTitle())) {
+        if (postRepository.existsByTitle(boardCreateCommand.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
 
-        Board board = boardRepository.findById(boardCreateCommand.getBoardId())
+        Board board = boardRepository.findById(boardCreateCommand.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
 
         Post post = Post.create(
                 board,
                 user,
-                boardCreateCommand.getTitle(),
-                boardCreateCommand.getContent());
+                boardCreateCommand.title(),
+                boardCreateCommand.content());
 
         Post saved = postRepository.save(post);
 
-        return new PostCreateDto(
-                saved.getId(),
-                saved.getUser().getUserId(),
-                saved.getTitle(),
-                saved.getContent(),
-                saved.getCreatedAt(),
-                saved.getUpdatedAt());
+        return new PostCreateDto(saved.getId());
     }
 
     public PostGetOneDto findOne(PostGetOneCommand boardGetOneCommand) {
-        Post board = postRepository.findById(boardGetOneCommand.getId())
+        Post board = postRepository.findById(boardGetOneCommand.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
         return new PostGetOneDto(
@@ -129,10 +123,10 @@ public class PostService {
 
     @Transactional
     public PostUpdatedDto update(PostUpdateCommand boardUpdatedCommad) {
-        Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
+        Users user = usersRepository.findByUsername(boardUpdatedCommad.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Post board = postRepository.findById(boardUpdatedCommad.getId())
+        Post board = postRepository.findById(boardUpdatedCommad.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
         if (!board.getUser().getUserId().equals(user.getUserId())) {
@@ -140,9 +134,9 @@ public class PostService {
         }
 
         board.update(
-                boardUpdatedCommad.getTitle(),
-                boardUpdatedCommad.getContent(),
-                boardUpdatedCommad.getContentFormat());
+                boardUpdatedCommad.title(),
+                boardUpdatedCommad.content(),
+                boardUpdatedCommad.contentFormat());
         return new PostUpdatedDto(
                 board.getId(),
                 board.getCreatedAt(),

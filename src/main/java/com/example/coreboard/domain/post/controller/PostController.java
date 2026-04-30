@@ -17,18 +17,18 @@ import com.example.coreboard.domain.common.response.CursorResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
 
-@Tag(name = "Board", description = "게시글 관련 API")
+@Tag(name = "Post", description = "게시글 관련 API")
 @RestController
-@RequestMapping("/board")
+@RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
-
     public PostController(PostService postService) {
         this.postService = postService;
     }
@@ -49,15 +49,12 @@ public class PostController {
 
         PostCreateDto out = postService.create(board, username);
 
-        PostCreateResponse response = new PostCreateResponse(
-                out.getId(),
-                out.getUserId(),
-                out.getTitle(),
-                out.getContent(),
-                out.getCreatedAt(),
-                out.getUpdateAt());
+        PostCreateResponse response = new PostCreateResponse(out.id());
 
-        return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "로그인 없이도 id로 조회")
@@ -70,12 +67,12 @@ public class PostController {
         PostGetOneDto out = postService.findOne(board);
 
         PostGetOneResponse response = new PostGetOneResponse(
-                out.getId(),
-                out.getUserId(),
-                out.getTitle(),
-                out.getContent(),
-                out.getCreatedDate(),
-                out.getLastModifiedDate()
+                out.id(),
+                out.userId(),
+                out.title(),
+                out.content(),
+                out.createdDate(),
+                out.lastModifiedDate()
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
@@ -113,8 +110,8 @@ public class PostController {
         PostValidation.updateValidation(updateRequestDto);
 
         PostUpdateCommand board = new PostUpdateCommand(
-                username,
                 id,
+                username,
                 updateRequestDto.title(),
                 updateRequestDto.content(),
                 updateRequestDto.contentFormat()
@@ -123,9 +120,9 @@ public class PostController {
         PostUpdatedDto out = postService.update(board);
 
         PostUpdateResponse response = new PostUpdateResponse(
-                out.getId(),
-                out.getCreatedAt(),
-                out.getUpdatedAt());
+                out.id(),
+                out.createdAt(),
+                out.updatedAt());
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }
