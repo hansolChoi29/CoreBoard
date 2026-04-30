@@ -119,7 +119,6 @@ class AdminControllerTest {
                                 .param("size", "10")
                                 .param("sort", "userId,desc")
                 )
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("성공적으로 관리자 목록을 불러왔습니다."))
                 .andExpect(jsonPath("$.data").exists())
