@@ -47,7 +47,7 @@ public class BoardController {
     @GetMapping
     public ResponseEntity<ApiResponse<OffsetPageResponse<GetBoardListResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction
     ) {
         GetBoardListQuery query = new GetBoardListQuery(page, size, direction);

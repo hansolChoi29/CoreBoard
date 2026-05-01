@@ -1,8 +1,11 @@
 package com.example.coreboard.domain.board.controller;
 
+import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
+import com.example.coreboard.domain.board.dto.request.UpdateBoardRequest;
 import com.example.coreboard.domain.board.dto.result.CreateBoardResult;
 import com.example.coreboard.domain.board.dto.command.CreateBoardCommand;
 import com.example.coreboard.domain.board.dto.request.CreateBoardRequest;
+import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.example.coreboard.domain.users.entity.UserRole;
@@ -24,6 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,6 +49,7 @@ class AdminBoardControllerTest {
         mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(boardController);
         objectMapper = new ObjectMapper();
     }
+
 
     @Test
     @DisplayName("게시판_생성_성공")
@@ -92,5 +97,45 @@ class AdminBoardControllerTest {
         verifyNoMoreInteractions(boardService);
     }
 
+    // TODO : AMDIN 아닌 계정으로 게시판 생성
+    @Test
+    @DisplayName("게시판_수정_성공")
+    void updateBoard() throws Exception {
+        String username = "username";
+        UpdateBoardRequest request = new UpdateBoardRequest(
+                1L,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0,
+                10000
+        );
+        UpdateBoardResult result = new UpdateBoardResult(1L);
 
+        given(boardService.update(any(UpdateBoardCommand.class),eq(username), eq(1L))).willReturn(result);
+        mockMvc.perform(
+                        patch("/admin/boards/{id}", 1L)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("성공적으로 수정되었습니다."))
+                .andExpect(jsonPath("$.data.id").value(1L));
+        ArgumentCaptor<UpdateBoardCommand> captor = ArgumentCaptor.forClass(UpdateBoardCommand.class);
+
+        verify(boardService).update(captor.capture(),eq(username), eq(1L));
+
+        UpdateBoardCommand command = captor.getValue();
+        assertThat(command.id()).isEqualTo(1L);
+        assertThat(command.name()).isEqualTo("자유게시판");
+        assertThat(command.slug()).isEqualTo("free");
+        assertThat(command.answerAcceptedEnabled()).isFalse();
+        assertThat(command.commentEnabled()).isFalse();
+        assertThat(command.requireAttachment()).isFalse();
+        assertThat(command.maxAttachmentCount()).isEqualTo(0);
+        assertThat(command.maxContentLength()).isEqualTo(10000);
+        verifyNoMoreInteractions(boardService);
+    }
 }

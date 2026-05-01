@@ -79,6 +79,9 @@ public class Board {
         this.active = true;
     }
 
+    protected Board() {
+    }
+
     public static Board create(
             String name,
             String slug,
@@ -101,7 +104,22 @@ public class Board {
         return board;
     }
 
-    protected Board() {
+    public void update(
+            String name,
+            String slug,
+            boolean commentEnabled,
+            boolean answerAcceptedEnabled,
+            boolean requireAttachment,
+            int maxAttachmentCount,
+            int maxContentLength
+    ) {
+        this.name = name;
+        this.slug = slug;
+        this.commentEnabled = commentEnabled;
+        this.answerAcceptedEnabled = answerAcceptedEnabled;
+        this.requireAttachment = requireAttachment;
+        this.maxAttachmentCount = maxAttachmentCount;
+        this.maxContentLength = maxContentLength;
     }
 
     public boolean isActive() {

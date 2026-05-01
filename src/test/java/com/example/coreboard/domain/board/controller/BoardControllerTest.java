@@ -126,7 +126,7 @@ class BoardControllerTest {
         GetBoardListQuery query = captor.getValue();
 
         assertThat(query.page()).isEqualTo(0);
-        assertThat(query.size()).isEqualTo(20);
+        assertThat(query.size()).isEqualTo(10);
         assertThat(query.direction()).isEqualTo(Sort.Direction.DESC);
 
         verifyNoMoreInteractions(boardService);

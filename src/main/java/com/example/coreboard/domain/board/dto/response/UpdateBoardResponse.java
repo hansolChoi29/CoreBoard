@@ -1,4 +1,6 @@
 package com.example.coreboard.domain.board.dto.response;
 
-public class UpdateBoardResponse {
+public record UpdateBoardResponse(
+        Long id
+) {
 }

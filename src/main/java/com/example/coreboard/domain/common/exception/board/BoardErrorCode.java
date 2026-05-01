@@ -26,10 +26,10 @@ public enum BoardErrorCode {
     BOARD_NAME_DUPLICATE(
             HttpStatus.CONFLICT,
             409,
-            "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요.",
+            "이미 사용 중인 게시판 이름입니다. 다른 이름을 입력해 주세요.",
             List.of(new FieldError(
                     "SLUG DUPLICATE",
-                    "이미 사용 중인 게시판 주소입니다. 다른 주소를 입력해 주세요."
+                    "이미 사용 중인 게시판 이름입니다. 다른 이름을 입력해 주세요."
             ))
     );
 

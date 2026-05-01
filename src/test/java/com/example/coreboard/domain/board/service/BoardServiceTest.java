@@ -1,11 +1,13 @@
 package com.example.coreboard.domain.board.service;
 
+import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
 import com.example.coreboard.domain.board.dto.query.GetBoardListQuery;
 import com.example.coreboard.domain.board.dto.response.GetBoardListResponse;
 import com.example.coreboard.domain.board.dto.result.CreateBoardResult;
 import com.example.coreboard.domain.board.dto.result.GetOneBoardResult;
 import com.example.coreboard.domain.board.dto.command.CreateBoardCommand;
 import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
+import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
@@ -42,7 +44,7 @@ class BoardServiceTest {
     PostRepository postRepository;
 
     @Mock
-    UsersRepository UsersRepository;
+    UsersRepository usersRepository;
 
     @InjectMocks
     BoardService boardService;
@@ -51,8 +53,15 @@ class BoardServiceTest {
     @DisplayName("게시판_생성_성공")
     void createBoard() {
         String username = "username";
-        Users user = new Users(username, "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
-        given(UsersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
         CreateBoardCommand command = new CreateBoardCommand(
                 "자유게시판",
                 "free",
@@ -104,7 +113,8 @@ class BoardServiceTest {
                 "password",
                 "qwe@qwe.com",
                 "01012341234",
-                UserRole.USER);
+                UserRole.ADMIN
+        );
         Post post = new Post(
                 board, user,
                 "title",
@@ -141,7 +151,6 @@ class BoardServiceTest {
                 20,
                 Sort.Direction.DESC
         );
-
         Board board = new Board(
                 "자유게시판",
                 "free",
@@ -152,26 +161,20 @@ class BoardServiceTest {
                 10000,
                 UserRole.USER
         );
-
         PageRequest pageRequest = PageRequest.of(
                 0,
                 20,
                 Sort.by(Sort.Direction.DESC, "id")
         );
-
         List<Board> boards = List.of(board);
-
         Page<Board> boardPage = new PageImpl<>(
                 boards,
                 pageRequest,
                 boards.size()
         );
+        given(boardRepository.findAll(pageRequest)).willReturn(boardPage);
 
-        given(boardRepository.findAll(pageRequest))
-                .willReturn(boardPage);
-
-        OffsetPageResponse<GetBoardListResponse> response =
-                boardService.getAll(query);
+        OffsetPageResponse<GetBoardListResponse> response = boardService.getAll(query);
 
         assertThat(response.getContent()).hasSize(1);
         assertThat(response.getContent().get(0).name()).isEqualTo("자유게시판");
@@ -184,5 +187,63 @@ class BoardServiceTest {
 
         verify(boardRepository).findAll(pageRequest);
         verifyNoMoreInteractions(boardRepository);
+    }
+
+    @Test
+    @DisplayName("게시판_수정_성공")
+    void updateBoard() {
+        String username = "username";
+        Long id = 1L;
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        Board board = new Board(
+                "기존게시판",
+                "old-free",
+                false,
+                false,
+                false,
+                0,
+                10000,
+                UserRole.USER
+        );
+        UpdateBoardCommand command = new UpdateBoardCommand(
+                id,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0,
+                10000
+        );
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.findById(id)).willReturn(Optional.of(board));
+        given(boardRepository.existsByName("자유게시판")).willReturn(false);
+        given(boardRepository.existsBySlug("free")).willReturn(false);
+
+        UpdateBoardResult result = boardService.update(command, username, id);
+
+        assertThat(result).isNotNull();
+
+        assertThat(board.getName()).isEqualTo("자유게시판");
+        assertThat(board.getSlug()).isEqualTo("free");
+        assertThat(board.isAnswerAcceptedEnabled()).isFalse();
+        assertThat(board.isCommentEnabled()).isFalse();
+        assertThat(board.isRequireAttachment()).isFalse();
+        assertThat(board.getMaxAttachmentCount()).isEqualTo(0);
+        assertThat(board.getMaxContentLength()).isEqualTo(10000);
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findById(id);
+        verify(boardRepository).existsByName("자유게시판");
+        verify(boardRepository).existsBySlug("free");
+
+        verifyNoMoreInteractions(usersRepository, boardRepository);
     }
 }
