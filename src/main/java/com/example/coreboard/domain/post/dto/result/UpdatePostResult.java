@@ -1,9 +1,9 @@
-package com.example.coreboard.domain.post.dto;
+package com.example.coreboard.domain.post.dto.result;
 
 
 import java.time.LocalDateTime;
 
-public record UpdatePostDto(
+public record UpdatePostResult(
         Long id,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

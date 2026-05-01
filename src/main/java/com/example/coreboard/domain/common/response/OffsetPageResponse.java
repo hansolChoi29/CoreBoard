@@ -22,9 +22,8 @@ public class OffsetPageResponse<T> {
         return pageInfo;
     }
 }
-/*
-* {
-  "contents": [
+/* {
+  "content": [
     {
       "userId": 1,
       "username": "admin01",
@@ -35,9 +34,7 @@ public class OffsetPageResponse<T> {
     "page": 0,
     "size": 20,
     "totalElements": 53,
-    "totalPages": 3,
-    "first": true,
-    "last": false
+    "totalPages": 3
   }
 }
-* */
+*/

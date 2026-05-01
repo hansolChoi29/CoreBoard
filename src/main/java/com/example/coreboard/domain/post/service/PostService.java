@@ -4,11 +4,13 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.dto.result.CreatePostResult;
+import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
+import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
@@ -43,7 +45,7 @@ public class PostService {
     }
 
     @Transactional
-    public CreatePostDto create(
+    public CreatePostResult create(
             CreatePostCommand commnad,
             String username
     ) {
@@ -61,15 +63,15 @@ public class PostService {
                 commnad.content());
         Post saved = postRepository.save(post);
 
-        return new CreatePostDto(saved.getId());
+        return new CreatePostResult(saved.getId());
     }
 
     @Transactional(readOnly = true)
-    public GetOnePostDto getOne(GetOnePostCommand command) {
+    public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findById(command.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        return new GetOnePostDto(
+        return new GetOnePostResult(
                 post.getId(),
                 post.getUser().getUserId(),
                 post.getTitle(),
@@ -117,7 +119,7 @@ public class PostService {
     }
 
     @Transactional
-    public UpdatePostDto update(UpdatePostCommand command) {
+    public UpdatePostResult update(UpdatePostCommand command) {
         Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
@@ -132,7 +134,7 @@ public class PostService {
                 command.content(),
                 command.contentFormat());
 
-        return new UpdatePostDto(
+        return new UpdatePostResult(
                 post.getId(),
                 post.getCreatedAt(),
                 post.getUpdatedAt());

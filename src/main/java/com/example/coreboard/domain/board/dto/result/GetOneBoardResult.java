@@ -1,11 +1,11 @@
-package com.example.coreboard.domain.board.dto;
+package com.example.coreboard.domain.board.dto.result;
 
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.users.entity.UserRole;
 
 import java.util.List;
 
-public record GetOneBoardDto(
+public record GetOneBoardResult(
         Long id,
         String name,
         String slug,

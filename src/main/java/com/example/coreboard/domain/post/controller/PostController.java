@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.post.controller;
 
-import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
@@ -10,6 +9,9 @@ import com.example.coreboard.domain.post.dto.response.CreatePostResponse;
 import com.example.coreboard.domain.post.dto.response.GetOnePostResponse;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.response.UpdatePostResponse;
+import com.example.coreboard.domain.post.dto.result.CreatePostResult;
+import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
+import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.common.validation.PostValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
@@ -46,7 +48,7 @@ public class PostController {
                 request.content(),
                 request.contentFormat());
 
-        CreatePostDto out = postService.create(post, username);
+        CreatePostResult out = postService.create(post, username);
 
         CreatePostResponse response = new CreatePostResponse(out.id());
 
@@ -63,7 +65,7 @@ public class PostController {
     ) {
         GetOnePostCommand board = new GetOnePostCommand(id);
 
-        GetOnePostDto out = postService.getOne(board);
+        GetOnePostResult out = postService.getOne(board);
 
         GetOnePostResponse response = new GetOnePostResponse(
                 out.id(),
@@ -86,15 +88,12 @@ public class PostController {
             @RequestParam(name = "sort", defaultValue = "asc") String sort
     ) {
         PostValidation.sortDirection(sort);
-
         PostValidation.pageableValication(size);
-
         CursorResponse<PostSummaryResponse> response = postService.getAll(
                 cursorTitle,
                 cursorId,
                 size,
-                sort
-        );
+                sort);
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));
     }
@@ -116,7 +115,7 @@ public class PostController {
                 request.contentFormat()
         );
 
-        UpdatePostDto out = postService.update(board);
+        UpdatePostResult out = postService.update(board);
 
         UpdatePostResponse response = new UpdatePostResponse(
                 out.id(),

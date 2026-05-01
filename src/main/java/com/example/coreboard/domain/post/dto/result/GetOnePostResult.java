@@ -1,8 +1,8 @@
-package com.example.coreboard.domain.post.dto;
+package com.example.coreboard.domain.post.dto.result;
 
 import java.time.LocalDateTime;
 
-public record GetOnePostDto(
+public record GetOnePostResult(
         Long id,
         long userId,
         String title,

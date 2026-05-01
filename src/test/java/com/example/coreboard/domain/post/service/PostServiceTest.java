@@ -2,12 +2,14 @@ package com.example.coreboard.domain.post.service;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.dto.result.CreatePostResult;
+import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
+import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
@@ -95,7 +97,7 @@ class PostServiceTest {
 
         given(postRepository.save(any(Post.class))).willReturn(saved);
 
-        CreatePostDto result = postService.create(boardCreateCommand, "tester");
+        CreatePostResult result = postService.create(boardCreateCommand, "tester");
 
         assertNotNull(result);
         assertEquals(1L, result.id());
@@ -163,7 +165,7 @@ class PostServiceTest {
 
         given(postRepository.findById(id)).willReturn(Optional.of(post));
 
-        GetOnePostDto out = postService.getOne(new GetOnePostCommand(id));
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id));
 
         assertNotNull(out);
         assertEquals(id, out.id());
@@ -424,7 +426,7 @@ class PostServiceTest {
 
         given(post.getId()).willReturn(id);
 
-        UpdatePostDto result = postService.update(cmd);
+        UpdatePostResult result = postService.update(cmd);
 
         assertNotNull(result);
         assertEquals(id, result.id());

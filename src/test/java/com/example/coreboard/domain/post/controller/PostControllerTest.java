@@ -1,10 +1,12 @@
 package com.example.coreboard.domain.post.controller;
 
-import com.example.coreboard.domain.post.dto.*;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.dto.result.CreatePostResult;
+import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
+import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -69,7 +71,7 @@ class PostControllerTest {
     @DisplayName("게시글_생성")
     void create() throws Exception {
         String username = "tester";
-        CreatePostDto dummy = new CreatePostDto(id);
+        CreatePostResult dummy = new CreatePostResult(id);
         given(boardService.create(any(), eq(username))).willReturn(dummy);
 
         CreatePostRequest request = new CreatePostRequest(
@@ -223,7 +225,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void getOne() throws Exception {
-        GetOnePostDto dummy = new GetOnePostDto(
+        GetOnePostResult dummy = new GetOnePostResult(
                 id,
                 userId,
                 "제목",
@@ -361,7 +363,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정")
     void update() throws Exception {
-        UpdatePostDto dummy = new UpdatePostDto(id, LocalDateTime.now(), LocalDateTime.now());
+        UpdatePostResult dummy = new UpdatePostResult(id, LocalDateTime.now(), LocalDateTime.now());
         UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 
