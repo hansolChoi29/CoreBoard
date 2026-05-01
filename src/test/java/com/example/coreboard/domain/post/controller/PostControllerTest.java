@@ -1,10 +1,10 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.post.dto.*;
-import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
-import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
-import com.example.coreboard.domain.post.dto.request.PostUpdateRequest;
-import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
+import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
+import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
+import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class PostControllerTest {
-    private static final String BASE = "/board";
+    private static final String BASE = "/posts";
     ObjectMapper objectMapper = new ObjectMapper();
     String username = "tester";
     long id = 1;
@@ -69,10 +69,10 @@ class PostControllerTest {
     @DisplayName("게시글_생성")
     void create() throws Exception {
         String username = "tester";
-        PostCreateDto dummy = new PostCreateDto(id);
+        CreatePostDto dummy = new CreatePostDto(id);
         given(boardService.create(any(), eq(username))).willReturn(dummy);
 
-        PostCreateRequest request = new PostCreateRequest(
+        CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
 
         mockMvc.perform(
@@ -80,20 +80,17 @@ class PostControllerTest {
                                 .requestAttr("username", username)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
-
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
-                .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.content").value("본문"))
-                .andExpect(jsonPath("$.data.createdAt", notNullValue()));
+                .andExpect(jsonPath("$.data.id").value(1));
         verify(boardService).create(any(), eq(username));
     }
 
     @Test
     @DisplayName("게시글_생성_유저없음_404")
     void createIsNotUser() throws Exception {
-        PostCreateRequest request = new PostCreateRequest(
+        CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
 
         given(boardService.create(any(), eq("ghost")))
@@ -115,9 +112,8 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_생성_권한없음_403")
     void createForbidden() throws Exception {
-        PostCreateRequest request = new PostCreateRequest(
+        CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
-
         given(boardService.create(any(), eq(username)))
                 .willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
         mockMvc.perform(
@@ -137,8 +133,7 @@ class PostControllerTest {
     @DisplayName("게시글_생성_로그인_안함_401")
     void createUnauthorized() throws Exception {
 
-        PostCreateRequest request = new PostCreateRequest(1L, "titile", "content", ContentFormat.MARKDOWN);
-
+        CreatePostRequest request = new CreatePostRequest(1L, "titile", "content", ContentFormat.MARKDOWN);
         mockMvcWithInterceptor.perform(
                         post(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -152,8 +147,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_생성_제목과_본문_비어있음_400")
     void creatteTitleAndContentIsBlank() throws Exception {
-        PostCreateRequest request = new PostCreateRequest(1L, "", "", ContentFormat.MARKDOWN);
-
+        CreatePostRequest request = new CreatePostRequest(1L, "", "", ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -167,8 +161,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_생성_제목_400")
     void createContentIsBlank() throws Exception {
-        PostCreateRequest request = new PostCreateRequest(1L, "title", "", ContentFormat.MARKDOWN);
-
+        CreatePostRequest request = new CreatePostRequest(1L, "title", "", ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -183,8 +176,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_생성_제목_400")
     void createTitleOrContentIsBlank() throws Exception {
-        PostCreateRequest request = new PostCreateRequest(1L, "", "content", ContentFormat.MARKDOWN);
-
+        CreatePostRequest request = new CreatePostRequest(1L, "", "content", ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -200,7 +192,7 @@ class PostControllerTest {
     @DisplayName("게시글_생성_제목_너무_김_400")
     void createTitleToLong() throws Exception {
         String longTitle = "a".repeat(256);
-        PostCreateRequest request = new PostCreateRequest(1L, longTitle, "zx", ContentFormat.MARKDOWN);
+        CreatePostRequest request = new CreatePostRequest(1L, longTitle, "zx", ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -216,8 +208,7 @@ class PostControllerTest {
     @DisplayName("게시글_생성_본문_너무_김_400")
     void createContentToLong() throws Exception {
         String longContent = "a".repeat(1001);
-        PostCreateRequest request = new PostCreateRequest(1L, "title", longContent, ContentFormat.MARKDOWN);
-
+        CreatePostRequest request = new CreatePostRequest(1L, "title", longContent, ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", "tester")
@@ -232,7 +223,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void getOne() throws Exception {
-        PostGetOneDto dummy = new PostGetOneDto(
+        GetOnePostDto dummy = new GetOnePostDto(
                 id,
                 userId,
                 "제목",
@@ -240,8 +231,7 @@ class PostControllerTest {
                 LocalDateTime.now(),
                 LocalDateTime.now());
 
-        given(boardService.findOne(any(PostGetOneCommand.class))).willReturn(dummy);
-
+        given(boardService.getOne(any(GetOnePostCommand.class))).willReturn(dummy);
         mockMvc.perform(
                         get(BASE + "/{id}", id)
                                 .accept(MediaType.APPLICATION_JSON))
@@ -249,7 +239,7 @@ class PostControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"));
 
-        verify(boardService).findOne(any(PostGetOneCommand.class));
+        verify(boardService).getOne(any(GetOnePostCommand.class));
 
         verifyNoMoreInteractions(boardService);
     }
@@ -258,29 +248,25 @@ class PostControllerTest {
     @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
     void getOneIsNotFoundBoard() throws Exception {
 
-        given(boardService.findOne(any(PostGetOneCommand.class)))
+        given(boardService.getOne(any(GetOnePostCommand.class)))
                 .willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
-
         mockMvc.perform(
                         get(BASE + "/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
                 .andExpect(jsonPath("$.data.code").value(404));
-        verify(boardService).findOne(any(PostGetOneCommand.class));
+        verify(boardService).getOne(any(GetOnePostCommand.class));
         verifyNoMoreInteractions(boardService);
     }
 
     @Test
     @DisplayName("게시글_전체_조회")
     void getAll() throws Exception {
-        List<PostSummaryKeysetResponse> items = List.of(
-                new PostSummaryKeysetResponse(1L, 10L, "title", LocalDateTime.now(), LocalDateTime.now()));
-        CursorResponse<PostSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
-                false);
-
-        given(boardService.findAll(null, null, 10, "desc")).willReturn(cursorResponse);
-
+        List<PostSummaryResponse> items = List.of(
+                new PostSummaryResponse(1L, "nickname", "title", LocalDateTime.now(), LocalDateTime.now()));
+        CursorResponse<PostSummaryResponse> cursorResponse = new CursorResponse<>(items, null, null, false);
+        given(boardService.getAll(null, null, 10, "desc")).willReturn(cursorResponse);
         mockMvc.perform(
                         get(BASE)
                                 .param("size", "10")
@@ -289,11 +275,11 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.contents[0].id").value(1))
-                .andExpect(jsonPath("$.data.contents[0].userId").value(10))
+                .andExpect(jsonPath("$.data.contents[0].writerName").value("nickname"))
                 .andExpect(jsonPath("$.data.contents[0].title").value("title"))
                 .andExpect(jsonPath("$.data.hasNext").value(false));
 
-        verify(boardService).findAll(null, null, 10, "desc");
+        verify(boardService).getAll(null, null, 10, "desc");
         verifyNoMoreInteractions(boardService);
     }
 
@@ -307,7 +293,7 @@ class PostControllerTest {
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
@@ -317,12 +303,10 @@ class PostControllerTest {
                         get(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .param("size", "0")
-                                .param("sort", "asc")
-
-                )
+                                .param("sort", "asc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
@@ -332,23 +316,20 @@ class PostControllerTest {
                         get(BASE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .param("size", "11")
-                                .param("sort", "desc")
-
-                )
+                                .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
     @DisplayName("게시글_전체_조회_desc_정상")
     void getAllDesc() throws Exception {
-        List<PostSummaryKeysetResponse> items = List.of(
-                new PostSummaryKeysetResponse(10L, 11L, "title", LocalDateTime.now(), LocalDateTime.now()));
-        CursorResponse<PostSummaryKeysetResponse> cursorResponse = new CursorResponse<>(items, null, null,
+        List<PostSummaryResponse> items = List.of(
+                new PostSummaryResponse(10L, "nickname", "title", LocalDateTime.now(), LocalDateTime.now()));
+        CursorResponse<PostSummaryResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
-        given(boardService.findAll("title", 10L, 10, "desc")).willReturn(cursorResponse);
-
+        given(boardService.getAll("title", 10L, 10, "desc")).willReturn(cursorResponse);
         mockMvc.perform(
                         get(BASE)
                                 .param("cursorTitle", "title")
@@ -359,7 +340,7 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
 
-        verify(boardService).findAll("title", 10L, 10, "desc");
+        verify(boardService).getAll("title", 10L, 10, "desc");
         verifyNoMoreInteractions(boardService);
     }
 
@@ -373,19 +354,18 @@ class PostControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(boardService, never()).findAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
         verifyNoMoreInteractions(boardService);
     }
 
     @Test
     @DisplayName("게시글_수정")
     void update() throws Exception {
-        PostUpdatedDto dummy = new PostUpdatedDto(id, LocalDateTime.now(), LocalDateTime.now());
-        PostUpdateRequest request = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostDto dummy = new UpdatePostDto(id, LocalDateTime.now(), LocalDateTime.now());
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 
         given(boardService.update(any())).willReturn(dummy);
-
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -402,9 +382,8 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_비로그인_401")
     void updateIsUnauthorized() throws Exception {
-        PostUpdateRequest reqeust = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest reqeust = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(reqeust);
-
         mockMvcWithInterceptor.perform(
                         put(BASE + "/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -417,11 +396,10 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_존재하지_않는_게시글_404")
     void updateNotFound() throws Exception {
-        PostUpdateRequest request = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 
         given(boardService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
-
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -436,10 +414,9 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_403")
     void updateForbidden() throws Exception {
-        PostUpdateRequest request = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         given(boardService.update(any())).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
-
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -455,7 +432,7 @@ class PostControllerTest {
     @DisplayName("게시글_수정_본문_길이_초과_400")
     void updateContentTooLong() throws Exception {
         String content = "a".repeat(1001);
-        PostUpdateRequest request = new PostUpdateRequest("newTitle", content, ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", content, ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -471,7 +448,7 @@ class PostControllerTest {
     @DisplayName("게시글_수정_제목_길이_초과_400")
     void updateTitleTooLong() throws Exception {
         String title = "a".repeat(256);
-        PostUpdateRequest request = new PostUpdateRequest(title, "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(title, "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -486,7 +463,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_제목과_본문_비어있음_400")
     void updateTitleAndContentIsBlank() throws Exception {
-        PostUpdateRequest request = new PostUpdateRequest("", "", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("", "", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -501,7 +478,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_제목_비어있음_400")
     void updateContentIsBlank() throws Exception {
-        PostUpdateRequest request = new PostUpdateRequest("", "content", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("", "content", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -516,7 +493,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_본문_비어있음_400")
     void updateTitleIsBlank() throws Exception {
-        PostUpdateRequest request = new PostUpdateRequest("newTitle", "", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", "", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -531,10 +508,9 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_이미_삭제된_게시글")
     void updateIsDelete() throws Exception {
-        PostUpdateRequest requrest = new PostUpdateRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest requrest = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(requrest);
         given(boardService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_ISDELETE));
-
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -549,7 +525,6 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_삭제")
     void deleted() throws Exception {
-
         mockMvc.perform(
                         delete(BASE + "/{id}", id)
                                 .requestAttr("username", username))
@@ -574,10 +549,8 @@ class PostControllerTest {
     @DisplayName("게시글_삭제_다른_유저_403")
     void deleteForbidden() throws Exception {
         String otherUser = "tester";
-
         willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN))
                 .given(boardService).delete(eq(otherUser), eq(id));
-
         mockMvc.perform(
                         delete(BASE + "/{id}", id)
                                 .requestAttr("username", otherUser)

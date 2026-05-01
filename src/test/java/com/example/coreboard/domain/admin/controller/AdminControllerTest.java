@@ -108,7 +108,7 @@ class AdminControllerTest {
                 admin,
                 new PageInfo(1, 10, 11, 2)
         );
-        given(adminService.getAdmins(any(AdminUserListQuery.class)))
+        given(adminService.get(any(AdminUserListQuery.class)))
                 .willReturn(response);
         mockMvc.perform(
                         get("/admin/users")
@@ -125,7 +125,7 @@ class AdminControllerTest {
         ArgumentCaptor<AdminUserListQuery> queryCaptor =
                 ArgumentCaptor.forClass(AdminUserListQuery.class);
 
-        verify(adminService).getAdmins(queryCaptor.capture());
+        verify(adminService).get(queryCaptor.capture());
         verifyNoMoreInteractions(adminService);
 
         AdminUserListQuery query = queryCaptor.getValue();
@@ -153,7 +153,7 @@ class AdminControllerTest {
 
         AdminPatchDto result = new AdminPatchDto(userId, role, username);
 
-        given(adminService.promoteToAdmin(any(AdminPatchCommand.class)))
+        given(adminService.promote(any(AdminPatchCommand.class)))
                 .willReturn(result);
 
         mockMvc.perform(
@@ -169,7 +169,7 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.data.role").value("ADMIN"));
         ArgumentCaptor<AdminPatchCommand> commandCaptor = ArgumentCaptor.forClass(AdminPatchCommand.class);
 
-        verify(adminService).promoteToAdmin(commandCaptor.capture());
+        verify(adminService).promote(commandCaptor.capture());
 
         AdminPatchCommand command = commandCaptor.getValue();
 

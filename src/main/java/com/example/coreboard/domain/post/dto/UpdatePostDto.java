@@ -3,7 +3,7 @@ package com.example.coreboard.domain.post.dto;
 
 import java.time.LocalDateTime;
 
-public record PostUpdatedDto(
+public record UpdatePostDto(
         Long id,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

@@ -3,11 +3,11 @@ package com.example.coreboard.domain.post.service;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.post.dto.*;
-import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
-import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
-import com.example.coreboard.domain.post.dto.command.PostUpdateCommand;
-import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
-import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
+import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
+import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
@@ -58,19 +58,19 @@ class PostServiceTest {
     @InjectMocks
     PostService postService;
 
-    PostCreateRequest boardCreateRequest;
-    PostCreateCommand boardCreateCommand;
+    CreatePostRequest boardCreateRequest;
+    CreatePostCommand boardCreateCommand;
 
     @BeforeEach
     void setUpCreate() {
-        boardCreateRequest = new PostCreateRequest(
+        boardCreateRequest = new CreatePostRequest(
                 1L,
                 "title",
                 "content",
                 ContentFormat.MARKDOWN
         );
 
-        boardCreateCommand = new PostCreateCommand(
+        boardCreateCommand = new CreatePostCommand(
                 1L,
                 "제목",
                 "내용",
@@ -95,7 +95,7 @@ class PostServiceTest {
 
         given(postRepository.save(any(Post.class))).willReturn(saved);
 
-        PostCreateDto result = postService.create(boardCreateCommand, "tester");
+        CreatePostDto result = postService.create(boardCreateCommand, "tester");
 
         assertNotNull(result);
         assertEquals(1L, result.id());
@@ -163,7 +163,7 @@ class PostServiceTest {
 
         given(postRepository.findById(id)).willReturn(Optional.of(post));
 
-        PostGetOneDto out = postService.findOne(new PostGetOneCommand(id));
+        GetOnePostDto out = postService.getOne(new GetOnePostCommand(id));
 
         assertNotNull(out);
         assertEquals(id, out.id());
@@ -176,10 +176,10 @@ class PostServiceTest {
     void findOnNotFound() {
         Long id = 1L;
         given(postRepository.findById(id)).willReturn(Optional.empty());
-        PostGetOneCommand command = new PostGetOneCommand(id);
+        GetOnePostCommand command = new GetOnePostCommand(id);
 
         PostErrorException findOneNotFound = assertThrows(PostErrorException.class,
-                () -> postService.findOne(command));
+                () -> postService.getOne(command));
 
         assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
         verify(postRepository, times(1)).findById(id);
@@ -206,7 +206,7 @@ class PostServiceTest {
 
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findFirstPageDesc(pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll(null, null, 10, "desc");
+        CursorResponse<PostSummaryResponse> result = postService.getAll(null, null, 10, "desc");
 
         assertEquals(3, result.getContents().size());
         assertFalse(result.isHasNext());
@@ -236,8 +236,8 @@ class PostServiceTest {
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findFirstPageDesc(pageable)).willReturn(posts);
 
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll(null, null, 10, "desc");
+        CursorResponse<PostSummaryResponse> result =
+                postService.getAll(null, null, 10, "desc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
@@ -262,8 +262,8 @@ class PostServiceTest {
         given(postRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
                 .willReturn(boards);
 
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll("title2", 12L, 10, "asc");
+        CursorResponse<PostSummaryResponse> result =
+                postService.getAll("title2", 12L, 10, "asc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
@@ -289,7 +289,7 @@ class PostServiceTest {
                         "title2", "content2", ContentFormat.MARKDOWN));
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll("title", 5L, 10, "desc");
+        CursorResponse<PostSummaryResponse> result = postService.getAll("title", 5L, 10, "desc");
         assertEquals(2, result.getContents().size());
         assertFalse(result.isHasNext());
         assertNull(result.getNextCursorTitle());
@@ -318,8 +318,8 @@ class PostServiceTest {
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(posts);
 
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll("title2", 12L, 10, "desc");
+        CursorResponse<PostSummaryResponse> result =
+                postService.getAll("title2", 12L, 10, "desc");
 
         assertEquals(10, result.getContents().size());
         assertTrue(result.isHasNext());
@@ -340,7 +340,7 @@ class PostServiceTest {
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findFirstPageDesc(pageable)).willReturn(mockData);
 
-        postService.findAll(null, null, 10, "desc");
+        postService.getAll(null, null, 10, "desc");
 
         verify(postRepository).findFirstPageDesc(pageable);
         verify(postRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
@@ -357,7 +357,7 @@ class PostServiceTest {
         Pageable pageable = PageRequest.of(0, 11);
         given(postRepository.findNextPageDesc("title", 1L, pageable)).willReturn(mockData);
 
-        postService.findAll("title", 1L, 10, "desc");
+        postService.getAll("title", 1L, 10, "desc");
 
         verify(postRepository).findNextPageDesc("title", 1L, pageable);
         verify(postRepository, never()).findFirstPageDesc(pageable);
@@ -374,8 +374,8 @@ class PostServiceTest {
         given(postRepository.findFirstPageDesc(pageable))
                 .willReturn(createBoards(5, board, user));
 
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll(null, null, 10, "desc");
+        CursorResponse<PostSummaryResponse> result =
+                postService.getAll(null, null, 10, "desc");
 
         assertEquals(5, result.getContents().size());
         assertFalse(result.isHasNext());
@@ -407,7 +407,7 @@ class PostServiceTest {
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
 
-        PostUpdateCommand cmd = new PostUpdateCommand(
+        UpdatePostCommand cmd = new UpdatePostCommand(
                 id,
                 "tester",
                 "새제목",
@@ -424,7 +424,7 @@ class PostServiceTest {
 
         given(post.getId()).willReturn(id);
 
-        PostUpdatedDto result = postService.update(cmd);
+        UpdatePostDto result = postService.update(cmd);
 
         assertNotNull(result);
         assertEquals(id, result.id());
@@ -439,7 +439,7 @@ class PostServiceTest {
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
 
-        PostUpdateCommand cmd = new PostUpdateCommand(
+        UpdatePostCommand cmd = new UpdatePostCommand(
                 1L,
                 "tester",
                 "title",
@@ -535,7 +535,7 @@ class PostServiceTest {
         when(postRepository.searchByKeyword(keyword))
                 .thenReturn(List.of(post, post2));
 
-        CursorResponse<PostSummaryKeysetResponse> result = postService.search(keyword);
+        CursorResponse<PostSummaryResponse> result = postService.search(keyword);
 
         assertEquals(2, result.getContents().size());
         assertTrue(result.getContents().stream()

@@ -1,7 +1,9 @@
 package com.example.coreboard.domain.board.controller;
 
 import com.example.coreboard.domain.board.dto.CreateBoardDto;
+import com.example.coreboard.domain.board.dto.GetOneBoardDto;
 import com.example.coreboard.domain.board.dto.command.CreateBoardCommand;
+import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
 import com.example.coreboard.domain.board.dto.request.CreateBoardRequest;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
@@ -18,12 +20,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,7 +68,7 @@ class BoardControllerTest {
         );
         CreateBoardDto result = new CreateBoardDto(1L);
 
-        given(boardService.createBoard(any(CreateBoardCommand.class), eq("username"))).willReturn(result);
+        given(boardService.create(any(CreateBoardCommand.class), eq("username"))).willReturn(result);
 
         mockMvc.perform(
                         post("/admin/boards")
@@ -77,7 +82,7 @@ class BoardControllerTest {
 
         ArgumentCaptor<CreateBoardCommand> captor = ArgumentCaptor.forClass(CreateBoardCommand.class);
 
-        verify(boardService).createBoard(captor.capture(), eq("username"));
+        verify(boardService).create(captor.capture(), eq("username"));
 
         CreateBoardCommand command = captor.getValue();
 
@@ -92,4 +97,46 @@ class BoardControllerTest {
 
         verifyNoMoreInteractions(boardService);
     }
+
+    @Test
+    @DisplayName("게시판_단건조회_성공")
+    void getOneBoard() throws Exception {
+        GetOneBoardDto out = new GetOneBoardDto(
+                1L,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0,
+                10000,
+                UserRole.USER,
+                List.of()
+        );
+        given(boardService.getOne(any(GetOneBoardCommand.class)))
+                .willReturn(out);
+        mockMvc.perform(
+                        get("/admin/boards/{boardId}", 1L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("성공적으로 불러왔습니다."))
+                .andExpect(jsonPath("$.data.id").value(1L))
+                .andExpect(jsonPath("$.data.name").value("자유게시판"))
+                .andExpect(jsonPath("$.data.slug").value("free"))
+                .andExpect(jsonPath("$.data.requiredWriteRole").value("USER"))
+                .andExpect(jsonPath("$.data.posts").isArray());
+        ;
+
+        ArgumentCaptor<GetOneBoardCommand> captor =
+                ArgumentCaptor.forClass(GetOneBoardCommand.class);
+
+        verify(boardService).getOne(captor.capture());
+
+        GetOneBoardCommand command = captor.getValue();
+
+        assertThat(command.id()).isEqualTo(1L);
+        verifyNoMoreInteractions(boardService);
+    }
+
 }

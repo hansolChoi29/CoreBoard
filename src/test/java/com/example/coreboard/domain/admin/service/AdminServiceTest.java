@@ -156,7 +156,7 @@ class AdminServiceTest {
                 .willReturn(adminPage);
 
         OffsetPageResponse<AdminGetResponse> response =
-                adminService.getAdmins(query);
+                adminService.get(query);
 
         assertThat(response.getContent()).hasSize(1);
         assertThat(response.getContent().get(0).username()).isEqualTo("admin");
@@ -187,7 +187,7 @@ class AdminServiceTest {
         given(usersRepository.findById(userId))
                 .willReturn(Optional.of(user));
 
-        AdminPatchDto result = adminService.promoteToAdmin(new AdminPatchCommand(userId, UserRole.ADMIN));
+        AdminPatchDto result = adminService.promote(new AdminPatchCommand(userId, UserRole.ADMIN));
         assertEquals(UserRole.ADMIN, result.role());
         verify(usersRepository).findById(userId);
     }
@@ -215,7 +215,7 @@ class AdminServiceTest {
         given(usersRepository.findByUsername("username"))
                 .willReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> adminService.getAdmins(query))
+        assertThatThrownBy(() -> adminService.get(query))
                 .isInstanceOf(AuthErrorException.class);
 
         verify(usersRepository).findByUsername("username");
@@ -240,7 +240,7 @@ class AdminServiceTest {
 
         given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(1L);
         AuthErrorException exception = assertThrows(AuthErrorException.class,
-                () -> adminService.promoteToAdmin(command));
+                () -> adminService.promote(command));
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
 
@@ -266,7 +266,7 @@ class AdminServiceTest {
         given(usersRepository.findById(1L)).willReturn(Optional.of(admin));
         given(usersRepository.countByRole(UserRole.ADMIN)).willReturn(2L);
 
-        AdminPatchDto result = adminService.promoteToAdmin(command);
+        AdminPatchDto result = adminService.promote(command);
 
         assertEquals(UserRole.USER, result.role());
 
@@ -292,7 +292,7 @@ class AdminServiceTest {
 
         given(usersRepository.findById(1L)).willReturn(Optional.of(admin));
 
-        AdminPatchDto result = adminService.promoteToAdmin(command);
+        AdminPatchDto result = adminService.promote(command);
 
         assertEquals(UserRole.ADMIN, result.role());
 
@@ -318,7 +318,7 @@ class AdminServiceTest {
 
         given(usersRepository.findById(1L)).willReturn(Optional.of(user));
 
-        AdminPatchDto result = adminService.promoteToAdmin(command);
+        AdminPatchDto result = adminService.promote(command);
 
         assertEquals(UserRole.USER, result.role());
 

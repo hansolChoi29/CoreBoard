@@ -9,10 +9,10 @@ public enum BoardErrorCode {
     BOARD_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             404,
-            "제목과 내용은 필수입니다.",
+            "존재하지 않는 게시판입니다.",
             List.of(new FieldError(
-                    "NO TITLE AND CONTENT",
-                    "제목과 본문은 필수입니다."
+                    "NOT FOUND BOARD",
+                    "존재하지 않는 게시판입니다."
             ))
     ), BOARD_SLUG_DUPLICATE(
             HttpStatus.CONFLICT,

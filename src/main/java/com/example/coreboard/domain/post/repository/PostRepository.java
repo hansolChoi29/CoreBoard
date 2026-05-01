@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findById(Long id);
-
+    List<Post> findByBoardId(Long boardId);
     boolean existsByTitle(String title);
 
     @Query("""

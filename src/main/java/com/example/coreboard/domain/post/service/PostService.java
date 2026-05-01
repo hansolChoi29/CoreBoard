@@ -5,10 +5,10 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.post.dto.*;
-import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
-import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
-import com.example.coreboard.domain.post.dto.command.PostUpdateCommand;
-import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
+import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
+import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
@@ -43,46 +43,44 @@ public class PostService {
     }
 
     @Transactional
-    public PostCreateDto create(
-            PostCreateCommand boardCreateCommand,
+    public CreatePostDto create(
+            CreatePostCommand commnad,
             String username
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        if (postRepository.existsByTitle(boardCreateCommand.title())) {
+        if (postRepository.existsByTitle(commnad.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
-
-        Board board = boardRepository.findById(boardCreateCommand.boardId())
+        Board board = boardRepository.findById(commnad.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-
         Post post = Post.create(
                 board,
                 user,
-                boardCreateCommand.title(),
-                boardCreateCommand.content());
-
+                commnad.title(),
+                commnad.content());
         Post saved = postRepository.save(post);
 
-        return new PostCreateDto(saved.getId());
+        return new CreatePostDto(saved.getId());
     }
 
-    public PostGetOneDto findOne(PostGetOneCommand boardGetOneCommand) {
-        Post board = postRepository.findById(boardGetOneCommand.id())
+    @Transactional(readOnly = true)
+    public GetOnePostDto getOne(GetOnePostCommand command) {
+        Post post = postRepository.findById(command.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        return new PostGetOneDto(
-                board.getId(),
-                board.getUser().getUserId(),
-                board.getTitle(),
-                board.getContent(),
-                board.getCreatedAt(),
-                board.getUpdatedAt()
+        return new GetOnePostDto(
+                post.getId(),
+                post.getUser().getUserId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCreatedAt(),
+                post.getUpdatedAt()
         );
     }
 
-    public CursorResponse<PostSummaryKeysetResponse> findAll(
+    @Transactional(readOnly = true)
+    public CursorResponse<PostSummaryResponse> getAll(
             String cursorTitle,
             Long cursorId,
             int size,
@@ -95,21 +93,18 @@ public class PostService {
                 : postRepository.findFirstPageAsc(pageable))
                 : (isDesc ? postRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
                 : postRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
-
         boolean hasNext = result.size() > size;
         if (hasNext) {
             result = result.subList(0, size);
         }
-
-        List<PostSummaryKeysetResponse> contents = result.stream()
-                .map(b -> new PostSummaryKeysetResponse(
+        List<PostSummaryResponse> contents = result.stream()
+                .map(b -> new PostSummaryResponse(
                         b.getId(),
-                        b.getUser().getUserId(),
+                        b.getUser().getNickname(),
                         b.getTitle(),
                         b.getCreatedAt(),
                         b.getUpdatedAt()))
                 .toList();
-
         String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
         Long nextCursorId = hasNext ? result.get(result.size() - 1).getId() : null;
 
@@ -122,38 +117,34 @@ public class PostService {
     }
 
     @Transactional
-    public PostUpdatedDto update(PostUpdateCommand boardUpdatedCommad) {
-        Users user = usersRepository.findByUsername(boardUpdatedCommad.username())
+    public UpdatePostDto update(UpdatePostCommand command) {
+        Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Post board = postRepository.findById(boardUpdatedCommad.id())
+        Post post = postRepository.findById(command.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!board.getUser().getUserId().equals(user.getUserId())) {
+        if (!post.getUser().getUserId().equals(user.getUserId())) {
             throw new AuthErrorException(FORBIDDEN);
         }
+        post.update(
+                command.title(),
+                command.content(),
+                command.contentFormat());
 
-        board.update(
-                boardUpdatedCommad.title(),
-                boardUpdatedCommad.content(),
-                boardUpdatedCommad.contentFormat());
-        return new PostUpdatedDto(
-                board.getId(),
-                board.getCreatedAt(),
-                board.getUpdatedAt());
+        return new UpdatePostDto(
+                post.getId(),
+                post.getCreatedAt(),
+                post.getUpdatedAt());
     }
 
     @Transactional
-    public void delete(
-            String username,
-            Long id
-    ) {
+    public void delete(String username, Long id) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
         postRepository.findById(id)
-                .filter(board -> {
-                    if (!board.getUser().getUserId().equals(user.getUserId())) {
+                .filter(post -> {
+                    if (!post.getUser().getUserId().equals(user.getUserId())) {
                         throw new AuthErrorException(FORBIDDEN);
                     }
                     return true;
@@ -162,18 +153,16 @@ public class PostService {
     }
 
     @Transactional
-    public CursorResponse<PostSummaryKeysetResponse> search(String keyword) {
-        List<Post> boards = postRepository.searchByKeyword(keyword);
-
-        List<PostSummaryKeysetResponse> contents = boards.stream().map(
-                board -> new PostSummaryKeysetResponse(
-                        board.getId(),
-                        board.getUser().getUserId(),
-                        board.getTitle(),
-                        board.getCreatedAt(),
-                        board.getUpdatedAt()
-                )
-        ).toList();
+    public CursorResponse<PostSummaryResponse> search(String keyword) {
+        List<Post> posts = postRepository.searchByKeyword(keyword);
+        List<PostSummaryResponse> contents = posts.stream().map(
+                post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                )).toList();
 
         return new CursorResponse<>(
                 contents,

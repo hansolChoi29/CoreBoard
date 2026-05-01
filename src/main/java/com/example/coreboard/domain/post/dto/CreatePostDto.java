@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.post.dto;
 
 
-public record PostCreateDto(
+public record CreatePostDto(
         Long id
 ) {
 }
