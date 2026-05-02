@@ -130,12 +130,12 @@ http://localhost:8080/swagger-ui/index.html
 
 #### Board API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/admin/boards` | 게시판 메뉴 생성 | ADMIN |
+| Method | URL | 설명           | 인증 |
+|--------|-----|--------------|------|
+| POST | `/admin/boards` | 게시판 메뉴 생성    | ADMIN |
 | GET | `/boards` | 활성 게시판 목록 조회 | 불필요 |
-| PATCH | `/admin/boards/{boardId}` | 게시판 메뉴 수정 | ADMIN |
-| PATCH | `/admin/boards/{boardId}/deactivate` | 게시판 비활성화 | ADMIN |
+| PATCH | `/admin/boards/{boardId}` | 게시판 메뉴 수정    | ADMIN |
+| PATCH | `DELETE /admin/boards/{id}` | 게시판 삭제 요청(soft delete)  | ADMIN |
 
 #### Post API
 

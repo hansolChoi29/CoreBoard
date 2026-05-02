@@ -90,7 +90,8 @@ public class Board {
             boolean answerAcceptedEnabled,
             boolean requireAttachment,
             int maxAttachmentCount,
-            int maxContentLength
+            int maxContentLength,
+            UserRole requiredWriteRole
     ) {
         Board board = new Board();
         board.name = name;
@@ -100,7 +101,7 @@ public class Board {
         board.requireAttachment = requireAttachment;
         board.maxAttachmentCount = maxAttachmentCount;
         board.maxContentLength = maxContentLength;
-        board.requiredWriteRole = UserRole.USER;
+        board.requiredWriteRole = requiredWriteRole;
         return board;
     }
 

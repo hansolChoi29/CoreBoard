@@ -54,11 +54,12 @@ public class BoardService {
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
-        if (boardRepository.existsBySlug(command.slug())) {
-            throw new BoardErrorException(BoardErrorCode.BOARD_SLUG_DUPLICATE);
-        }
-        if (boardRepository.existsByName(command.name())) {
+        if (boardRepository.existsByNameAndDeletedAtIsNull(command.name())) {
             throw new BoardErrorException(BoardErrorCode.BOARD_NAME_DUPLICATE);
+        }
+
+        if (boardRepository.existsBySlugAndDeletedAtIsNull(command.slug())) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_SLUG_DUPLICATE);
         }
         Board board = Board.create(
                 command.name(),
@@ -67,7 +68,8 @@ public class BoardService {
                 command.answerAcceptedEnabled(),
                 command.requireAttachment(),
                 command.maxAttachmentCount(),
-                command.maxContentLength()
+                command.maxContentLength(),
+                command.requiredWriteRole()
         );
         boardRepository.save(board);
 
@@ -78,7 +80,7 @@ public class BoardService {
     public GetOneBoardResult getOne(GetOneBoardCommand command) {
         Board board = boardRepository.findById(command.id())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-        List<PostSummaryResponse> posts = postRepository.findByBoardId(command.id())
+        List<PostSummaryResponse> posts = postRepository.findByBoardIdWithUser(command.id())
                 .stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
@@ -101,14 +103,14 @@ public class BoardService {
         );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public OffsetPageResponse<GetBoardListResponse> getAll(GetBoardListQuery query) {
         PageRequest pageRequest = PageRequest.of(
                 query.page(),
                 query.size(),
                 Sort.by(query.direction(), "id")
         );
-        Page<Board> boardPage = boardRepository.findAll(pageRequest);
+        Page<Board> boardPage = boardRepository.findByDeletedAtIsNull(pageRequest);
         List<GetBoardListResponse> content = boardPage.getContent()
                 .stream()
                 .map(board -> new GetBoardListResponse(
@@ -133,15 +135,16 @@ public class BoardService {
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
-        Board board = boardRepository.findById(id)
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
-        if (boardRepository.existsByName(command.name())) {
+        if (boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id)) {
             throw new BoardErrorException(BoardErrorCode.BOARD_NAME_DUPLICATE);
         }
-        if (boardRepository.existsBySlug(command.slug())) {
+
+        if (boardRepository.existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id)) {
             throw new BoardErrorException(BoardErrorCode.BOARD_SLUG_DUPLICATE);
         }
         board.update(
@@ -163,7 +166,7 @@ public class BoardService {
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
-        Board board = boardRepository.findById(command.id())
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
         if (postRepository.existsByBoardId(command.id())) {
             throw new BoardErrorException(BoardErrorCode.BOARD_HAS_POSTS);

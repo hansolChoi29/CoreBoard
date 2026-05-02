@@ -1,6 +1,6 @@
 package com.example.coreboard.domain.board.dto.command;
 
-import com.example.coreboard.domain.users.entity.UserRole;
+
 
 public record UpdateBoardCommand(
         Long id,

@@ -59,4 +59,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             or b.content like concat('%', :keyword, '%')    
             """)
     List<Post> searchByKeyword(@Param("keyword") String keyword);
+
+    // getOne
+    @Query("""
+            select p 
+            from Post p
+             join fetch p.user
+              where p.board.id = :boardId
+            """)
+    List<Post> findByBoardIdWithUser(@Param("boardId") Long boardId);
 }

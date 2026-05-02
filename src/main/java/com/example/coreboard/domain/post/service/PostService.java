@@ -145,14 +145,13 @@ public class PostService {
     public void delete(DeletePostCommand command) {
         Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-        postRepository.findById(command.id())
-                .filter(post -> {
-                    if (!post.getUser().getUserId().equals(user.getUserId())) {
-                        throw new AuthErrorException(FORBIDDEN);
-                    }
-                    return true;
-                })
-                .ifPresent(postRepository::delete);
+        Post post = postRepository.findById(command.id())
+                .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+
+        if (!post.getUser().getUserId().equals(user.getUserId())) {
+            throw new AuthErrorException(FORBIDDEN);
+        }
+        post.delete();
     }
 
     @Transactional

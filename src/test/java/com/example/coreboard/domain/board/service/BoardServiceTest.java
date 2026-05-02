@@ -83,15 +83,15 @@ class BoardServiceTest {
                 10000,
                 UserRole.USER
         );
-        given(boardRepository.existsByName("자유게시판")).willReturn(false);
-        given(boardRepository.existsBySlug("free")).willReturn(false);
+        given(boardRepository.existsByNameAndDeletedAtIsNull("자유게시판")).willReturn(false);
+        given(boardRepository.existsBySlugAndDeletedAtIsNull("free")).willReturn(false);
         given(boardRepository.save(any(Board.class))).willReturn(savedBoard);
 
         CreateBoardResult result = boardService.create(command, username);
 
         assertThat(result).isNotNull();
-        verify(boardRepository).existsByName("자유게시판");
-        verify(boardRepository).existsBySlug("free");
+        verify(boardRepository).existsByNameAndDeletedAtIsNull("자유게시판");
+        verify(boardRepository).existsBySlugAndDeletedAtIsNull("free");
         verify(boardRepository).save(any(Board.class));
     }
 
@@ -172,7 +172,7 @@ class BoardServiceTest {
                 pageRequest,
                 boards.size()
         );
-        given(boardRepository.findAll(pageRequest)).willReturn(boardPage);
+        given(boardRepository.findByDeletedAtIsNull(pageRequest)).willReturn(boardPage);
 
         OffsetPageResponse<GetBoardListResponse> response = boardService.getAll(query);
 
@@ -185,7 +185,7 @@ class BoardServiceTest {
         assertThat(response.getPageInfo().getTotalElements()).isEqualTo(1L);
         assertThat(response.getPageInfo().getTotalPages()).isEqualTo(1);
 
-        verify(boardRepository).findAll(pageRequest);
+        verify(boardRepository).findByDeletedAtIsNull(pageRequest);
         verifyNoMoreInteractions(boardRepository);
     }
 
@@ -223,9 +223,9 @@ class BoardServiceTest {
                 10000
         );
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
-        given(boardRepository.findById(id)).willReturn(Optional.of(board));
-        given(boardRepository.existsByName("자유게시판")).willReturn(false);
-        given(boardRepository.existsBySlug("free")).willReturn(false);
+        given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
+        given(boardRepository.existsByNameAndIdNotAndDeletedAtIsNull("자유게시판", id)).willReturn(false);
+        given(boardRepository.existsBySlugAndIdNotAndDeletedAtIsNull("free", id)).willReturn(false);
 
         UpdateBoardResult result = boardService.update(command, username, id);
 
@@ -240,10 +240,8 @@ class BoardServiceTest {
         assertThat(board.getMaxContentLength()).isEqualTo(10000);
 
         verify(usersRepository).findByUsername(username);
-        verify(boardRepository).findById(id);
-        verify(boardRepository).existsByName("자유게시판");
-        verify(boardRepository).existsBySlug("free");
-
+        verify(boardRepository).existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id);
+        verify(boardRepository).existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id);
         verifyNoMoreInteractions(usersRepository, boardRepository);
     }
 
@@ -262,7 +260,8 @@ class BoardServiceTest {
                 false,
                 false,
                 3,
-                10000
+                10000,
+                UserRole.USER
         );
 
         DeleteBoardCommand command = new DeleteBoardCommand(boardId, username);
