@@ -5,6 +5,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
@@ -141,10 +142,10 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(String username, Long id) {
-        Users user = usersRepository.findByUsername(username)
+    public void delete(DeletePostCommand command) {
+        Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-        postRepository.findById(id)
+        postRepository.findById(command.id())
                 .filter(post -> {
                     if (!post.getUser().getUserId().equals(user.getUserId())) {
                         throw new AuthErrorException(FORBIDDEN);

@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.board.service;
 
+import com.example.coreboard.domain.board.dto.command.DeleteBoardCommand;
 import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
 import com.example.coreboard.domain.board.dto.response.GetBoardListResponse;
 import com.example.coreboard.domain.board.dto.result.CreateBoardResult;
@@ -17,7 +18,6 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
-import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
@@ -154,5 +154,20 @@ public class BoardService {
                 command.maxContentLength()
         );
         return new UpdateBoardResult(board.getId());
+    }
+
+    @Transactional
+    public void delete(DeleteBoardCommand command) {
+        Users user = usersRepository.findByUsername(command.username())
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+        Board board = boardRepository.findById(command.id())
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        if (postRepository.existsByBoardId(command.id())) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_HAS_POSTS);
+        }
+        board.softDelete();
     }
 }

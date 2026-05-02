@@ -150,7 +150,6 @@ class PostTest extends IntegrationTestBase {
                         MockMvcRequestBuilders.delete("/posts/{id}", realId)
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(status().isNoContent());
     }
 }

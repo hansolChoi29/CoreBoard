@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
@@ -131,9 +132,14 @@ public class PostController {
             @RequestAttribute("username") String username,
             @PathVariable("id") Long id
     ) {
-        postService.delete(username, id);
+        // CQRS는 읽기 작업과 쓰기 작업을 별도의 데이터 모델로 분리하는 디자인 패턴이다
+        // 각 모델을 독립적으로 최적화할 수 있고, 성능·확장성·보안을 향상시킬 수 있다
+        // 즉, command가 필요한 이유는 게시판 삭제 명령을 구성하는 데이터이기 때문이다
+        DeletePostCommand command = new DeletePostCommand(id, username);
+        postService.delete(command);
 
-        return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
+//        return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "게시글 검색")

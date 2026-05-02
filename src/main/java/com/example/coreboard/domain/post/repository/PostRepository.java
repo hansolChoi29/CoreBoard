@@ -14,7 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findById(Long id);
     List<Post> findByBoardId(Long boardId);
     boolean existsByTitle(String title);
-
+    boolean existsByBoardId(Long boardId);
     @Query("""
             select b from Post b
             order by b.title desc, b.id desc

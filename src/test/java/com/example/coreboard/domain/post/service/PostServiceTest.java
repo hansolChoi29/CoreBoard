@@ -3,6 +3,7 @@ package com.example.coreboard.domain.post.service;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
@@ -257,7 +258,7 @@ class PostServiceTest {
         List<Post> boards = new ArrayList<>();
         for (long i = 11; i >= 1; i--) {
             boards.add(new Post(
-                    board ,
+                    board,
                     new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER), "title" + i, "content" + i, ContentFormat.MARKDOWN));
         }
 
@@ -472,9 +473,9 @@ class PostServiceTest {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
-
-        String username = "tester";
         Long id = 1L;
+        String username = "tester";
+        DeletePostCommand command = new DeletePostCommand(id, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
         given(postRepository.findById(id)).willReturn(Optional.of(post));
@@ -483,7 +484,7 @@ class PostServiceTest {
         given(post.getUser()).willReturn(postWriter);
         given(postWriter.getUserId()).willReturn(10L);
 
-        postService.delete(username, id);
+        postService.delete(command);
 
         verify(usersRepository, times(1)).findByUsername(username);
         verify(postRepository, times(1)).findById(id);
@@ -496,8 +497,8 @@ class PostServiceTest {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
-
         String username = "tester";
+        DeletePostCommand command = new DeletePostCommand(1L, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
@@ -506,10 +507,8 @@ class PostServiceTest {
         given(post.getUser()).willReturn(postWriter);
         given(postWriter.getUserId()).willReturn(98L);
 
-        AuthErrorException exception = assertThrows(
-                AuthErrorException.class,
-                () -> postService.delete(username, 1L)
-        );
+        AuthErrorException exception = assertThrows(AuthErrorException.class,
+                () -> postService.delete(command));
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
 

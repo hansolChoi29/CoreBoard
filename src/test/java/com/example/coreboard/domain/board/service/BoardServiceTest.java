@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.board.service;
 
+import com.example.coreboard.domain.board.dto.command.DeleteBoardCommand;
 import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
 import com.example.coreboard.domain.board.dto.query.GetBoardListQuery;
 import com.example.coreboard.domain.board.dto.response.GetBoardListResponse;
@@ -31,8 +32,7 @@ import java.util.Optional;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -245,5 +245,43 @@ class BoardServiceTest {
         verify(boardRepository).existsBySlug("free");
 
         verifyNoMoreInteractions(usersRepository, boardRepository);
+    }
+
+    @Test
+    @DisplayName("게시판_삭제_성공")
+    void deleteBoard() {
+        String username = "admin";
+        Long boardId = 1L;
+
+        Users admin = mock(Users.class);
+
+        Board board = Board.create(
+                "자유게시판",
+                "free",
+                true,
+                false,
+                false,
+                3,
+                10000
+        );
+
+        DeleteBoardCommand command = new DeleteBoardCommand(boardId, username);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
+        given(admin.getRole()).willReturn(UserRole.ADMIN);
+
+        given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
+
+        given(postRepository.existsByBoardId(boardId)).willReturn(false);
+
+        boardService.delete(command);
+
+        assertThat(board.getDeletedAt()).isNotNull();
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findById(boardId);
+        verify(postRepository).existsByBoardId(boardId);
+        verify(boardRepository, never()).delete(any(Board.class));
+        verifyNoMoreInteractions(usersRepository, boardRepository, postRepository);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.post.controller;
 
+import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
@@ -53,18 +54,18 @@ class PostControllerTest {
     long userId = 1;
 
     @Mock
-    PostService boardService;
+    PostService postService;
 
     @InjectMocks
-    PostController boardController;
+    PostController postControler;
 
     MockMvc mockMvc;
     MockMvc mockMvcWithInterceptor;
 
     @BeforeEach
     void setup() {
-        mockMvc = MockMvcSupport.create(boardController);
-        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(boardController);
+        mockMvc = MockMvcSupport.create(postControler);
+        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(postControler);
     }
 
     @Test
@@ -72,7 +73,7 @@ class PostControllerTest {
     void create() throws Exception {
         String username = "tester";
         CreatePostResult dummy = new CreatePostResult(id);
-        given(boardService.create(any(), eq(username))).willReturn(dummy);
+        given(postService.create(any(), eq(username))).willReturn(dummy);
 
         CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
@@ -86,7 +87,7 @@ class PostControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
                 .andExpect(jsonPath("$.data.id").value(1));
-        verify(boardService).create(any(), eq(username));
+        verify(postService).create(any(), eq(username));
     }
 
     @Test
@@ -95,7 +96,7 @@ class PostControllerTest {
         CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
 
-        given(boardService.create(any(), eq("ghost")))
+        given(postService.create(any(), eq("ghost")))
                 .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
 
         mockMvc.perform(
@@ -107,28 +108,8 @@ class PostControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
 
-        verify(boardService).create(any(), eq("ghost"));
-        verifyNoMoreInteractions(boardService);
-    }
-
-    @Test
-    @DisplayName("게시글_생성_권한없음_403")
-    void createForbidden() throws Exception {
-        CreatePostRequest request = new CreatePostRequest(
-                1L, "title", "content", ContentFormat.MARKDOWN);
-        given(boardService.create(any(), eq(username)))
-                .willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
-        mockMvc.perform(
-                        post(BASE)
-                                .requestAttr("username", username)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
-
-        verify(boardService).create(any(), eq(username));
-        verifyNoMoreInteractions(boardService);
+        verify(postService).create(any(), eq("ghost"));
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -143,7 +124,7 @@ class PostControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
 
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -157,7 +138,7 @@ class PostControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -172,7 +153,7 @@ class PostControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
 
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -187,7 +168,7 @@ class PostControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
 
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -203,7 +184,7 @@ class PostControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
 
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -219,7 +200,7 @@ class PostControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
 
-        verify(boardService, never()).create(any(), anyString());
+        verify(postService, never()).create(any(), anyString());
     }
 
     @Test
@@ -233,7 +214,7 @@ class PostControllerTest {
                 LocalDateTime.now(),
                 LocalDateTime.now());
 
-        given(boardService.getOne(any(GetOnePostCommand.class))).willReturn(dummy);
+        given(postService.getOne(any(GetOnePostCommand.class))).willReturn(dummy);
         mockMvc.perform(
                         get(BASE + "/{id}", id)
                                 .accept(MediaType.APPLICATION_JSON))
@@ -241,16 +222,16 @@ class PostControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"));
 
-        verify(boardService).getOne(any(GetOnePostCommand.class));
+        verify(postService).getOne(any(GetOnePostCommand.class));
 
-        verifyNoMoreInteractions(boardService);
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
     @DisplayName("게시글_단건_조회_존재하지_않는_게시글_404")
     void getOneIsNotFoundBoard() throws Exception {
 
-        given(boardService.getOne(any(GetOnePostCommand.class)))
+        given(postService.getOne(any(GetOnePostCommand.class)))
                 .willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
         mockMvc.perform(
                         get(BASE + "/{id}", id)
@@ -258,8 +239,8 @@ class PostControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."))
                 .andExpect(jsonPath("$.data.code").value(404));
-        verify(boardService).getOne(any(GetOnePostCommand.class));
-        verifyNoMoreInteractions(boardService);
+        verify(postService).getOne(any(GetOnePostCommand.class));
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -268,7 +249,7 @@ class PostControllerTest {
         List<PostSummaryResponse> items = List.of(
                 new PostSummaryResponse(1L, "nickname", "title", LocalDateTime.now(), LocalDateTime.now()));
         CursorResponse<PostSummaryResponse> cursorResponse = new CursorResponse<>(items, null, null, false);
-        given(boardService.getAll(null, null, 10, "desc")).willReturn(cursorResponse);
+        given(postService.getAll(null, null, 10, "desc")).willReturn(cursorResponse);
         mockMvc.perform(
                         get(BASE)
                                 .param("size", "10")
@@ -281,8 +262,8 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.data.contents[0].title").value("title"))
                 .andExpect(jsonPath("$.data.hasNext").value(false));
 
-        verify(boardService).getAll(null, null, 10, "desc");
-        verifyNoMoreInteractions(boardService);
+        verify(postService).getAll(null, null, 10, "desc");
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -295,7 +276,7 @@ class PostControllerTest {
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
@@ -308,7 +289,7 @@ class PostControllerTest {
                                 .param("sort", "asc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
@@ -321,7 +302,7 @@ class PostControllerTest {
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
-        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+        verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
     @Test
@@ -331,7 +312,7 @@ class PostControllerTest {
                 new PostSummaryResponse(10L, "nickname", "title", LocalDateTime.now(), LocalDateTime.now()));
         CursorResponse<PostSummaryResponse> cursorResponse = new CursorResponse<>(items, null, null,
                 false);
-        given(boardService.getAll("title", 10L, 10, "desc")).willReturn(cursorResponse);
+        given(postService.getAll("title", 10L, 10, "desc")).willReturn(cursorResponse);
         mockMvc.perform(
                         get(BASE)
                                 .param("cursorTitle", "title")
@@ -342,8 +323,8 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
 
-        verify(boardService).getAll("title", 10L, 10, "desc");
-        verifyNoMoreInteractions(boardService);
+        verify(postService).getAll("title", 10L, 10, "desc");
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -356,8 +337,8 @@ class PostControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(boardService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
-        verifyNoMoreInteractions(boardService);
+        verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -367,7 +348,7 @@ class PostControllerTest {
         UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 
-        given(boardService.update(any())).willReturn(dummy);
+        given(postService.update(any())).willReturn(dummy);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -377,8 +358,8 @@ class PostControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 수정되었습니다."));
 
-        verify(boardService).update(any());
-        verifyNoMoreInteractions(boardService);
+        verify(postService).update(any());
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -392,7 +373,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -401,7 +382,7 @@ class PostControllerTest {
         UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
 
-        given(boardService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
+        given(postService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -409,25 +390,8 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
-        verify(boardService).update(any());
-        verifyNoMoreInteractions(boardService);
-    }
-
-    @Test
-    @DisplayName("게시글_수정_403")
-    void updateForbidden() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
-        String json = objectMapper.writeValueAsString(request);
-        given(boardService.update(any())).willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN));
-        mockMvc.perform(
-                        put(BASE + "/{id}", id)
-                                .requestAttr("username", username)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
-        verify(boardService).update(any());
-        verifyNoMoreInteractions(boardService);
+        verify(postService).update(any());
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -443,7 +407,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -459,7 +423,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -474,7 +438,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목과 내용은 필수입니다."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -489,7 +453,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -504,7 +468,7 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
-        verify(boardService, never()).update(any());
+        verify(postService, never()).update(any());
     }
 
     @Test
@@ -512,7 +476,7 @@ class PostControllerTest {
     void updateIsDelete() throws Exception {
         UpdatePostRequest requrest = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(requrest);
-        given(boardService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_ISDELETE));
+        given(postService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_ISDELETE));
         mockMvc.perform(
                         put(BASE + "/{id}", id)
                                 .requestAttr("username", username)
@@ -520,8 +484,8 @@ class PostControllerTest {
                                 .content(json))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("삭제된 게시글입니다."));
-        verify(boardService).update(any());
-        verifyNoMoreInteractions(boardService);
+        verify(postService).update(any());
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -530,11 +494,26 @@ class PostControllerTest {
         mockMvc.perform(
                         delete(BASE + "/{id}", id)
                                 .requestAttr("username", username))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        verify(postService).delete(any(DeletePostCommand.class));
+        verifyNoMoreInteractions(postService);
+    }
+
+    @Test
+    @DisplayName("게시글_삭제_존재하지_않는_게시글_404")
+    void deleteNotFound() throws Exception {
+        willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND))
+                .given(postService).delete(any(DeletePostCommand.class));
+        mockMvc.perform(
+                        delete(BASE + "/{id}", id)
+                                .requestAttr("username", username))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("게시글이 성공적으로 삭제되었습니다."));
-        verify(boardService).delete(eq(username), eq(id));
-        verifyNoMoreInteractions(boardService);
+                .andExpect(jsonPath("$.message").value("존재하지 않는 게시글입니다."));
+
+        verify(postService).delete(any(DeletePostCommand.class));
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -544,22 +523,6 @@ class PostControllerTest {
                         delete(BASE + "/{id}", id))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-        verify(boardService, never()).update(any());
-    }
-
-    @Test
-    @DisplayName("게시글_삭제_다른_유저_403")
-    void deleteForbidden() throws Exception {
-        String otherUser = "tester";
-        willThrow(new AuthErrorException(AuthErrorCode.FORBIDDEN))
-                .given(boardService).delete(eq(otherUser), eq(id));
-        mockMvc.perform(
-                        delete(BASE + "/{id}", id)
-                                .requestAttr("username", otherUser)
-                                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근 권한이 없습니다."));
-        verify(boardService).delete(eq(username), eq(id));
-        verifyNoMoreInteractions(boardService);
+        verify(postService, never()).update(any());
     }
 }

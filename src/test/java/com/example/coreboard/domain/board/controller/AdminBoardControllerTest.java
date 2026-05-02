@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.board.controller;
 
+import com.example.coreboard.domain.board.dto.command.DeleteBoardCommand;
 import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
 import com.example.coreboard.domain.board.dto.request.UpdateBoardRequest;
 import com.example.coreboard.domain.board.dto.result.CreateBoardResult;
@@ -27,10 +28,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class AdminBoardControllerTest {
@@ -138,4 +137,25 @@ class AdminBoardControllerTest {
         assertThat(command.maxContentLength()).isEqualTo(10000);
         verifyNoMoreInteractions(boardService);
     }
+
+    @Test
+    @DisplayName("게시판_삭제_성공")
+    void deleteBoard() throws Exception{
+        String username = "username";
+        Long id = 1L;
+        mockMvc.perform(
+                delete("/admin/boards/{id}", id)
+                        .requestAttr("username", username))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        ArgumentCaptor<DeleteBoardCommand> captor = ArgumentCaptor.forClass(DeleteBoardCommand.class);
+        verify(boardService).delete(captor.capture());
+        DeleteBoardCommand command = captor.getValue();
+
+        assertThat(command.id()).isEqualTo(id);
+        assertThat(command.username()).isEqualTo(username);
+        verifyNoMoreInteractions(boardService);
+    }
+    // TODO : 비로그인 401 체크 - create, udpate, delete
+
 }

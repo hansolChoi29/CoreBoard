@@ -3,6 +3,8 @@ package com.example.coreboard.domain.board.entity;
 import com.example.coreboard.domain.users.entity.UserRole;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(
         name = "board",
@@ -54,9 +56,9 @@ public class Board {
     @Enumerated(EnumType.STRING)
     @Column(name = "required_write_role", nullable = false, length = 20)
     private UserRole requiredWriteRole;
-    // 게시판 사용 여부 - 게시판 비활성화
-    @Column(name = "active", nullable = false)
-    private boolean active;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public Board(
             String name,
@@ -76,7 +78,6 @@ public class Board {
         this.maxAttachmentCount = maxAttachmentCount;
         this.maxContentLength = maxContentLength;
         this.requiredWriteRole = requiredWriteRole;
-        this.active = true;
     }
 
     protected Board() {
@@ -100,8 +101,15 @@ public class Board {
         board.maxAttachmentCount = maxAttachmentCount;
         board.maxContentLength = maxContentLength;
         board.requiredWriteRole = UserRole.USER;
-        board.active = true;
         return board;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
     }
 
     public void update(
@@ -120,10 +128,6 @@ public class Board {
         this.requireAttachment = requireAttachment;
         this.maxAttachmentCount = maxAttachmentCount;
         this.maxContentLength = maxContentLength;
-    }
-
-    public boolean isActive() {
-        return active;
     }
 
     public String getSlug() {

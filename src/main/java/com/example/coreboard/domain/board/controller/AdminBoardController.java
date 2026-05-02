@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.board.controller;
 
 
+import com.example.coreboard.domain.board.dto.command.DeleteBoardCommand;
 import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
 import com.example.coreboard.domain.board.dto.request.UpdateBoardRequest;
 import com.example.coreboard.domain.board.dto.response.UpdateBoardResponse;
@@ -35,7 +36,7 @@ public class AdminBoardController {
     // TODO : 존재하지 않은 게시판
     // TODO : 전체조회 제외하고 비로그인(!ADMIN)접근 불가
     // 삭제 - 비활성화  TODO : id 잘못됨, 본인아님(!ADMIN), 게시글 존재하면 삭제 불가
-    //
+
     @PostMapping
     public ResponseEntity<ApiResponse<CreateBoardResponse>> create(
             @RequestBody CreateBoardRequest request,
@@ -78,6 +79,17 @@ public class AdminBoardController {
         UpdateBoardResult result = boardService.update(command, username, id);
         UpdateBoardResponse response = new UpdateBoardResponse(result.id());
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 수정되었습니다."));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @RequestAttribute("username") String username,
+            @PathVariable("id") Long id
+    ){
+        DeleteBoardCommand command = new DeleteBoardCommand(id, username);
+        boardService.delete(command);
+
+        return ResponseEntity.noContent().build();
     }
 }/* {
   "content": [
