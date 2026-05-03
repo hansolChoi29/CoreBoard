@@ -62,7 +62,6 @@ class BoardControllerTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER,
                 List.of()
         );
@@ -76,7 +75,7 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.name").value("자유게시판"))
                 .andExpect(jsonPath("$.data.slug").value("free"))
-                .andExpect(jsonPath("$.data.requiredWriteRole").value("USER"))
+                .andExpect(jsonPath("$.data.allowedWriteRoles").value("USER"))
                 .andExpect(jsonPath("$.data.posts").isArray());
         ArgumentCaptor<GetOneBoardCommand> captor = ArgumentCaptor.forClass(GetOneBoardCommand.class);
 

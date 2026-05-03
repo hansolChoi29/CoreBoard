@@ -37,8 +37,7 @@ public class BoardController {
                 out.commentEnabled(),
                 out.requireAttachment(),
                 out.maxAttachmentCount(),
-                out.maxContentLength(),
-                out.requiredWriteRole(),
+                out.allowedWriteRoles(),
                 out.posts()
         );
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 불러왔습니다."));

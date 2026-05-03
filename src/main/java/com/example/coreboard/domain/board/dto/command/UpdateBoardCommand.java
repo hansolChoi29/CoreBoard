@@ -9,7 +9,6 @@ public record UpdateBoardCommand(
         boolean answerAcceptedEnabled,
         boolean commentEnabled,
         boolean requireAttachment,
-        int maxAttachmentCount,
-        int maxContentLength
+        int maxAttachmentCount
 ) {
 }

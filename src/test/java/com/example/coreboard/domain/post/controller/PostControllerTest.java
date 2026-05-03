@@ -35,7 +35,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -77,7 +76,6 @@ class PostControllerTest {
 
         CreatePostRequest request = new CreatePostRequest(
                 1L, "title", "content", ContentFormat.MARKDOWN);
-
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", username)
@@ -98,7 +96,6 @@ class PostControllerTest {
 
         given(postService.create(any(), eq("ghost")))
                 .willThrow(new AuthErrorException(AuthErrorCode.NOT_FOUND));
-
         mockMvc.perform(
                         post(BASE)
                                 .requestAttr("username", "ghost")
@@ -107,7 +104,6 @@ class PostControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."));
-
         verify(postService).create(any(), eq("ghost"));
         verifyNoMoreInteractions(postService);
     }
@@ -115,7 +111,6 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_생성_로그인_안함_401")
     void createUnauthorized() throws Exception {
-
         CreatePostRequest request = new CreatePostRequest(1L, "titile", "content", ContentFormat.MARKDOWN);
         mockMvcWithInterceptor.perform(
                         post(BASE)
@@ -123,7 +118,6 @@ class PostControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
-
         verify(postService, never()).create(any(), anyString());
     }
 
@@ -151,8 +145,7 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
-
+                .andExpect(jsonPath("$.message").value("본문은 필수입니다."));
         verify(postService, never()).create(any(), anyString());
     }
 
@@ -167,7 +160,6 @@ class PostControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 필수입니다."));
-
         verify(postService, never()).create(any(), anyString());
     }
 
@@ -183,14 +175,13 @@ class PostControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("제목은 255자 이하여야 합니다."));
-
         verify(postService, never()).create(any(), anyString());
     }
 
     @Test
     @DisplayName("게시글_생성_본문_너무_김_400")
     void createContentToLong() throws Exception {
-        String longContent = "a".repeat(1001);
+        String longContent = "a".repeat(100100);
         CreatePostRequest request = new CreatePostRequest(1L, "title", longContent, ContentFormat.MARKDOWN);
         mockMvc.perform(
                         post(BASE)
@@ -198,8 +189,7 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
-
+                .andExpect(jsonPath("$.message").value("본문은 10000자 이하여야 합니다."));
         verify(postService, never()).create(any(), anyString());
     }
 
@@ -275,8 +265,22 @@ class PostControllerTest {
                                 .param("size", "11")
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
         verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체_조회_정렬_방향_공백_400")
+    void getAllBlankSortDirection() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("size", "10")
+                                .param("sort", " ")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+        verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
+        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -288,7 +292,7 @@ class PostControllerTest {
                                 .param("size", "0")
                                 .param("sort", "asc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
         verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
@@ -301,7 +305,7 @@ class PostControllerTest {
                                 .param("size", "11")
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("size는 최대 10이하이어야 합니다."));
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
         verify(postService, never()).getAll(anyString(), anyLong(), anyInt(), anyString());
     }
 
@@ -322,7 +326,6 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
-
         verify(postService).getAll("title", 10L, 10, "desc");
         verifyNoMoreInteractions(postService);
     }
@@ -357,7 +360,6 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 수정되었습니다."));
-
         verify(postService).update(any());
         verifyNoMoreInteractions(postService);
     }
@@ -365,8 +367,8 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_비로그인_401")
     void updateIsUnauthorized() throws Exception {
-        UpdatePostRequest reqeust = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
-        String json = objectMapper.writeValueAsString(reqeust);
+        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        String json = objectMapper.writeValueAsString(request);
         mockMvcWithInterceptor.perform(
                         put(BASE + "/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -397,7 +399,7 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_본문_길이_초과_400")
     void updateContentTooLong() throws Exception {
-        String content = "a".repeat(1001);
+        String content = "a".repeat(100100);
         UpdatePostRequest request = new UpdatePostRequest("newTitle", content, ContentFormat.MARKDOWN);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
@@ -406,7 +408,7 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("내용은 1000자 이하여야 합니다."));
+                .andExpect(jsonPath("$.message").value("본문은 10000자 이하여야 합니다."));
         verify(postService, never()).update(any());
     }
 
@@ -467,7 +469,7 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("내용은 필수입니다."));
+                .andExpect(jsonPath("$.message").value("본문은 필수입니다."));
         verify(postService, never()).update(any());
     }
 

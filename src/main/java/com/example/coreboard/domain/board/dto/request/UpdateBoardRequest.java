@@ -8,7 +8,6 @@ public record UpdateBoardRequest(
         boolean answerAcceptedEnabled,
         boolean commentEnabled,
         boolean requireAttachment,
-        int maxAttachmentCount,
-        int maxContentLength
+        int maxAttachmentCount
 ) {
 }

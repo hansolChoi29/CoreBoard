@@ -41,7 +41,7 @@ public class PostController {
             @RequestBody CreatePostRequest request,
             @RequestAttribute("username") String username
     ) {
-        PostValidation.createValidation(request);
+        PostValidation.validateForCreate(request);
 
         CreatePostCommand post = new CreatePostCommand(
                 request.boardId(),
@@ -88,8 +88,8 @@ public class PostController {
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "sort", defaultValue = "asc") String sort
     ) {
-        PostValidation.sortDirection(sort);
-        PostValidation.pageableValication(size);
+        PostValidation.validateSortDirection(sort);
+        PostValidation.validatePageSize(size);
         CursorResponse<PostSummaryResponse> response = postService.getAll(
                 cursorTitle,
                 cursorId,
@@ -106,7 +106,7 @@ public class PostController {
             @RequestAttribute("username") String username,
             @PathVariable("id") Long id
     ) {
-        PostValidation.updateValidation(request);
+        PostValidation.validateForUpdate(request);
 
         UpdatePostCommand board = new UpdatePostCommand(
                 id,

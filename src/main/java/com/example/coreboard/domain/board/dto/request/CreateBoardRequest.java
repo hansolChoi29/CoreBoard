@@ -9,7 +9,6 @@ public record CreateBoardRequest(
         boolean commentEnabled,
         boolean requireAttachment,
         int maxAttachmentCount,
-        int maxContentLength,
-        UserRole requiredWriteRole
+        UserRole allowedWriteRoles
 ) {
 }

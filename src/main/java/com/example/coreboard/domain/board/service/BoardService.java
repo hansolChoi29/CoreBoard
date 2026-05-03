@@ -68,8 +68,7 @@ public class BoardService {
                 command.answerAcceptedEnabled(),
                 command.requireAttachment(),
                 command.maxAttachmentCount(),
-                command.maxContentLength(),
-                command.requiredWriteRole()
+                command.allowedWriteRoles()
         );
         boardRepository.save(board);
 
@@ -97,8 +96,7 @@ public class BoardService {
                 board.isCommentEnabled(),
                 board.isRequireAttachment(),
                 board.getMaxAttachmentCount(),
-                board.getMaxContentLength(),
-                board.getRequiredWriteRole(),
+                board.getAllowedWriteRoles(),
                 posts
         );
     }
@@ -153,8 +151,7 @@ public class BoardService {
                 command.answerAcceptedEnabled(),
                 command.commentEnabled(),
                 command.requireAttachment(),
-                command.maxAttachmentCount(),
-                command.maxContentLength()
+                command.maxAttachmentCount()
         );
         return new UpdateBoardResult(board.getId());
     }

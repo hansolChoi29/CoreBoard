@@ -15,7 +15,6 @@ public class BoardFixture {
                 false,
                 false,
                 3,
-                8000,
                 UserRole.USER
         );
     }
@@ -27,7 +26,6 @@ public class BoardFixture {
                 true,
                 false,
                 3,
-                8000,
                 UserRole.USER);
     }
 
@@ -39,7 +37,6 @@ public class BoardFixture {
                 false,
                 false,
                 5,
-                10000,
                 UserRole.ADMIN);
     }
 
@@ -51,7 +48,6 @@ public class BoardFixture {
                 false,
                 false,
                 3,
-                8000,
                 UserRole.USER);
     }
 }

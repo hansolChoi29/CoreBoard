@@ -473,6 +473,7 @@ class PostServiceTest {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
+
         Long id = 1L;
         String username = "tester";
         DeletePostCommand command = new DeletePostCommand(id, username);
@@ -486,9 +487,13 @@ class PostServiceTest {
 
         postService.delete(command);
 
-        verify(usersRepository, times(1)).findByUsername(username);
-        verify(postRepository, times(1)).findById(id);
-        verify(postRepository, times(1)).delete(post);
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(id);
+
+        verify(post).delete();
+        verify(postRepository, never()).delete(any(Post.class));
+
+        verifyNoMoreInteractions(usersRepository, postRepository, post, postWriter, loginUser);
     }
 
     @Test
@@ -497,6 +502,7 @@ class PostServiceTest {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
+
         String username = "tester";
         DeletePostCommand command = new DeletePostCommand(1L, username);
 
@@ -507,13 +513,17 @@ class PostServiceTest {
         given(post.getUser()).willReturn(postWriter);
         given(postWriter.getUserId()).willReturn(98L);
 
-        AuthErrorException exception = assertThrows(AuthErrorException.class,
-                () -> postService.delete(command));
+        AuthErrorException exception = assertThrows(
+                AuthErrorException.class,
+                () -> postService.delete(command)
+        );
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
 
-        verify(usersRepository, times(1)).findByUsername(username);
-        verify(postRepository, times(1)).findById(1L);
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(1L);
+
+        verify(post, never()).delete();
         verify(postRepository, never()).delete(any(Post.class));
     }
 

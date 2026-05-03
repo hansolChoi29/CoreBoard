@@ -13,8 +13,7 @@ public record GetOneBoardResult(
         boolean commentEnabled,
         boolean requireAttachment,
         int maxAttachmentCount,
-        int maxContentLength,
-        UserRole requiredWriteRole,
+        UserRole allowedWriteRoles,
         List<PostSummaryResponse> posts
 ) {
 }

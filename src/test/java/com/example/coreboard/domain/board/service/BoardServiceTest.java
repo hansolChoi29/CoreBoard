@@ -11,6 +11,8 @@ import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
 import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
@@ -25,10 +27,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,10 +74,8 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER
         );
-        // save 저장 후 둘려줌
         Board savedBoard = new Board(
                 "자유게시판",
                 "free",
@@ -80,7 +83,6 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER
         );
         given(boardRepository.existsByNameAndDeletedAtIsNull("자유게시판")).willReturn(false);
@@ -96,6 +98,43 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시판_생성_ADMIN_아님_403")
+    void createForbidden() {
+        String username = "username";
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        CreateBoardCommand command = new CreateBoardCommand(
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+
+        AuthErrorException exception = assertThrows(
+                AuthErrorException.class,
+                () -> boardService.create(command, username)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository, never()).existsByNameAndDeletedAtIsNull(anyString());
+        verify(boardRepository, never()).existsBySlugAndDeletedAtIsNull(anyString());
+        verify(boardRepository, never()).save(any(Board.class));
+    }
+
+    @Test
     @DisplayName("게시판_단건_조회_성공")
     void getOneBoard() {
         Board board = new Board(
@@ -105,7 +144,6 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER);
         Users user = new Users(
                 "username",
@@ -113,8 +151,7 @@ class BoardServiceTest {
                 "password",
                 "qwe@qwe.com",
                 "01012341234",
-                UserRole.ADMIN
-        );
+                UserRole.ADMIN);
         Post post = new Post(
                 board, user,
                 "title",
@@ -123,7 +160,7 @@ class BoardServiceTest {
         GetOneBoardCommand command = new GetOneBoardCommand(1L);
 
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
-        given(postRepository.findByBoardId(command.id())).willReturn(List.of(post));
+        given(postRepository.findByBoardIdWithUser(command.id())).willReturn(List.of(post));
 
         GetOneBoardResult result = boardService.getOne(command);
 
@@ -135,12 +172,11 @@ class BoardServiceTest {
         assertThat(result.commentEnabled()).isEqualTo(false);
         assertThat(result.requireAttachment()).isEqualTo(false);
         assertThat(result.maxAttachmentCount()).isEqualTo(0);
-        assertThat(result.maxContentLength()).isEqualTo(10000);
-        assertThat(result.requiredWriteRole()).isEqualTo(UserRole.USER);
+        assertThat(result.allowedWriteRoles()).isEqualTo(UserRole.USER);
         assertThat(result.posts().get(0).title()).isEqualTo("title");
 
         verify(boardRepository).findById(command.id());
-        verify(postRepository).findByBoardId(1L);
+        verify(postRepository).findByBoardIdWithUser(1L);
     }
 
     @Test
@@ -158,7 +194,6 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER
         );
         PageRequest pageRequest = PageRequest.of(
@@ -209,7 +244,6 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                10000,
                 UserRole.USER
         );
         UpdateBoardCommand command = new UpdateBoardCommand(
@@ -219,8 +253,7 @@ class BoardServiceTest {
                 false,
                 false,
                 false,
-                0,
-                10000
+                0
         );
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
         given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
@@ -237,7 +270,6 @@ class BoardServiceTest {
         assertThat(board.isCommentEnabled()).isFalse();
         assertThat(board.isRequireAttachment()).isFalse();
         assertThat(board.getMaxAttachmentCount()).isEqualTo(0);
-        assertThat(board.getMaxContentLength()).isEqualTo(10000);
 
         verify(usersRepository).findByUsername(username);
         verify(boardRepository).existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id);
@@ -246,13 +278,62 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시판_수정_ADMIN_아님_403")
+    void updateForbidden() {
+        String username = "username";
+        Long id = 1L;
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        Board board = new Board(
+                "기존게시판",
+                "old-free",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        UpdateBoardCommand command = new UpdateBoardCommand(
+                id,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
+
+        AuthErrorException exception = assertThrows(
+                AuthErrorException.class,
+                () -> boardService.update(command, username, id)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findByIdAndDeletedAtIsNull(id);
+        verify(boardRepository, never()).existsByNameAndIdNotAndDeletedAtIsNull(anyString(), anyLong());
+        verify(boardRepository, never()).existsBySlugAndIdNotAndDeletedAtIsNull(anyString(), anyLong());
+    }
+
+    @Test
     @DisplayName("게시판_삭제_성공")
     void deleteBoard() {
         String username = "admin";
         Long boardId = 1L;
-
         Users admin = mock(Users.class);
-
         Board board = Board.create(
                 "자유게시판",
                 "free",
@@ -260,16 +341,14 @@ class BoardServiceTest {
                 false,
                 false,
                 3,
-                10000,
                 UserRole.USER
         );
-
         DeleteBoardCommand command = new DeleteBoardCommand(boardId, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
         given(admin.getRole()).willReturn(UserRole.ADMIN);
 
-        given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
+        given(boardRepository.findByIdAndDeletedAtIsNull(boardId)).willReturn(Optional.of(board));
 
         given(postRepository.existsByBoardId(boardId)).willReturn(false);
 
@@ -278,9 +357,39 @@ class BoardServiceTest {
         assertThat(board.getDeletedAt()).isNotNull();
 
         verify(usersRepository).findByUsername(username);
-        verify(boardRepository).findById(boardId);
+        verify(boardRepository).findByIdAndDeletedAtIsNull(boardId);
         verify(postRepository).existsByBoardId(boardId);
         verify(boardRepository, never()).delete(any(Board.class));
         verifyNoMoreInteractions(usersRepository, boardRepository, postRepository);
+    }
+
+    @Test
+    @DisplayName("게시판_삭제_ADMIN_아님_403")
+    void deleteForbidden() {
+        String username = "username";
+        Long boardId = 1L;
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        DeleteBoardCommand command = new DeleteBoardCommand(boardId, username);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+
+        AuthErrorException exception = assertThrows(
+                AuthErrorException.class,
+                () -> boardService.delete(command)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verifyNoInteractions(boardRepository, postRepository);
     }
 }
