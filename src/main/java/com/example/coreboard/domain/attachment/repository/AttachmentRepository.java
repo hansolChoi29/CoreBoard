@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.attachment.entity.repository;
+package com.example.coreboard.domain.attachment.repository;
 
 import com.example.coreboard.domain.attachment.entity.Attachment;
 import com.example.coreboard.domain.attachment.entity.AttachmentStatus;
