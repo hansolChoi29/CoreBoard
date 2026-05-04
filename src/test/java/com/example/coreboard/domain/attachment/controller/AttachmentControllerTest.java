@@ -36,7 +36,7 @@ class AttachmentControllerTest {
                 "dummy".getBytes()
         );
 
-        mockMvc.perform(multipart("/attachment").file(file))
+        mockMvc.perform(multipart("/attachments").file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").value(1L))
                 .andExpect(jsonPath("$.message").value("파일 업로드 성공"));

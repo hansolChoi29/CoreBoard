@@ -53,7 +53,6 @@ public class PostController {
 
         CreatePostResponse response = new CreatePostResponse(out.id());
 
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
@@ -138,7 +137,6 @@ public class PostController {
         DeletePostCommand command = new DeletePostCommand(id, username);
         postService.delete(command);
 
-//        return ResponseEntity.ok(ApiResponse.ok(null, "게시글이 성공적으로 삭제되었습니다."));
         return ResponseEntity.noContent().build();
     }
 
@@ -148,6 +146,7 @@ public class PostController {
             @RequestParam("keyword") String keyword
     ) {
         CursorResponse<PostSummaryResponse> response = postService.search(keyword);
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 검색 성공!"));
     }
 }
