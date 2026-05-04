@@ -1,0 +1,156 @@
+<!--
+cd ~/Desktop/CoreBoard/preview
+python -m http.server 5173
+-->
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoreBoard 게시글 미리보기</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            background: #f6f7f9;
+            color: #222;
+        }
+
+        .page {
+            max-width: 860px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .meta {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .content h1,
+        .content h2,
+        .content h3 {
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        .content p {
+            line-height: 1.7;
+        }
+
+        .content ul {
+            line-height: 1.8;
+        }
+
+        .content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 16px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .content code {
+            font-family: Consolas, Monaco, monospace;
+        }
+
+        .error {
+            color: #c0392b;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="toolbar">
+        <input id="postId" value="4" placeholder="postId 입력" />
+        <input id="token" placeholder="Bearer 토큰 입력, 공개 조회면 비워도 됨" />
+        <button onclick="loadPost()">조회</button>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <article class="card">
+        <h1 id="title">게시글 제목</h1>
+        <div id="meta" class="meta">작성자/작성일</div>
+        <div id="content" class="content"></div>
+    </article>
+</div>
+
+<script>
+    async function loadPost() {
+        const postId = document.getElementById("postId").value;
+        const token = document.getElementById("token").value;
+        const error = document.getElementById("error");
+
+        error.textContent = "";
+
+        const headers = {};
+        if (token.trim()) {
+            headers["Authorization"] = "Bearer " + token.trim();
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/posts/${postId}`, {
+                method: "GET",
+                headers
+            });
+
+            const json = await response.json();
+
+            if (!response.ok || !json.success) {
+                error.textContent = json.message || "게시글 조회 실패";
+                return;
+            }
+
+            const post = json.data;
+            document.getElementById("title").textContent = post.title;
+            document.getElementById("meta").textContent = `userId: ${post.userId} · 작성일: ${post.createdAt}`;
+
+            const html = marked.parse(post.content || "");
+            const safeHtml = DOMPurify.sanitize(html);
+            document.getElementById("content").innerHTML = safeHtml;
+        } catch (e) {
+            error.textContent = "요청 실패: 서버 실행 여부, CORS, URL을 확인해줘.";
+        }
+    }
+
+    loadPost();
+</script>
+</body>
+</html>
