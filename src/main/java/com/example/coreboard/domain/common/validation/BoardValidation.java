@@ -6,7 +6,7 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
-import static io.micrometer.common.util.StringUtils.isBlank;
+        import static io.micrometer.common.util.StringUtils.isBlank;
 
 public class BoardValidation {
     private static final int BOARD_NAME_MIN_LENGTH = 2;

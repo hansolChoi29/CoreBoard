@@ -157,11 +157,12 @@ http://localhost:8080/swagger-ui/index.html
 
 | Method | URL | 설명 | 인증 |
 |--------|-----|------|------|
-| POST | `/boards/{boardId}/posts` | 게시글 생성 | USER |
+| POST | `/boards/{boardId}/posts` | 특정 게시판에 게시글 생성 | USER |
 | GET | `/boards/{boardId}/posts` | 특정 게시판 게시글 목록 조회 | 불필요 |
 | GET | `/posts/{postId}` | 게시글 단건 조회 | 불필요 |
 | PATCH | `/posts/{postId}` | 게시글 수정 | 작성자 |
 | DELETE | `/posts/{postId}` | 게시글 삭제 | 작성자 또는 ADMIN |
+| GET | `/posts/search?keyword={keyword}` | 게시글 검색 | 불필요 |
 
 #### Attachment API
 

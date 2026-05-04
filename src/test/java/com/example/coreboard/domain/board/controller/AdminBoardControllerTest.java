@@ -194,6 +194,61 @@ class AdminBoardControllerTest {
     }
 
     @Test
+    @DisplayName("게시판_생성_첨부파일_필수인데_최대개수_0이면_400")
+    void createBoardAttachmentRequiredButMaxCountZero() throws Exception {
+        String username = "admin";
+        String request = """
+                {
+                  "name": "자료게시판",
+                  "slug": "archive",
+                  "requireAttachment": true,
+                  "commentEnabled": false,
+                  "answerAcceptedEnabled": false,
+                  "maxAttachmentCount": 0,
+                  "allowedWriteRoles": "USER"
+                }
+                """;
+        mockMvc.perform(
+                        post("/admin/boards")
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("첨부파일을 필수로 설정하려면 최대 첨부파일 개수는 1개 이상이어야 합니다."));
+        verify(boardService, never()).create(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시판_생성_첨부파일_필수이고_최대개수_1이면_201")
+    void createBoardAttachmentRequiredAndMaxCountValid() throws Exception {
+        String username = "admin";
+        String request = """
+                {
+                  "name": "자료게시판",
+                  "slug": "archive",
+                  "requireAttachment": true,
+                  "commentEnabled": false,
+                  "answerAcceptedEnabled": false,
+                  "maxAttachmentCount": 1,
+                  "allowedWriteRoles": "USER"
+                }
+                """;
+        CreateBoardResult result = new CreateBoardResult(1L);
+
+        given(boardService.create(any(), eq(username))).willReturn(result);
+        mockMvc.perform(
+                        post("/admin/boards")
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1L));
+        verify(boardService).create(any(), eq(username));
+    }
+
+    @Test
     @DisplayName("게시판생성_requiredWriteRole_null")
     void createValidateRequiredWriteRoleNull() throws Exception {
         CreateBoardRequest request = new CreateBoardRequest(

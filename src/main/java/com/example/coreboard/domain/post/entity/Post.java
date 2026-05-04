@@ -29,7 +29,7 @@ public class Post {
     private String title;
 
     @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -80,14 +80,15 @@ public class Post {
             Board board,
             Users user,
             String title,
-            String content
+            String content,
+            ContentFormat contentFormat
     ) {
         return new Post(
                 board,
                 user,
                 title,
                 content,
-                ContentFormat.MARKDOWN
+                contentFormat == null ? ContentFormat.MARKDOWN : contentFormat
         );
     }
 

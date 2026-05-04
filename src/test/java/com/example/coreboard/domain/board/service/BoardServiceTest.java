@@ -11,7 +11,6 @@ import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
 import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
@@ -144,39 +143,46 @@ class BoardServiceTest {
                 false,
                 false,
                 0,
-                UserRole.USER);
+                UserRole.USER
+        );
         Users user = new Users(
                 "username",
                 "nickname",
                 "password",
                 "qwe@qwe.com",
                 "01012341234",
-                UserRole.ADMIN);
+                UserRole.ADMIN
+        );
         Post post = new Post(
-                board, user,
+                board,
+                user,
                 "title",
                 "content",
-                ContentFormat.MARKDOWN);
+                ContentFormat.MARKDOWN
+        );
         GetOneBoardCommand command = new GetOneBoardCommand(1L);
 
         given(boardRepository.findById(1L)).willReturn(Optional.of(board));
-        given(postRepository.findByBoardIdWithUser(command.id())).willReturn(List.of(post));
+        given(postRepository.findByIdWithUser(1L)).willReturn(List.of(post));
 
         GetOneBoardResult result = boardService.getOne(command);
 
         assertThat(result).isNotNull();
-        assertThat(command.id()).isEqualTo(1L);
         assertThat(result.name()).isEqualTo("자유게시판");
         assertThat(result.slug()).isEqualTo("free");
-        assertThat(result.answerAcceptedEnabled()).isEqualTo(false);
-        assertThat(result.commentEnabled()).isEqualTo(false);
-        assertThat(result.requireAttachment()).isEqualTo(false);
+        assertThat(result.answerAcceptedEnabled()).isFalse();
+        assertThat(result.commentEnabled()).isFalse();
+        assertThat(result.requireAttachment()).isFalse();
         assertThat(result.maxAttachmentCount()).isEqualTo(0);
         assertThat(result.allowedWriteRoles()).isEqualTo(UserRole.USER);
+
+        assertThat(result.posts()).hasSize(1);
+        assertThat(result.posts().get(0).writerName()).isEqualTo("nickname");
         assertThat(result.posts().get(0).title()).isEqualTo("title");
 
         verify(boardRepository).findById(command.id());
-        verify(postRepository).findByBoardIdWithUser(1L);
+        verify(postRepository).findByIdWithUser(command.id());
+        verifyNoMoreInteractions(boardRepository, postRepository);
     }
 
     @Test

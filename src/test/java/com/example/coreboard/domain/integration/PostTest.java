@@ -25,6 +25,8 @@ import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 import org.springframework.http.MediaType;
 
 
+import java.util.List;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PostTest extends IntegrationTestBase {
+    Long boardId = 1L;
     @Autowired
     UsersRepository usersRepository;
 
@@ -76,9 +79,9 @@ class PostTest extends IntegrationTestBase {
     @DisplayName("POST/posts")
     void boardCreate() throws Exception {
         Board board = boardRepository.save(freeBoard());
-        CreatePostRequest request = new CreatePostRequest(board.getId(), "title", "content", ContentFormat.MARKDOWN);
+        CreatePostRequest request = new CreatePostRequest("title", "content", ContentFormat.MARKDOWN, List.of());
         mockMvc.perform(
-                        post("/posts")
+                        post("/boards/{boardId}/posts", board.getId())
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
@@ -105,18 +108,38 @@ class PostTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("GET/posts")
+    @DisplayName("GET /boards/{boardId}/posts")
     void getAll() throws Exception {
         Board board = boardRepository.save(freeBoard());
-        Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
-        postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
+        Users user = usersRepository.save(new Users(
+                "username2",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "010-1234-1234",
+                UserRole.USER
+        ));
+        postRepository.save(new Post(
+                board,
+                user,
+                "title",
+                "content",
+                ContentFormat.MARKDOWN
+        ));
         mockMvc.perform(
-                        get("/posts")
+                        get("/boards/{boardId}/posts", board.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .param("page", "0")
                                 .param("size", "10")
                                 .param("sort", "asc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.hasNext").value("false"));
+                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
+                .andExpect(jsonPath("$.data.content[0].title").value("title"))
+                .andExpect(jsonPath("$.data.content[0].writerName").value("nickname"))
+                .andExpect(jsonPath("$.data.pageInfo.page").value(0))
+                .andExpect(jsonPath("$.data.pageInfo.size").value(10))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
+                .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
     }
 
     @Test
@@ -125,7 +148,6 @@ class PostTest extends IntegrationTestBase {
         Board board = boardRepository.save(freeBoard());
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
-
         Long realId = saved.getId();
         UpdatePostRequest reqeust = new UpdatePostRequest("newtitle", "newcontent", ContentFormat.MARKDOWN);
         mockMvc.perform(

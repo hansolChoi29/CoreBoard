@@ -79,7 +79,7 @@ public class BoardService {
     public GetOneBoardResult getOne(GetOneBoardCommand command) {
         Board board = boardRepository.findById(command.id())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-        List<PostSummaryResponse> posts = postRepository.findByBoardIdWithUser(command.id())
+        List<PostSummaryResponse> posts = postRepository.findByIdWithUser(command.id())
                 .stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),

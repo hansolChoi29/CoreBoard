@@ -2,9 +2,12 @@ package com.example.coreboard.domain.post.dto.request;
 
 import com.example.coreboard.domain.post.entity.ContentFormat;
 
+import java.util.List;
+
 public record CreatePostRequest(
-        Long boardId,
         String title,
         String content,
-        ContentFormat contentFormat) {
+        ContentFormat contentFormat,
+        List<Long> attachmentIds
+) {
 }

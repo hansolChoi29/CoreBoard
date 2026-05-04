@@ -93,7 +93,32 @@ public enum PostErrorCode {
             List.of(new FieldError(
                     "postId",
                     "삭제된 게시글입니다."
-            )));
+            ))),
+    ATTACHMENT_COUNT_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            400,
+                    "첨부파일 개수가 허용 범위를 초과했습니다.",
+            List.of(new FieldError(
+                    "attachmentIds",
+                    "첨부파일 개수가 허용 범위를 초과했습니다."
+    ))),
+    ATTACHMENT_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            400,
+            "첨부파일이 필요한 게시판입니다.",
+            List.of(new FieldError(
+                    "attachmentIds",
+                    "첨부파일이 필요한 게시판입니다."
+            ))),
+    ATTACHMENT_NOT_ALLOWED(
+            HttpStatus.BAD_REQUEST,
+            400,
+            "이 게시판은 첨부파일을 허용하지 않습니다.",
+            List.of(new FieldError(
+                    "attachmentIds",
+                    "이 게시판은 첨부파일을 허용하지 않습니다."
+            ))),
+    ;
 
     private final HttpStatus status;
     private final int code;

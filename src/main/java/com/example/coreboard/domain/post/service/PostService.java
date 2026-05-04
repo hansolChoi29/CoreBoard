@@ -4,6 +4,9 @@ import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
+import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
@@ -12,13 +15,17 @@ import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
+import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
 import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -47,21 +54,26 @@ public class PostService {
 
     @Transactional
     public CreatePostResult create(
-            CreatePostCommand commnad,
+            CreatePostCommand command,
             String username
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-        if (postRepository.existsByTitle(commnad.title())) {
+        if (postRepository.existsByTitle(command.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
-        Board board = boardRepository.findById(commnad.boardId())
+        Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
+
         Post post = Post.create(
                 board,
                 user,
-                commnad.title(),
-                commnad.content());
+                command.title(),
+                command.content(),
+                ContentFormat.MARKDOWN
+        );
         Post saved = postRepository.save(post);
 
         return new CreatePostResult(saved.getId());
@@ -83,40 +95,37 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostSummaryResponse> getAll(
-            String cursorTitle,
-            Long cursorId,
+    public OffsetPageResponse<PostSummaryResponse> getAll(
+            Long boardId,
+            int page,
             int size,
             String sort
     ) {
-        Pageable pageable = PageRequest.of(0, size + 1);
-        boolean isDesc = "desc".equalsIgnoreCase(sort);
-        List<Post> result = (cursorTitle == null || cursorId == null)
-                ? (isDesc ? postRepository.findFirstPageDesc(pageable)
-                : postRepository.findFirstPageAsc(pageable))
-                : (isDesc ? postRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
-                : postRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
-        boolean hasNext = result.size() > size;
-        if (hasNext) {
-            result = result.subList(0, size);
-        }
-        List<PostSummaryResponse> contents = result.stream()
-                .map(b -> new PostSummaryResponse(
-                        b.getId(),
-                        b.getUser().getNickname(),
-                        b.getTitle(),
-                        b.getCreatedAt(),
-                        b.getUpdatedAt()))
-                .toList();
-        String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
-        Long nextCursorId = hasNext ? result.get(result.size() - 1).getId() : null;
+        Sort sortObj = "desc".equalsIgnoreCase(sort) ?
+                Sort.by(Sort.Direction.DESC, "createdAt")
+                : Sort.by(Sort.Direction.ASC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sortObj);
 
-        return new CursorResponse<>(
-                contents,
-                nextCursorTitle,
-                nextCursorId,
-                hasNext
+        Page<Post> postPage = postRepository.findAllByBoardId(
+                boardId,
+                PostStatus.PUBLISHED,
+                pageable
         );
+        List<PostSummaryResponse> contents = postPage.getContent().stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                )).toList();
+        PageInfo pageInfo = new PageInfo(
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages()
+        );
+        return new OffsetPageResponse<>(contents, pageInfo);
     }
 
     @Transactional
