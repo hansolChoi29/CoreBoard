@@ -1,0 +1,65 @@
+package com.example.coreboard.domain.comment.controller;
+
+import com.example.coreboard.domain.comment.dto.command.CreateCommentCommand;
+import com.example.coreboard.domain.comment.dto.request.CreateCommentRequest;
+import com.example.coreboard.domain.comment.dto.result.CreateCommentResult;
+import com.example.coreboard.domain.comment.entity.Comment;
+import com.example.coreboard.domain.comment.service.CommentService;
+import com.example.coreboard.domain.support.fixture.MockMvcSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(MockitoExtension.class)
+class CommentControllerTest {
+    String username = "username";
+    String BASE = "/posts/{postId}/comments";
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    CommentService commentService;
+
+    @InjectMocks
+    CommentController commentController;
+
+    MockMvc mockMvc;
+    MockMvc mockMvcWithInterceptor;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcSupport.create(commentController);
+        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(commentController);
+    }
+
+    @Test
+    @DisplayName("댓글_생성_성공")
+    void create() throws Exception {
+        CreateCommentRequest request = new CreateCommentRequest("content");
+        CreateCommentResult result = new CreateCommentResult(1L);
+        given(commentService.create(anyLong(), anyString(), any(CreateCommentCommand.class))).willReturn(result);
+        mockMvc.perform(
+                        post(BASE, 1L)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("댓글이 성공적으로 작성되었습니다."));
+        verify(commentService).create(anyLong(), anyString(), any(CreateCommentCommand.class));
+        verifyNoMoreInteractions(commentService);
+    }
+}

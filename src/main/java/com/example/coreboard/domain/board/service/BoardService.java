@@ -50,7 +50,6 @@ public class BoardService {
     public CreateBoardResult create(CreateBoardCommand command, String username) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
-        // slug는 주소라서 중복이면 절대 안 된다
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }

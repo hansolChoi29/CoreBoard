@@ -144,6 +144,9 @@ public class Board {
         return allowedWriteRoles;
     }
 
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
     /*
      * 공지사항 게시판은 관리자만 작성 가능하다
      * 갤러리 게시판은 첨부파일이 필수다

@@ -157,4 +157,8 @@ public class Post {
             this.contentFormat = newContentFormat;
         }
     }
+
+    public boolean isDeleted() {
+        return this.status == PostStatus.DELETED;
+    }
 }

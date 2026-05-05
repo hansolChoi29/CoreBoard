@@ -79,6 +79,7 @@ public class PostService {
         return new CreatePostResult(saved.getId());
     }
 
+    // TODO : 댓글 조회
     @Transactional(readOnly = true)
     public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findById(command.id())

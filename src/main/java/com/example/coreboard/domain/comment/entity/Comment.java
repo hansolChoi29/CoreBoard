@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.comments.entity;
+package com.example.coreboard.domain.comment.entity;
 
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.users.entity.Users;
@@ -35,6 +35,10 @@ public class Comment {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime lastModifiedDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CommentStatus status;
+
     protected Comment() {
     }
 
@@ -46,6 +50,19 @@ public class Comment {
         this.post = post;
         this.user = user;
         this.content = content;
+        this.status = CommentStatus.ACTIVE;
+    }
+
+    public static Comment create(
+            Post post,
+            Users user,
+            String content
+    ) {
+        return new Comment(post, user, content);
+    }
+
+    private void isSoftDelete() {
+        this.status = CommentStatus.DELETE;
     }
 
     public Long getId() {
