@@ -1,4 +1,4 @@
-# ADR-0005 : Board 관리를 위한 Admin 정책을 분리한 이유
+# ADR-0005 : Admin 초기 생성 및 권한 전환 정책
 
 ## Date
 

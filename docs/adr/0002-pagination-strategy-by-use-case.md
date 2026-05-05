@@ -23,15 +23,13 @@ Board의 유형별로 나누어 사용자의 편의를 신경쓰기로 했다.
 ## Decision
 조회 대상과 사용 흐름에 따라 Page, Slice, Keyset을 분리해서 사용한다.
 
-자유게시판 전체조회: Offset + Page
+자유게시판 전체조회: Offset
 
-Q&A 전체조회: Offset + Page
+Q&A 전체조회: Offset
 
-공지사항 전체조회: Offset + Page
+공지사항 전체조회: Offset
 
 댓글: Slice
-
-최신글 더보기 API: Keyset (추후)
 
 ## Options Considered
 ### 1. 기존 Keyset pagination 유지

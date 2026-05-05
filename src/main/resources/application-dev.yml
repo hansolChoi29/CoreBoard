@@ -22,3 +22,13 @@ jwt:
 aes:
   secret:
     key: MySuperSecretKey
+cloud:
+  aws:
+    endpoint: http://localhost:9000
+    credentials:
+      access-key: minioadmin
+      secret-key: minioadmin
+    s3:
+      bucket: coreboard-attachments
+    region:
+      static: us-east-1

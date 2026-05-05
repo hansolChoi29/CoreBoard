@@ -3,12 +3,12 @@ package com.example.coreboard.domain.common.exception.post;
 import com.example.coreboard.domain.common.exception.ErrorException;
 
 public class PostErrorException extends ErrorException {
-    public PostErrorException(PostErrorCode boardErrorCode) {
+    public PostErrorException(PostErrorCode postErrorCode) {
         super(
-                boardErrorCode.getStatus(),
-                boardErrorCode.getCode(),
-                boardErrorCode.getMessage(),
-                boardErrorCode.getErrors()
+                postErrorCode.getStatus(),
+                postErrorCode.getCode(),
+                postErrorCode.getMessage(),
+                postErrorCode.getErrors()
         );
     }
 }

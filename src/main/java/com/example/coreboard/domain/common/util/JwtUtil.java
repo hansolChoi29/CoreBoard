@@ -3,7 +3,6 @@ package com.example.coreboard.domain.common.util;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -60,12 +59,9 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(accessToken);
             return true;
-        } catch (ExpiredJwtException e) {
-            System.out.println("토큰 만료!: " + e.getMessage());
         } catch (JwtException e) {
-            System.out.println("토큰 검증 실패!: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
     public static String getUsername(String accessToken) {
@@ -109,11 +105,8 @@ public class JwtUtil {
                     .getBody()
                     .get("type", String.class);
             return "refresh".equals(type);
-        } catch (ExpiredJwtException e) {
-            System.out.println("리프레시 토큰 만료!: " + e.getMessage());
         } catch (JwtException e) {
-            System.out.println("리프레시 토큰 검증 실패!: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 }

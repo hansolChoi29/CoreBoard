@@ -403,8 +403,6 @@ class AuthControllerTest {
     void refresh_valid_refreshToken() throws Exception {
         String refreshToken = JwtUtil.createRefreshToken(1L, "tester", UserRole.USER);
 
-        System.out.println("refreshToken = " + refreshToken);
-        System.out.println("valid = " + JwtUtil.validationRefreshToken(refreshToken));
         mockMvc.perform(
                         post(BASE + "/refresh")
                                 .cookie(new Cookie("refresh", refreshToken)))

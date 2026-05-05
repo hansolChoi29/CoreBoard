@@ -2,14 +2,19 @@ package com.example.coreboard.domain.post.service;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.post.dto.*;
-import com.example.coreboard.domain.post.dto.command.PostCreateCommand;
-import com.example.coreboard.domain.post.dto.command.PostGetOneCommand;
-import com.example.coreboard.domain.post.dto.command.PostUpdateCommand;
-import com.example.coreboard.domain.post.dto.request.PostCreateRequest;
-import com.example.coreboard.domain.post.dto.response.PostSummaryKeysetResponse;
+import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
+import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
+import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
+import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.dto.result.CreatePostResult;
+import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
+import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
@@ -25,10 +30,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,23 +62,24 @@ class PostServiceTest {
     @InjectMocks
     PostService postService;
 
-    PostCreateRequest boardCreateRequest;
-    PostCreateCommand boardCreateCommand;
+    CreatePostRequest boardCreateRequest;
+    CreatePostCommand boardCreateCommand;
 
     @BeforeEach
     void setUpCreate() {
-        boardCreateRequest = new PostCreateRequest(
-                1L,
+        boardCreateRequest = new CreatePostRequest(
                 "title",
                 "content",
-                ContentFormat.MARKDOWN
+                ContentFormat.MARKDOWN,
+                List.of()
         );
 
-        boardCreateCommand = new PostCreateCommand(
+        boardCreateCommand = new CreatePostCommand(
                 1L,
                 "제목",
                 "내용",
-                ContentFormat.MARKDOWN
+                ContentFormat.MARKDOWN,
+                List.of()
         );
     }
 
@@ -95,11 +100,10 @@ class PostServiceTest {
 
         given(postRepository.save(any(Post.class))).willReturn(saved);
 
-        PostCreateDto result = postService.create(boardCreateCommand, "tester");
+        CreatePostResult result = postService.create(boardCreateCommand, "tester");
 
         assertNotNull(result);
-        assertEquals("제목", result.getTitle());
-        assertEquals("내용", result.getContent());
+        assertEquals(1L, result.id());
 
         ArgumentCaptor<Post> captor = ArgumentCaptor.forClass(Post.class);
         verify(postRepository).save(captor.capture());
@@ -149,6 +153,296 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_생성_첨부파일_비허용_게시판에_첨부파일_요청시_400")
+    void createAttachmentNotAllowed() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = new Board(
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                List.of(1L)
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        PostErrorException exception = assertThrows(
+                PostErrorException.class,
+                () -> postService.create(command, "tester")
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_첨부파일_필수_게시판에_첨부파일_없으면_400")
+    void createAttachmentRequiredButEmpty() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = freeBoard();
+        ReflectionTestUtils.setField(board, "requireAttachment", true);
+        ReflectionTestUtils.setField(board, "maxAttachmentCount", 2);
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                List.of()
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        PostErrorException exception = assertThrows(
+                PostErrorException.class,
+                () -> postService.create(command, "tester")
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_첨부파일_허용개수_이내면_성공")
+    void createAttachmentAllowed() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = new Board(
+                "자료게시판",
+                "archive",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(board, "requireAttachment", false);
+        ReflectionTestUtils.setField(board, "maxAttachmentCount", 2);
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                List.of(1L, 2L)
+        );
+
+        Post saved = new Post(
+                board,
+                users,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(command, "tester");
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
+    @DisplayName("게시글_생성_첨부파일_최대개수_초과시_400")
+    void createAttachmentCountExceeded() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = new Board(
+                "자료게시판",
+                "archive",
+                true,
+                false,
+                false,
+                2,
+                UserRole.USER
+        );
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                List.of(1L, 2L, 3L)
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+
+        PostErrorException exception = assertThrows(
+                PostErrorException.class,
+                () -> postService.create(command, "tester")
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_attachmentIds가_null이면_첨부파일_0개로_처리")
+    void createAttachmentIdsNull() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = freeBoard();
+        ReflectionTestUtils.setField(board, "requireAttachment", false);
+        ReflectionTestUtils.setField(board, "maxAttachmentCount", 0);
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                null
+        );
+
+        Post saved = new Post(
+                board,
+                users,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(command, "tester");
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
+    @DisplayName("게시글_생성_첨부파일_필수_게시판에_첨부파일이_있으면_성공")
+    void createAttachmentRequiredAndExists() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = freeBoard();
+        ReflectionTestUtils.setField(board, "requireAttachment", true);
+        ReflectionTestUtils.setField(board, "maxAttachmentCount", 2);
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN,
+                List.of(1L)
+        );
+
+        Post saved = new Post(
+                board,
+                users,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(command, "tester");
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
         Long id = 1L;
@@ -164,12 +458,10 @@ class PostServiceTest {
 
         given(postRepository.findById(id)).willReturn(Optional.of(post));
 
-        PostGetOneDto out = postService.findOne(new PostGetOneCommand(id));
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id));
 
         assertNotNull(out);
-        assertEquals(id, out.getId());
-        assertEquals("title1", out.getTitle());
-        assertEquals("content1", out.getContent());
+        assertEquals(id, out.id());
         verify(postRepository, times(1)).findById(id);
         verifyNoMoreInteractions(postRepository);
     }
@@ -179,226 +471,14 @@ class PostServiceTest {
     void findOnNotFound() {
         Long id = 1L;
         given(postRepository.findById(id)).willReturn(Optional.empty());
-        PostGetOneCommand command = new PostGetOneCommand(id);
+        GetOnePostCommand command = new GetOnePostCommand(id);
 
         PostErrorException findOneNotFound = assertThrows(PostErrorException.class,
-                () -> postService.findOne(command));
+                () -> postService.getOne(command));
 
         assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
         verify(postRepository, times(1)).findById(id);
         verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_false")
-    void findAll_firstPage_noNextPage() {
-        Board board = freeBoard();
-        List<Post> boards = List.of(
-                new Post(
-                        board,
-                        new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title1", "content1", ContentFormat.MARKDOWN),
-                new Post(
-                        board,
-                        new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title2", "content2", ContentFormat.MARKDOWN),
-                new Post(
-                        board,
-                        new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title3", "content3", ContentFormat.MARKDOWN));
-
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findFirstPageDesc(pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll(null, null, 10, "desc");
-
-        assertEquals(3, result.getContents().size());
-        assertFalse(result.isHasNext());
-        assertNull(result.getNextCursorTitle());
-        assertNull(result.getNextCursorId());
-
-        verify(postRepository, times(1)).findFirstPageDesc(pageable);
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_첫페이지_커서_없음_hasNext_true_커서세팅")
-    void findAll_firstPage_hasNextPage() {
-        Board board = freeBoard();
-
-        Users user = new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
-        ReflectionTestUtils.setField(user, "userId", 1L);
-
-        List<Post> posts = new ArrayList<>();
-
-        for (long i = 11; i >= 1; i--) {
-            Post post = new Post(board, user, "title" + i, "content" + i, ContentFormat.MARKDOWN);
-            ReflectionTestUtils.setField(post, "id", i);
-            posts.add(post);
-        }
-
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findFirstPageDesc(pageable)).willReturn(posts);
-
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll(null, null, 10, "desc");
-
-        assertEquals(10, result.getContents().size());
-        assertTrue(result.isHasNext());
-        assertEquals("title2", result.getNextCursorTitle());
-        assertEquals(2L, result.getNextCursorId());
-
-        verify(postRepository, times(1)).findFirstPageDesc(pageable);
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_다음_페이지에서_asc_분기")
-    void findAll_nextPage_asc_branch_cover() {
-        Board board = freeBoard();
-        List<Post> boards = new ArrayList<>();
-        for (long i = 11; i >= 1; i--) {
-            boards.add(new Post(
-                    board ,
-                    new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER), "title" + i, "content" + i, ContentFormat.MARKDOWN));
-        }
-
-        given(postRepository.findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class)))
-                .willReturn(boards);
-
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll("title2", 12L, 10, "asc");
-
-        assertEquals(10, result.getContents().size());
-        assertTrue(result.isHasNext());
-
-        verify(postRepository, times(1))
-                .findNextPageAsc(eq("title2"), eq(12L), any(Pageable.class));
-        verify(postRepository, never())
-                .findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_false")
-    void findAll_nextPage_noNextPage() {
-        Board board = freeBoard();
-        List<Post> boards = List.of(
-                new Post(
-                        board,
-                        new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                        "title1", "content1", ContentFormat.MARKDOWN),
-                new Post(
-                        board,
-                        new Users("username2", "nickname", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
-                        "title2", "content2", ContentFormat.MARKDOWN));
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findNextPageDesc("title", 5L, pageable)).willReturn(boards);
-        CursorResponse<PostSummaryKeysetResponse> result = postService.findAll("title", 5L, 10, "desc");
-        assertEquals(2, result.getContents().size());
-        assertFalse(result.isHasNext());
-        assertNull(result.getNextCursorTitle());
-        assertNull(result.getNextCursorId());
-
-        verify(postRepository, times(1)).findNextPageDesc("title", 5L, pageable);
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_다음페이지_커서_있음_hasNext_true_커서세팅")
-    void findAll_nextPage_hasNextPage() {
-        Board board = freeBoard();
-
-        Users user = new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
-        ReflectionTestUtils.setField(user, "userId", 1L);
-
-        List<Post> posts = new ArrayList<>();
-
-        for (long i = 11; i >= 1; i--) {
-            Post post = new Post(board, user, "title" + i, "content" + i, ContentFormat.MARKDOWN);
-            ReflectionTestUtils.setField(post, "id", i);
-            posts.add(post);
-        }
-
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findNextPageDesc("title2", 12L, pageable)).willReturn(posts);
-
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll("title2", 12L, 10, "desc");
-
-        assertEquals(10, result.getContents().size());
-        assertTrue(result.isHasNext());
-        assertEquals("title2", result.getNextCursorTitle());
-        assertEquals(2L, result.getNextCursorId());
-
-        verify(postRepository).findNextPageDesc("title2", 12L, pageable);
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("커서가_null이면_findFirstPage_호출")
-    void findAll_title_or_id_null() {
-        Board board = freeBoard();
-        Users user = new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
-
-        List<Post> mockData = createBoards(5, board, user);
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findFirstPageDesc(pageable)).willReturn(mockData);
-
-        postService.findAll(null, null, 10, "desc");
-
-        verify(postRepository).findFirstPageDesc(pageable);
-        verify(postRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("결과가_size보다_많으면_hasNext_true고_size개만_반환")
-    void findAll_size_hasNext_true_size_return() {
-        Board board = freeBoard();
-        Users user = new Users("username", "nickname", "password", "qwe@qwe.com", "01012341234", UserRole.USER);
-
-        List<Post> mockData = createBoards(5, board, user);
-
-        Pageable pageable = PageRequest.of(0, 11);
-        given(postRepository.findNextPageDesc("title", 1L, pageable)).willReturn(mockData);
-
-        postService.findAll("title", 1L, 10, "desc");
-
-        verify(postRepository).findNextPageDesc("title", 1L, pageable);
-        verify(postRepository, never()).findFirstPageDesc(pageable);
-    }
-
-    @Test
-    @DisplayName("결과가_size_이하면_hasNext_false")
-    void findAll_size_hasNext_false() {
-        Board board = freeBoard();
-        Users user = new Users("username", "nickname", "password", "qwe@qew.com", "01012341234", UserRole.USER);
-
-        Pageable pageable = PageRequest.of(0, 11);
-
-        given(postRepository.findFirstPageDesc(pageable))
-                .willReturn(createBoards(5, board, user));
-
-        CursorResponse<PostSummaryKeysetResponse> result =
-                postService.findAll(null, null, 10, "desc");
-
-        assertEquals(5, result.getContents().size());
-        assertFalse(result.isHasNext());
-        assertNull(result.getNextCursorTitle());
-        assertNull(result.getNextCursorId());
-
-        verify(postRepository).findFirstPageDesc(pageable);
-        verify(postRepository, never()).findNextPageDesc(anyString(), anyLong(), any(Pageable.class));
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    private List<Post> createBoards(int count, Board board, Users user) {
-        return IntStream.range(0, count)
-                .mapToObj(i -> Post.create(
-                        board,
-                        user,
-                        "title" + i,
-                        "content" + i
-                ))
-                .collect(Collectors.toList());
     }
 
     @Test
@@ -410,9 +490,9 @@ class PostServiceTest {
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
 
-        PostUpdateCommand cmd = new PostUpdateCommand(
-                "tester",
+        UpdatePostCommand cmd = new UpdatePostCommand(
                 id,
+                "tester",
                 "새제목",
                 "새본문",
                 ContentFormat.MARKDOWN
@@ -427,10 +507,10 @@ class PostServiceTest {
 
         given(post.getId()).willReturn(id);
 
-        PostUpdatedDto result = postService.update(cmd);
+        UpdatePostResult result = postService.update(cmd);
 
         assertNotNull(result);
-        assertEquals(id, result.getId());
+        assertEquals(id, result.id());
 
         verify(post).update("새제목", "새본문", ContentFormat.MARKDOWN);
     }
@@ -442,9 +522,9 @@ class PostServiceTest {
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
 
-        PostUpdateCommand cmd = new PostUpdateCommand(
-                "tester",
+        UpdatePostCommand cmd = new UpdatePostCommand(
                 1L,
+                "tester",
                 "title",
                 "content",
                 ContentFormat.MARKDOWN
@@ -468,14 +548,141 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_전체조회_오프셋_desc_성공")
+    void getAllOffsetDesc() {
+        Board board = freeBoard();
+
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = new Post(
+                board,
+                user,
+                "title",
+                "content",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", 1L);
+
+        PageRequest pageRequest = PageRequest.of(
+                0,
+                10,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<Post> postPage = new PageImpl<>(
+                List.of(post),
+                pageRequest,
+                1
+        );
+
+        given(postRepository.findAllByBoardId(
+                1L,
+                PostStatus.PUBLISHED,
+                pageRequest
+        )).willReturn(postPage);
+
+        OffsetPageResponse<PostSummaryResponse> result =
+                postService.getAll(1L, 0, 10, "desc");
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(1L, result.getContent().get(0).id());
+        assertEquals("nickname", result.getContent().get(0).writerName());
+        assertEquals("title", result.getContent().get(0).title());
+
+        assertEquals(0, result.getPageInfo().getPage());
+        assertEquals(10, result.getPageInfo().getSize());
+        assertEquals(1L, result.getPageInfo().getTotalElements());
+        assertEquals(1, result.getPageInfo().getTotalPages());
+
+        verify(postRepository).findAllByBoardId(
+                1L,
+                PostStatus.PUBLISHED,
+                pageRequest
+        );
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_오프셋_asc_성공")
+    void getAllOffsetAsc() {
+        Board board = freeBoard();
+
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = new Post(
+                board,
+                user,
+                "title",
+                "content",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", 1L);
+
+        PageRequest pageRequest = PageRequest.of(
+                0,
+                10,
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+
+        Page<Post> postPage = new PageImpl<>(
+                List.of(post),
+                pageRequest,
+                1
+        );
+
+        given(postRepository.findAllByBoardId(
+                1L,
+                PostStatus.PUBLISHED,
+                pageRequest
+        )).willReturn(postPage);
+
+        OffsetPageResponse<PostSummaryResponse> result =
+                postService.getAll(1L, 0, 10, "asc");
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("title", result.getContent().get(0).title());
+
+        assertEquals(0, result.getPageInfo().getPage());
+        assertEquals(10, result.getPageInfo().getSize());
+        assertEquals(1L, result.getPageInfo().getTotalElements());
+        assertEquals(1, result.getPageInfo().getTotalPages());
+
+        verify(postRepository).findAllByBoardId(
+                1L,
+                PostStatus.PUBLISHED,
+                pageRequest
+        );
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @Test
     @DisplayName("게시글_삭제_성공")
     void delete() {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
         Users postWriter = mock(Users.class);
 
-        String username = "tester";
         Long id = 1L;
+        String username = "tester";
+        DeletePostCommand command = new DeletePostCommand(id, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
         given(postRepository.findById(id)).willReturn(Optional.of(post));
@@ -484,11 +691,15 @@ class PostServiceTest {
         given(post.getUser()).willReturn(postWriter);
         given(postWriter.getUserId()).willReturn(10L);
 
-        postService.delete(username, id);
+        postService.delete(command);
 
-        verify(usersRepository, times(1)).findByUsername(username);
-        verify(postRepository, times(1)).findById(id);
-        verify(postRepository, times(1)).delete(post);
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(id);
+
+        verify(post).delete();
+        verify(postRepository, never()).delete(any(Post.class));
+
+        verifyNoMoreInteractions(usersRepository, postRepository, post, postWriter, loginUser);
     }
 
     @Test
@@ -499,6 +710,7 @@ class PostServiceTest {
         Users postWriter = mock(Users.class);
 
         String username = "tester";
+        DeletePostCommand command = new DeletePostCommand(1L, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
@@ -509,13 +721,15 @@ class PostServiceTest {
 
         AuthErrorException exception = assertThrows(
                 AuthErrorException.class,
-                () -> postService.delete(username, 1L)
+                () -> postService.delete(command)
         );
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
 
-        verify(usersRepository, times(1)).findByUsername(username);
-        verify(postRepository, times(1)).findById(1L);
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(1L);
+
+        verify(post, never()).delete();
         verify(postRepository, never()).delete(any(Post.class));
     }
 
@@ -538,7 +752,7 @@ class PostServiceTest {
         when(postRepository.searchByKeyword(keyword))
                 .thenReturn(List.of(post, post2));
 
-        CursorResponse<PostSummaryKeysetResponse> result = postService.search(keyword);
+        CursorResponse<PostSummaryResponse> result = postService.search(keyword);
 
         assertEquals(2, result.getContents().size());
         assertTrue(result.getContents().stream()

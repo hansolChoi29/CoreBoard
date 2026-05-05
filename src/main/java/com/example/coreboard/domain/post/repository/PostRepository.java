@@ -1,6 +1,8 @@
 package com.example.coreboard.domain.post.repository;
 
 import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.post.entity.PostStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,48 +17,38 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     boolean existsByTitle(String title);
 
-    @Query("""
-            select b from Post b
-            order by b.title desc, b.id desc
-            """)
-    List<Post> findFirstPageDesc(Pageable pageable);
+    boolean existsByBoardId(Long boardId);
 
+    // getOne
     @Query("""
-            select b from Post b
-            where(b.title < :cursorTitle)
-            or(b.title = :cursorTitle and b.id < :cursorId)
-            order by b.title desc, b.id desc
+            select p 
+            from Post p
+             join fetch p.user
+              where p.id = :boardId
             """)
-    List<Post> findNextPageDesc(
-            @Param("cursorTitle") String cursorTitle,
-            @Param("cursorId") Long cursorId,
+    List<Post> findByIdWithUser(@Param("id") Long id);
+
+    // 전체조회
+    @Query("""
+                    select p
+                    from Post p
+                    join fetch p.user
+                    where p.board.id = :boardId
+                    and p.status = :status
+            """)
+    Page<Post> findAllByBoardId(
+            @Param("boardId") Long boardId,
+            @Param("status") PostStatus status,
             Pageable pageable
     );
 
     @Query("""
-            select b from Post b
-            order by b.title asc , b.id asc
-            """)
-    List<Post> findFirstPageAsc(Pageable pageable);
-
-    @Query("""
-             select b from Post b
-            where(b.title > :cursorTitle)
-            or(b.title = :cursorTitle and b.id > :cursorId)
-            order by b.title asc, b.id asc 
-            """)
-    List<Post> findNextPageAsc(
-            @Param("cursorTitle") String cursorTitle,
-            @Param("cursorId") Long cursorId,
-            Pageable pageable
-    );
-
-    // concat : 문자열 붙이기
-    @Query("""
-            select b
-            from Post b
-            where b.title like concat('%', :keyword, '%')
-            or b.content like concat('%', :keyword, '%')    
+            select p from Post p
+            join fetch p.user
+            where (p.title like concat('%', :keyword, '%')
+            or p.content like concat('%', :keyword, '%'))
+            and p.status = 'PUBLISHED'
             """)
     List<Post> searchByKeyword(@Param("keyword") String keyword);
+
 }

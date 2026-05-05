@@ -63,7 +63,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public OffsetPageResponse<AdminGetResponse> getAdmins(AdminUserListQuery query) {
+    public OffsetPageResponse<AdminGetResponse> get(AdminUserListQuery query) {
         Users user = usersRepository.findByUsername(query.username())
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.ADMIN_REQUESTER_NOT_FOUND));
 
@@ -89,7 +89,7 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminPatchDto promoteToAdmin(AdminPatchCommand command) {
+    public AdminPatchDto promote(AdminPatchCommand command) {
 
         Users user = (usersRepository.findById(command.id()))
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.TARGET_USER_NOT_FOUND));

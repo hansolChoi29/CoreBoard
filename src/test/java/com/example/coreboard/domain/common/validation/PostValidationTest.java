@@ -11,18 +11,18 @@ class PostValidationTest {
     @Test
     @DisplayName("sort=asc 통과")
     void sortDirection_asc_ok() {
-        assertDoesNotThrow(() -> PostValidation.sortDirection("asc"));
+        assertDoesNotThrow(() -> PostValidation.validateSortDirection("asc"));
     }
 
     @Test
     @DisplayName("sort=desc 통과")
     void sortDirection_desc_ok() {
-        assertDoesNotThrow(() -> PostValidation.sortDirection("desc"));
+        assertDoesNotThrow(() -> PostValidation.validateSortDirection("desc"));
     }
 
     @Test
     @DisplayName("sort가 asc/desc 아니면 예외 발생")
     void sortDirection_invalid_throw() {
-        assertThrows(PostErrorException.class, () -> PostValidation.sortDirection("aaa"));
+        assertThrows(PostErrorException.class, () -> PostValidation.validateSortDirection("aaa"));
     }
 }
