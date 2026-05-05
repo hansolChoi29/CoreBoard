@@ -1,5 +1,8 @@
 package com.example.coreboard.domain.post.dto.result;
 
+import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.common.response.SliceResponse;
+
 import java.time.LocalDateTime;
 
 public record GetOnePostResult(
@@ -8,6 +11,7 @@ public record GetOnePostResult(
         String title,
         String content,
         LocalDateTime createdDate,
-        LocalDateTime lastModifiedDate
+        LocalDateTime lastModifiedDate,
+        SliceResponse<GetAllCommentResponse> comments
 ) {
 }

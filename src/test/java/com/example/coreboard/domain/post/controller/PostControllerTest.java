@@ -1,5 +1,8 @@
 package com.example.coreboard.domain.post.controller;
 
+import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.common.response.SliceInfo;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
@@ -27,6 +30,7 @@ import static org.mockito.Mockito.*;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -56,18 +60,22 @@ class PostControllerTest {
         mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(postControler);
     }
 
-
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void getOne() throws Exception {
+        SliceResponse<GetAllCommentResponse> comments = new SliceResponse<>(
+                List.of(),
+                new SliceInfo(10, 0, false)
+        );
         GetOnePostResult dummy = new GetOnePostResult(
                 id,
                 userId,
                 "제목",
                 "본문",
                 LocalDateTime.now(),
-                LocalDateTime.now());
-
+                LocalDateTime.now(),
+                comments
+        );
         given(postService.getOne(any(GetOnePostCommand.class))).willReturn(dummy);
         mockMvc.perform(
                         get(BASE + "/{id}", id)
@@ -77,7 +85,6 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 단건 조회!"));
 
         verify(postService).getOne(any(GetOnePostCommand.class));
-
         verifyNoMoreInteractions(postService);
     }
 

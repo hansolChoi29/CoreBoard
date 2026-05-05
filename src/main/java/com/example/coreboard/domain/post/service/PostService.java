@@ -2,10 +2,14 @@ package com.example.coreboard.domain.post.service;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
+import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.comment.service.CommentService;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
@@ -41,15 +45,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
     private final UsersRepository usersRepository;
+    private final CommentService commentService;
 
     public PostService(
             PostRepository postRepository,
             BoardRepository boardRepository,
-            UsersRepository usersRepository
+            UsersRepository usersRepository,
+            CommentService commentService
     ) {
         this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
+        this.commentService = commentService;
     }
 
     @Transactional
@@ -85,13 +92,16 @@ public class PostService {
         Post post = postRepository.findById(command.id())
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
+        SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
+
         return new GetOnePostResult(
                 post.getId(),
                 post.getUser().getUserId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                comments
         );
     }
 
