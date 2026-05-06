@@ -2,7 +2,12 @@ package com.example.coreboard.domain.post.service;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
+import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.comment.service.CommentService;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.SliceInfo;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
@@ -34,11 +39,8 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +52,9 @@ import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
+    @Mock
+    CommentService commentService;
+
     @Mock
     BoardRepository boardRepository;
 
@@ -448,7 +453,12 @@ class PostServiceTest {
         Long id = 1L;
         Board board = freeBoard();
         Users user = new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER);
-        ReflectionTestUtils.setField(user, "userId", 5L);  // userId null 방지
+        ReflectionTestUtils.setField(user, "userId", 5L);
+
+        SliceResponse<GetAllCommentResponse> emptyComments = new SliceResponse<>(
+                List.of(),
+                new SliceInfo(10, 0, false)
+        );
 
         Post post = new Post(
                 board,
@@ -464,6 +474,7 @@ class PostServiceTest {
         assertEquals(id, out.id());
         verify(postRepository, times(1)).findById(id);
         verifyNoMoreInteractions(postRepository);
+        verify(commentService).getAll(any(GetCommentQuery.class));
     }
 
     @Test

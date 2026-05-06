@@ -45,7 +45,8 @@ public class PostController {
                 out.title(),
                 out.content(),
                 out.createdDate(),
-                out.lastModifiedDate()
+                out.lastModifiedDate(),
+                out.comments()
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
