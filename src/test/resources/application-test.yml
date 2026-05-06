@@ -19,10 +19,7 @@ security:
   bcrypt:
     strength: 4
 
-logging:
-  level:
-    org.springframework.test.web.servlet: WARN
-    org.springframework.mock.web: WARN
+
 cloud:
   aws:
     endpoint: http://localhost:9000
@@ -33,3 +30,8 @@ cloud:
       bucket: coreboard-attachments
     region:
       static: us-east-1
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

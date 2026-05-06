@@ -185,8 +185,8 @@ class CommentServiceTest {
         );
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(commentRepository.findByPostIdAndStatus(
-                anyLong(),
+        given(commentRepository.findByPostIdAndStatusWithUser(
+                eq(postId),
                 eq(CommentStatus.ACTIVE),
                 any(Pageable.class)
         )).willReturn(mockSlice);
@@ -199,8 +199,9 @@ class CommentServiceTest {
         assertThat(response.content().get(0).content()).isEqualTo("content");
         assertThat(response.content().get(0).nickname()).isEqualTo("nickname");
 
-        verify(commentRepository).findByPostIdAndStatus(
-                anyLong(),
+        verify(postRepository).findById(postId);
+        verify(commentRepository).findByPostIdAndStatusWithUser(
+                eq(postId),
                 eq(CommentStatus.ACTIVE),
                 any(Pageable.class)
         );

@@ -89,7 +89,7 @@ public class CommentService {
             throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
         }
 
-        Slice<Comment> sliceComment = commentRepository.findByPostIdAndStatus(
+        Slice<Comment> sliceComment = commentRepository.findByPostIdAndStatusWithUser(
                 query.postId(),
                 CommentStatus.ACTIVE,
                 pageable
