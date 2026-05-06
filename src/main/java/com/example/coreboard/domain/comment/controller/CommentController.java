@@ -71,4 +71,16 @@ public class CommentController {
         CommentResponse response = new CommentResponse(result.id());
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 수정되었습니다."));
     }
+
+    // 내부적으로는 soft delete(status 변경)로 처리하지만,
+    // 클라이언트 의도는 댓글 리소스 삭제이므로 DELETE 메서드를 사용한다.
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable("postId") Long postId,
+            @PathVariable("id") Long id,
+            @RequestAttribute("username") String username
+    ) {
+        commentService.delete(postId, id, username);
+        return ResponseEntity.noContent().build();
+    }
 }

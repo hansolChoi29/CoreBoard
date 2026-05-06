@@ -82,4 +82,18 @@ class CommentControllerTest {
         verify(commentService).update(anyString(), anyLong(), anyLong(), any());
         verifyNoMoreInteractions(commentService);
     }
+
+    @Test
+    @DisplayName("댓글삭제_성공")
+    void deleteComment() throws Exception {
+        Long postId = 1L;
+        Long commentId = 10L;
+        String username = "username";
+
+        mockMvc.perform(delete(BASE +"/{id}", postId, commentId)
+                        .requestAttr("username", username))
+                .andExpect(status().isNoContent());
+
+        verify(commentService).delete(postId, commentId, username);
+    }
 }

@@ -49,30 +49,9 @@ class CommentServiceTest {
     void create() {
         Long postId = 1L;
         String content = "content";
-        Board board = Board.create(
-                "자유게시판",
-                "free",
-                true,
-                false,
-                false,
-                0,
-                UserRole.USER
-        );
-        Users user = new Users(
-                username,
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-        Post post = Post.create(
-                board,
-                user,
-                "title",
-                "post content",
-                ContentFormat.MARKDOWN
-        );
+        Board board = createBoard(1L);
+        Users user = createUser(1L, "username", UserRole.USER);
+        Post post = createPost(1L, board, user);
         Comment savedComment = Comment.create(
                 post,
                 user,
@@ -129,46 +108,13 @@ class CommentServiceTest {
         Long commentId = 10L;
         Long userId = 100L;
 
-        String username = "username";
         String beforeContent = "content";
         String afterContent = "updated content";
 
-        Users user = new Users(
-                username,
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-
-        Board board = Board.create(
-                "자유게시판",
-                "free",
-                true,
-                false,
-                false,
-                0,
-                UserRole.USER
-        );
-
-        Post post = Post.create(
-                board,
-                user,
-                "title",
-                "post content",
-                ContentFormat.MARKDOWN
-        );
-
-        Comment comment = Comment.create(
-                post,
-                user,
-                beforeContent
-        );
-
-        ReflectionTestUtils.setField(user, "userId", userId);
-        ReflectionTestUtils.setField(post, "id", postId);
-        ReflectionTestUtils.setField(comment, "id", commentId);
+        Users user = createUser(userId, username, UserRole.USER);
+        Board board = createBoard(1L);
+        Post post = createPost(postId, board, user);
+        Comment comment = createComment(commentId, post, user, beforeContent);
 
         CommentCommand command = new CommentCommand(afterContent);
 
@@ -189,5 +135,79 @@ class CommentServiceTest {
         verify(usersRepository).findByUsername(username);
         verify(postRepository).findById(postId);
         verify(commentRepository).findById(commentId);
+    }
+
+    @Test
+    @DisplayName("댓글삭제_성공")
+    void delete() {
+        Long postId = 1L;
+        Long commentId = 10L;
+        Long userId = 100L;
+
+        Users user = createUser(userId, username, UserRole.USER);
+        Board board = createBoard(1L);
+        Post post = createPost(postId, board, user);
+        Comment comment = createComment(commentId, post, user, "content");
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+        commentService.delete(postId, commentId, username);
+
+        assertThat(comment.getStatus()).isEqualTo(CommentStatus.DELETE);
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(postId);
+        verify(commentRepository).findById(commentId);
+    }
+
+    private Users createUser(Long userId, String username, UserRole role) {
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                username + "@test.com",
+                "01012341234",
+                role
+        );
+        ReflectionTestUtils.setField(user, "userId", userId);
+        return user;
+    }
+
+    private Board createBoard(Long boardId) {
+        Board board = Board.create(
+                "자유게시판",
+                "free",
+                true,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(board, "id", boardId);
+        return board;
+    }
+
+    private Post createPost(Long postId, Board board, Users user) {
+        Post post = Post.create(
+                board,
+                user,
+                "title",
+                "post content",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", postId);
+        return post;
+    }
+
+    private Comment createComment(Long commentId, Post post, Users user, String content) {
+        Comment comment = Comment.create(
+                post,
+                user,
+                content
+        );
+        ReflectionTestUtils.setField(comment, "id", commentId);
+        return comment;
     }
 }

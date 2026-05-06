@@ -34,7 +34,6 @@ public class Comment {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime lastModifiedDate;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CommentStatus status;
@@ -61,13 +60,17 @@ public class Comment {
         return new Comment(post, user, content);
     }
 
+    public CommentStatus getStatus() {
+        return status;
+    }
+
     public void update(
             String content
     ) {
         this.content = content;
     }
 
-    private void isSoftDelete() {
+    public void delete() {
         this.status = CommentStatus.DELETE;
     }
 
