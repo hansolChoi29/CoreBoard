@@ -12,9 +12,11 @@ import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
@@ -31,8 +33,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -134,6 +135,86 @@ class BoardServiceTest {
     }
 
     @Test
+    @DisplayName("게시판생성_이미_사용중인_게시판이름")
+    void create_name_conflict() {
+        String username = "username";
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        CreateBoardCommand command = new CreateBoardCommand(
+                "자유",
+                "free",
+                false,
+                false,
+                false,
+                10000,
+                UserRole.USER
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.existsByNameAndDeletedAtIsNull(command.name()))
+                .willReturn(true);
+
+        BoardErrorException exception = assertThrows(
+                BoardErrorException.class,
+                () -> boardService.create(command, username)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).existsByNameAndDeletedAtIsNull(command.name());
+        verify(boardRepository, never()).existsBySlugAndDeletedAtIsNull(anyString());
+        verify(boardRepository, never()).save(any(Board.class));
+    }
+
+    @Test
+    @DisplayName("게시판생성_이미_사용중인_slug")
+    void create_slug_conflict() {
+        String username = "username";
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        CreateBoardCommand command = new CreateBoardCommand(
+                "자유",
+                "free",
+                false,
+                false,
+                false,
+                10000,
+                UserRole.USER
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.existsByNameAndDeletedAtIsNull(command.name()))
+                .willReturn(false);
+        given(boardRepository.existsBySlugAndDeletedAtIsNull(command.slug()))
+                .willReturn(true);
+
+        BoardErrorException exception = assertThrows(
+                BoardErrorException.class,
+                () -> boardService.create(command, username)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).existsByNameAndDeletedAtIsNull(command.name());
+        verify(boardRepository).existsBySlugAndDeletedAtIsNull(command.slug());
+        verify(boardRepository, never()).save(any(Board.class));
+    }
+
+    @Test
     @DisplayName("게시판_단건_조회_성공")
     void getOneBoard() {
         Board board = new Board(
@@ -162,8 +243,8 @@ class BoardServiceTest {
         );
         GetOneBoardCommand command = new GetOneBoardCommand(1L);
 
-        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
-        given(postRepository.findByIdWithUser(1L)).willReturn(List.of(post));
+        given(boardRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(board));
+        given(postRepository.findAllByBoardIdWithUser(1L, PostStatus.PUBLISHED)).willReturn(List.of(post));
 
         GetOneBoardResult result = boardService.getOne(command);
 
@@ -180,8 +261,8 @@ class BoardServiceTest {
         assertThat(result.posts().get(0).writerName()).isEqualTo("nickname");
         assertThat(result.posts().get(0).title()).isEqualTo("title");
 
-        verify(boardRepository).findById(command.id());
-        verify(postRepository).findByIdWithUser(command.id());
+        verify(boardRepository).findByIdAndDeletedAtIsNull(command.id());
+        verify(postRepository).findAllByBoardIdWithUser(command.id(), PostStatus.PUBLISHED);
         verifyNoMoreInteractions(boardRepository, postRepository);
     }
 
@@ -281,6 +362,114 @@ class BoardServiceTest {
         verify(boardRepository).existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id);
         verify(boardRepository).existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id);
         verifyNoMoreInteractions(usersRepository, boardRepository);
+    }
+
+    @Test
+    @DisplayName("게시판_수정_이미_사용중인_게시판이름")
+    void update_name_conflict() {
+        String username = "username";
+        Long id = 1L;
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+
+        Board board = new Board(
+                "기존게시판",
+                "old-free",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        UpdateBoardCommand command = new UpdateBoardCommand(
+                id,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
+        given(boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id))
+                .willReturn(true);
+
+        BoardErrorException exception = assertThrows(
+                BoardErrorException.class,
+                () -> boardService.update(command, username, id)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findByIdAndDeletedAtIsNull(id);
+        verify(boardRepository).existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id);
+        verify(boardRepository, never()).existsBySlugAndIdNotAndDeletedAtIsNull(anyString(), anyLong());
+    }
+
+    @Test
+    @DisplayName("게시판_수정_이미_사용중인_slug")
+    void update_slug_conflict() {
+        String username = "username";
+        Long id = 1L;
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+
+        Board board = new Board(
+                "기존게시판",
+                "old-free",
+                false,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        UpdateBoardCommand command = new UpdateBoardCommand(
+                id,
+                "자유게시판",
+                "free",
+                false,
+                false,
+                false,
+                0
+        );
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
+        given(boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id))
+                .willReturn(false);
+        given(boardRepository.existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id))
+                .willReturn(true);
+
+        BoardErrorException exception = assertThrows(
+                BoardErrorException.class,
+                () -> boardService.update(command, username, id)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findByIdAndDeletedAtIsNull(id);
+        verify(boardRepository).existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id);
+        verify(boardRepository).existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id);
     }
 
     @Test

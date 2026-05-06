@@ -2,7 +2,6 @@ package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
@@ -334,5 +333,4 @@ class BoardPostControllerTest {
         verify(postService, never()).getAll(anyLong(), anyInt(), anyInt(), anyString());
         verifyNoMoreInteractions(postService);
     }
-
 }

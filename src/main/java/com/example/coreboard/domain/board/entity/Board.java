@@ -88,6 +88,13 @@ public class Board {
         return board;
     }
 
+    public boolean canWrite(UserRole userRole) {
+        if (this.allowedWriteRoles == UserRole.ADMIN) {
+            return userRole == UserRole.ADMIN;
+        }
+        return true;
+    }
+
     public LocalDateTime getDeletedAt() {
         return deletedAt;
     }
@@ -143,20 +150,4 @@ public class Board {
     public UserRole getAllowedWriteRoles() {
         return allowedWriteRoles;
     }
-
-    public boolean isDeleted() {
-        return this.deletedAt != null;
-    }
-    /*
-     * 공지사항 게시판은 관리자만 작성 가능하다
-     * 갤러리 게시판은 첨부파일이 필수다
-     * 자료실 게시판은 첨부파일이 최대 5개다
-     * */
-
-    /* TODO : 첨부파일 몇개까지 허용할지, 장단점 파악할 것
-     * 설정 컬럼
-     * 공지사항 : 첨부파일 선택, 최대 첨부 2
-     * 자유게시판 : 첨부파일 선택, 최대 첨부, 코드블록 필요
-     * 큐앤에이 : 첨부파일 선택, 최대 첨부, 답변 채택 기능 추가할지
-     * */
 }

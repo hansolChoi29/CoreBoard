@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.common.interceptor;
 
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.method.HandlerMethod;
@@ -131,5 +133,26 @@ class AuthInterceptorTest {
 
         assertTrue(result);
         assertEquals("tester", mockHttpServletRequest.getAttribute("username"));
+    }
+
+    @Test
+    @DisplayName("ADMIN_경로에_USER_권한으로_접근하면_403")
+    void adminPath_userRole_forbidden() {
+        String token = JwtUtil.createAccessToken(10L, "tester", UserRole.USER);
+
+        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.setRequestURI("/admin/boards");
+        mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
+
+        AuthErrorException exception = assertThrows(
+                AuthErrorException.class,
+                () -> authInterceptor.preHandle(
+                        mockHttpServletRequest,
+                        mockHttpServletResponse,
+                        handlerMethod
+                )
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
     }
 }

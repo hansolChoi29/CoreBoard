@@ -65,6 +65,9 @@ public class AttachmentService {
     // 게시글 저장 완료 시 TEMP → CONFIRMED
     @Transactional
     public void confirm(List<Long> attachmentIds, Post post) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return;
+        }
         List<Attachment> attachments = attachmentRepository.findAllById(attachmentIds);
 
         attachments.forEach(attachment -> attachment.confirm(post));

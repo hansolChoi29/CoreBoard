@@ -3,6 +3,7 @@ package com.example.coreboard.domain.attachment.service;
 import com.example.coreboard.domain.attachment.entity.Attachment;
 import com.example.coreboard.domain.attachment.entity.AttachmentStatus;
 import com.example.coreboard.domain.attachment.repository.AttachmentRepository;
+import com.example.coreboard.domain.post.entity.Post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,5 +92,25 @@ class AttachmentServiceTest {
         attachmentService.confirm(List.of(1L), null);
 
         assertThat(attachment.getStatus()).isEqualTo(AttachmentStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("첨부파일_확정_attachmentIds가_null이면_조회하지_않는다")
+    void confirmAttachmentIdsNull() {
+        Post post = mock(Post.class);
+
+        attachmentService.confirm(null, post);
+
+        verify(attachmentRepository, never()).findAllById(any());
+    }
+
+    @Test
+    @DisplayName("첨부파일_확정_attachmentIds가_비어있으면_조회하지_않는다")
+    void confirmAttachmentIdsEmpty() {
+        Post post = mock(Post.class);
+
+        attachmentService.confirm(List.of(), post);
+
+        verify(attachmentRepository, never()).findAllById(any());
     }
 }

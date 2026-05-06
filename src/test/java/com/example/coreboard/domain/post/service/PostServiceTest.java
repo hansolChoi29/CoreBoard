@@ -1,5 +1,6 @@
 package com.example.coreboard.domain.post.service;
 
+import com.example.coreboard.domain.attachment.service.AttachmentService;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
@@ -23,7 +24,6 @@ import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
-import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -63,6 +63,9 @@ class PostServiceTest {
 
     @Mock
     UsersRepository usersRepository;
+
+    @Mock
+    AttachmentService attachmentService;
 
     @InjectMocks
     PostService postService;
@@ -119,9 +122,139 @@ class PostServiceTest {
         assertEquals("제목", toSave.getTitle());
         assertEquals("내용", toSave.getContent());
 
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("게시글_생성_ADMIN은_ADMIN전용_게시판에_작성할_수_있다")
+    void createAdminBoardByAdmin() {
+        String username = "admin";
+
+        Users admin = new Users(
+                username,
+                "nickname",
+                "password",
+                "admin@test.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        ReflectionTestUtils.setField(admin, "userId", 10L);
+
+        Board board = noticeBoard();
+
+        Post saved = new Post(
+                board,
+                admin,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(boardCreateCommand, username);
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository).save(any(Post.class));
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+    }
+
+    @Test
+    @DisplayName("게시글_생성_ADMIN은_USER허용_게시판에도_작성할_수_있다")
+    void createUserBoardByAdmin() {
+        String username = "admin";
+
+        Users admin = new Users(
+                username,
+                "nickname",
+                "password",
+                "admin@test.com",
+                "01012341234",
+                UserRole.ADMIN
+        );
+        ReflectionTestUtils.setField(admin, "userId", 10L);
+
+        Board board = freeBoard();
+
+        Post saved = new Post(
+                board,
+                admin,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(boardCreateCommand, username);
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository).save(any(Post.class));
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+    }
+
+    @Test
+    @DisplayName("게시글_생성_USER는_USER허용_게시판에_작성할_수_있다")
+    void createUserBoardByUser() {
+        String username = "tester";
+
+        Users users = new Users(
+                username,
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = freeBoard();
+
+        Post saved = new Post(
+                board,
+                users,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(boardCreateCommand, username);
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(1L);
+        verify(postRepository).save(any(Post.class));
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
     }
 
     @Test
@@ -134,7 +267,7 @@ class PostServiceTest {
                 () -> postService.create(boardCreateCommand, "tester"));
 
         assertEquals(HttpStatus.NOT_FOUND, notFoundUser.getStatus());
-
+        verify(attachmentService, never()).confirm(any(), any(Post.class));
         verify(postRepository, never()).existsByTitle(anyString());
         verify(postRepository, never()).save(any());
     }
@@ -151,7 +284,7 @@ class PostServiceTest {
                 () -> postService.create(boardCreateCommand, "tester"));
 
         assertEquals(HttpStatus.CONFLICT, duplicatedBoard.getStatus());
-
+        verify(attachmentService, never()).confirm(any(), any(Post.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(postRepository, never()).save(any());
@@ -198,7 +331,7 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-
+        verify(attachmentService, never()).confirm(any(), any(Post.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
@@ -240,7 +373,7 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-
+        verify(attachmentService, never()).confirm(any(), any(Post.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
@@ -303,6 +436,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
+        verify(attachmentService).confirm(command.attachmentIds(), saved);
     }
 
     @Test
@@ -346,11 +480,61 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-
+        verify(attachmentService, never()).confirm(any(), any(Post.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글_생성_contentFormat이_null이면_MARKDOWN으로_생성")
+    void createContentFormatNull() {
+        Users users = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "user01@naver.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(users, "userId", 10L);
+
+        Board board = freeBoard();
+
+        CreatePostCommand command = new CreatePostCommand(
+                1L,
+                "제목",
+                "내용",
+                null,
+                List.of()
+        );
+
+        Post saved = new Post(
+                board,
+                users,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(saved, "id", 1L);
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(users));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(1L)).willReturn(Optional.of(board));
+        given(postRepository.save(any(Post.class))).willReturn(saved);
+
+        CreatePostResult result = postService.create(command, "tester");
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+
+        ArgumentCaptor<Post> captor = ArgumentCaptor.forClass(Post.class);
+        verify(postRepository).save(captor.capture());
+
+        Post toSave = captor.getValue();
+
+        assertEquals(ContentFormat.MARKDOWN, toSave.getContentFormat());
     }
 
     @Test
@@ -448,6 +632,41 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_생성_게시판_작성권한없음_403")
+    void createFordibbenByBoardWriteRole() {
+        String username = "username";
+        Long id = 1L;
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 10L);
+
+        Board board = noticeBoard();
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(postRepository.existsByTitle("제목")).willReturn(false);
+        given(boardRepository.findById(id)).willReturn(Optional.of(board));
+
+        assertThrows(
+                AuthErrorException.class,
+                () -> postService.create(boardCreateCommand, username)
+        );
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).existsByTitle("제목");
+        verify(boardRepository).findById(id);
+        verify(postRepository, never()).save(any(Post.class));
+    }
+
+
+
+    @Test
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
         Long id = 1L;
@@ -466,13 +685,13 @@ class PostServiceTest {
                 "title1", "content1", ContentFormat.MARKDOWN);
         ReflectionTestUtils.setField(post, "id", id);
 
-        given(postRepository.findById(id)).willReturn(Optional.of(post));
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
 
         GetOnePostResult out = postService.getOne(new GetOnePostCommand(id));
 
         assertNotNull(out);
         assertEquals(id, out.id());
-        verify(postRepository, times(1)).findById(id);
+        verify(postRepository, times(1)).findByIdAndStatus(id, PostStatus.PUBLISHED);
         verifyNoMoreInteractions(postRepository);
         verify(commentService).getAll(any(GetCommentQuery.class));
     }
@@ -481,14 +700,14 @@ class PostServiceTest {
     @DisplayName("게시글_단건_조회_미존재_404")
     void findOnNotFound() {
         Long id = 1L;
-        given(postRepository.findById(id)).willReturn(Optional.empty());
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.empty());
         GetOnePostCommand command = new GetOnePostCommand(id);
 
         PostErrorException findOneNotFound = assertThrows(PostErrorException.class,
                 () -> postService.getOne(command));
 
         assertEquals(HttpStatus.NOT_FOUND, findOneNotFound.getStatus());
-        verify(postRepository, times(1)).findById(id);
+        verify(postRepository, times(1)).findByIdAndStatus(id, PostStatus.PUBLISHED);
         verifyNoMoreInteractions(postRepository);
     }
 
@@ -499,7 +718,6 @@ class PostServiceTest {
 
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
-        Users postWriter = mock(Users.class);
 
         UpdatePostCommand cmd = new UpdatePostCommand(
                 id,
@@ -510,12 +728,8 @@ class PostServiceTest {
         );
 
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(loginUser));
-        given(postRepository.findById(id)).willReturn(Optional.of(post));
-
-        given(loginUser.getUserId()).willReturn(10L);
-        given(post.getUser()).willReturn(postWriter);
-        given(postWriter.getUserId()).willReturn(10L);
-
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
+        given(post.isWrittenBy(loginUser)).willReturn(true);
         given(post.getId()).willReturn(id);
 
         UpdatePostResult result = postService.update(cmd);
@@ -542,11 +756,8 @@ class PostServiceTest {
         );
 
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(loginUser));
-        given(postRepository.findById(1L)).willReturn(Optional.of(post));
-
-        given(loginUser.getUserId()).willReturn(10L);
-        given(post.getUser()).willReturn(postWriter);
-        given(postWriter.getUserId()).willReturn(98L);
+        given(postRepository.findByIdAndStatus(1L, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
+        given(post.isWrittenBy(loginUser)).willReturn(false);
 
         AuthErrorException exception = assertThrows(
                 AuthErrorException.class,
@@ -687,30 +898,42 @@ class PostServiceTest {
     @Test
     @DisplayName("게시글_삭제_성공")
     void delete() {
-        Users loginUser = mock(Users.class);
-        Post post = mock(Post.class);
-        Users postWriter = mock(Users.class);
-
         Long id = 1L;
         String username = "tester";
+
+        Board board = freeBoard();
+
+        Users loginUser = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(loginUser, "userId", 10L);
+
+        Post post = new Post(
+                board,
+                loginUser,
+                "제목",
+                "내용",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", id);
+
         DeletePostCommand command = new DeletePostCommand(id, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
-        given(postRepository.findById(id)).willReturn(Optional.of(post));
-
-        given(loginUser.getUserId()).willReturn(10L);
-        given(post.getUser()).willReturn(postWriter);
-        given(postWriter.getUserId()).willReturn(10L);
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
 
         postService.delete(command);
 
+        assertEquals(PostStatus.DELETED, post.getStatus());
+
         verify(usersRepository).findByUsername(username);
-        verify(postRepository).findById(id);
-
-        verify(post).delete();
+        verify(postRepository).findByIdAndStatus(id, PostStatus.PUBLISHED);
         verify(postRepository, never()).delete(any(Post.class));
-
-        verifyNoMoreInteractions(usersRepository, postRepository, post, postWriter, loginUser);
     }
 
     @Test
@@ -718,17 +941,12 @@ class PostServiceTest {
     void deleteFobiddern() {
         Users loginUser = mock(Users.class);
         Post post = mock(Post.class);
-        Users postWriter = mock(Users.class);
 
         String username = "tester";
         DeletePostCommand command = new DeletePostCommand(1L, username);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(loginUser));
-        given(postRepository.findById(1L)).willReturn(Optional.of(post));
-
-        given(loginUser.getUserId()).willReturn(10L);
-        given(post.getUser()).willReturn(postWriter);
-        given(postWriter.getUserId()).willReturn(98L);
+        given(postRepository.findByIdAndStatus(1L, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
 
         AuthErrorException exception = assertThrows(
                 AuthErrorException.class,
@@ -738,41 +956,9 @@ class PostServiceTest {
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
 
         verify(usersRepository).findByUsername(username);
-        verify(postRepository).findById(1L);
+        verify(postRepository).findByIdAndStatus(1L, PostStatus.PUBLISHED);
 
         verify(post, never()).delete();
         verify(postRepository, never()).delete(any(Post.class));
     }
-
-    @Test
-    @DisplayName("게시글_검색_성공")
-    void search() {
-        Board boards = freeBoard();
-        String keyword = "key";
-
-        Post post = new Post(
-                boards,
-                new Users("username1", "nickname", "password1", "qwe1@qwe.com", "010-1234-1231", UserRole.USER),
-                "title1", "content", ContentFormat.MARKDOWN
-        );
-        Post post2 = new Post(
-                boards,
-                new Users("username2", "nickname", "password2", "qwe2@qwe.com", "010-1234-1232", UserRole.USER),
-                "title2", "content", ContentFormat.MARKDOWN
-        );
-        when(postRepository.searchByKeyword(keyword))
-                .thenReturn(List.of(post, post2));
-
-        CursorResponse<PostSummaryResponse> result = postService.search(keyword);
-
-        assertEquals(2, result.getContents().size());
-        assertTrue(result.getContents().stream()
-                .anyMatch(board -> board.title().equals("title1")));
-        assertTrue(result.getContents().stream()
-                .anyMatch(board -> board.title().equals("title2")));
-    }
-    // TODO : 검색 페이지네이션 기준 정하기
-    // TODO : 검색 Repository 쿼리 구체화하기
-    // TODO : 검색 입력값 검증 추가하기
-    // TODO : 검색 결과 없음, 공백 keyword, 대소문자/부분일치, 정렬, 페이지 분할 같은 케이스 추가
 }

@@ -6,7 +6,7 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 
 import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
-        import static io.micrometer.common.util.StringUtils.isBlank;
+import static io.micrometer.common.util.StringUtils.isBlank;
 
 public class BoardValidation {
     private static final int BOARD_NAME_MIN_LENGTH = 2;
@@ -57,8 +57,7 @@ public class BoardValidation {
             throw new BoardErrorException(BOARD_NAME_REQUIRED);
         }
 
-        if (name.length() < BOARD_NAME_MIN_LENGTH
-                || name.length() > BOARD_NAME_MAX_LENGTH) {
+        if (name.length() < BOARD_NAME_MIN_LENGTH || name.length() > BOARD_NAME_MAX_LENGTH) {
             throw new BoardErrorException(BOARD_NAME_LENGTH_INVALID);
         }
     }
@@ -68,8 +67,7 @@ public class BoardValidation {
             throw new BoardErrorException(BOARD_SLUG_REQUIRED);
         }
 
-        if (slug.length() < BOARD_SLUG_MIN_LENGTH
-                || slug.length() > BOARD_SLUG_MAX_LENGTH) {
+        if (slug.length() < BOARD_SLUG_MIN_LENGTH || slug.length() > BOARD_SLUG_MAX_LENGTH) {
             throw new BoardErrorException(BOARD_SLUG_LENGTH_INVALID);
         }
 
@@ -79,8 +77,7 @@ public class BoardValidation {
     }
 
     public static void validateMaxAttachmentCount(int maxAttachmentCount) {
-        if (maxAttachmentCount < BOARD_ATTACHMENT_COUNT_MIN
-                || maxAttachmentCount > BOARD_ATTACHMENT_COUNT_MAX) {
+        if (maxAttachmentCount < BOARD_ATTACHMENT_COUNT_MIN || maxAttachmentCount > BOARD_ATTACHMENT_COUNT_MAX) {
             throw new BoardErrorException(MAX_ATTACHMENT_COUNT_INVALID);
         }
     }
