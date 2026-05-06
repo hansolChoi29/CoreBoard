@@ -8,7 +8,7 @@ import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*
 import java.util.List;
 
 public class PostAttachmentPolicyValidator {
-    public static void validate(Board board, List<Long> attachmentIds) {
+       public static void validate(Board board, List<Long> attachmentIds) {
         int count = attachmentIds == null ? 0 : attachmentIds.size();
 
         if (board.isRequireAttachment() &&

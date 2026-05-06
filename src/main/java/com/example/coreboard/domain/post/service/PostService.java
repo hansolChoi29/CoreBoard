@@ -90,7 +90,7 @@ public class PostService {
                 command.contentFormat()
         );
         Post saved = postRepository.save(post);
-        attachmentService.confirm(command.attachmentIds(), saved);
+        attachmentService.confirm(command.attachmentIds(), saved, user);
 
         return new CreatePostResult(saved.getId());
     }

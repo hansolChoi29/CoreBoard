@@ -122,7 +122,7 @@ class PostServiceTest {
         assertEquals("제목", toSave.getTitle());
         assertEquals("내용", toSave.getContent());
 
-        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved, users);
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
@@ -168,7 +168,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
-        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved, admin);
     }
 
     @Test
@@ -211,7 +211,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
-        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved,admin);
     }
 
     @Test
@@ -254,7 +254,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
-        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved);
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved, users);
     }
 
     @Test
@@ -267,7 +267,7 @@ class PostServiceTest {
                 () -> postService.create(boardCreateCommand, "tester"));
 
         assertEquals(HttpStatus.NOT_FOUND, notFoundUser.getStatus());
-        verify(attachmentService, never()).confirm(any(), any(Post.class));
+        verify(attachmentService, never()).confirm(any(), any(Post.class), any(Users.class));
         verify(postRepository, never()).existsByTitle(anyString());
         verify(postRepository, never()).save(any());
     }
@@ -284,7 +284,7 @@ class PostServiceTest {
                 () -> postService.create(boardCreateCommand, "tester"));
 
         assertEquals(HttpStatus.CONFLICT, duplicatedBoard.getStatus());
-        verify(attachmentService, never()).confirm(any(), any(Post.class));
+        verify(attachmentService, never()).confirm(any(), any(Post.class), any(Users.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(postRepository, never()).save(any());
@@ -331,7 +331,7 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        verify(attachmentService, never()).confirm(any(), any(Post.class));
+        verify(attachmentService, never()).confirm(any(), any(Post.class), any(Users.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
@@ -373,7 +373,7 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        verify(attachmentService, never()).confirm(any(), any(Post.class));
+        verify(attachmentService, never()).confirm(any(), any(Post.class), any(Users.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
@@ -436,7 +436,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
-        verify(attachmentService).confirm(command.attachmentIds(), saved);
+        verify(attachmentService).confirm(command.attachmentIds(), saved, users);
     }
 
     @Test
@@ -480,7 +480,7 @@ class PostServiceTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        verify(attachmentService, never()).confirm(any(), any(Post.class));
+        verify(attachmentService, never()).confirm(any(), any(Post.class), any(Users.class));
         verify(usersRepository).findByUsername("tester");
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);

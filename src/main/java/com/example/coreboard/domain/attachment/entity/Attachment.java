@@ -1,7 +1,10 @@
 package com.example.coreboard.domain.attachment.entity;
 
 
+import com.example.coreboard.domain.common.exception.Attachment.AttachmentErrorCode;
+import com.example.coreboard.domain.common.exception.Attachment.AttachmentErrorException;
 import com.example.coreboard.domain.post.entity.Post;
+import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -40,22 +43,49 @@ public class Attachment {
     @Column(nullable = false)
     private Long fileSize;
 
+    @Column(nullable = false)
+    private String objectKey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
     protected Attachment() {
     }
 
     public static Attachment createTemp(
+            Users user,
             String originalFileName,
+            String objectKey,
             String storedUrl,
             String contentType,
             Long fileSize
     ) {
         Attachment attachment = new Attachment();
+        attachment.user = user;
         attachment.originalFileName = originalFileName;
+        attachment.objectKey = objectKey;
         attachment.storeUrl = storedUrl;
         attachment.contentType = contentType;
         attachment.fileSize = fileSize;
         attachment.status = AttachmentStatus.TEMP;
         return attachment;
+    }
+
+    public void validateOwner(Users user) {
+        if (!this.user.getUserId().equals(user.getUserId())) {
+            throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_FORBIDDEN);
+        }
+    }
+
+    public void validateTemp() {
+        if (this.status != AttachmentStatus.TEMP) {
+            throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_ALREADY_CONFIRMED);
+        }
+    }
+
+    public String getObjectKey() {
+        return objectKey;
     }
 
     public void confirm(Post post) {
