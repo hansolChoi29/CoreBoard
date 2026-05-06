@@ -14,6 +14,14 @@ public enum CommentErrorCode {
                     "comment, board",
                     "댓글 작성이 허용되지 않은 게시글입니다."
             ))),
+    COMMENT_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            404,
+            "존재하지 않는 댓글입니다. 확인 후 다시 이용해 주세요.",
+            List.of(new FieldError(
+                    "comment",
+                    "존재하지 않는 댓글입니다. 확인 후 다시 이용해 주세요."
+            ))),
 
     ;
 

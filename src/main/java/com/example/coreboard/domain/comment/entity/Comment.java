@@ -61,6 +61,12 @@ public class Comment {
         return new Comment(post, user, content);
     }
 
+    public void update(
+            String content
+    ) {
+        this.content = content;
+    }
+
     private void isSoftDelete() {
         this.status = CommentStatus.DELETE;
     }

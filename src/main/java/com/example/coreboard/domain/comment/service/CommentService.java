@@ -1,10 +1,11 @@
 package com.example.coreboard.domain.comment.service;
 
 import com.example.coreboard.domain.board.entity.Board;
-import com.example.coreboard.domain.comment.dto.command.CreateCommentCommand;
+import com.example.coreboard.domain.comment.dto.command.CommentCommand;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
+import com.example.coreboard.domain.comment.dto.request.CommentRequest;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
-import com.example.coreboard.domain.comment.dto.result.CreateCommentResult;
+import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.entity.Comment;
 import com.example.coreboard.domain.comment.entity.CommentStatus;
 import com.example.coreboard.domain.comment.repository.CommentRepository;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -42,10 +44,11 @@ public class CommentService {
         this.usersRepository = usersRepository;
     }
 
-    public CreateCommentResult create(
+    @Transactional
+    public CommentResult create(
             Long postId,
             String username,
-            CreateCommentCommand command
+            CommentCommand command
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
@@ -66,9 +69,10 @@ public class CommentService {
                 command.content()
         );
         commentRepository.save(comment);
-        return new CreateCommentResult(comment.getId());
+        return new CommentResult(comment.getId());
     }
 
+    @Transactional(readOnly = true)
     public SliceResponse<GetAllCommentResponse> getAll(GetCommentQuery query) {
         Pageable pageable = PageRequest.of(
                 query.page(),
@@ -86,5 +90,35 @@ public class CommentService {
 
         Slice<GetAllCommentResponse> commentSlice = sliceComment.map(GetAllCommentResponse::from);
         return SliceResponse.from(commentSlice);
+    }
+
+
+    @Transactional
+    public CommentResult update(
+            String username,
+            Long postId,
+            Long id,
+            CommentCommand command
+    ) {
+        Users user = usersRepository.findByUsername(username)
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostErrorException(PostErrorCode.POST_NOT_FOUND));
+        if (post.isDeleted()) {
+            throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
+        }
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new CommentErrorException(CommentErrorCode.COMMENT_NOT_FOUND));
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new PostErrorException(PostErrorCode.INVALID_RELATION);
+        }
+        if (!comment.getUser().getUserId().equals(user.getUserId())) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+
+        comment.update(command.content());
+
+        return new CommentResult(comment.getId());
     }
 }

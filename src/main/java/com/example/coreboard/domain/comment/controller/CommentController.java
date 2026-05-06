@@ -1,12 +1,12 @@
 package com.example.coreboard.domain.comment.controller;
 
-import com.example.coreboard.domain.comment.dto.command.CreateCommentCommand;
+import com.example.coreboard.domain.comment.dto.command.CommentCommand;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
-import com.example.coreboard.domain.comment.dto.request.CreateCommentRequest;
-import com.example.coreboard.domain.comment.dto.response.CreateCommentResponse;
+import com.example.coreboard.domain.comment.dto.request.CommentRequest;
+import com.example.coreboard.domain.comment.dto.response.CommentResponse;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.common.response.SliceResponse;
-import com.example.coreboard.domain.comment.dto.result.CreateCommentResult;
+import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.service.CommentService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -23,15 +23,15 @@ public class CommentController {
     }
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<CreateCommentResponse>> create(
+    public ResponseEntity<ApiResponse<CommentResponse>> create(
             @PathVariable Long postId,
             @RequestAttribute("username") String username,
-            @RequestBody CreateCommentRequest request
+            @RequestBody CommentRequest request
     ) {
         // TODO : validator add (content)
-        CreateCommentCommand command = new CreateCommentCommand(request.content());
-        CreateCommentResult result = commentService.create(postId, username, command);
-        CreateCommentResponse response = new CreateCommentResponse(result.id());
+        CommentCommand command = new CommentCommand(request.content());
+        CommentResult result = commentService.create(postId, username, command);
+        CommentResponse response = new CommentResponse(result.id());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -52,5 +52,23 @@ public class CommentController {
         SliceResponse<GetAllCommentResponse> response = commentService.getAll(query);
 
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 불러왔습니다."));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<CommentResponse>> update(
+            @RequestAttribute("username") String username,
+            @PathVariable("postId") Long postId,
+            @PathVariable("id") Long id,
+            @RequestBody CommentRequest request
+    ) {
+        CommentCommand command = new CommentCommand(request.content());
+        CommentResult result = commentService.update(
+                username,
+                postId,
+                id,
+                command
+        );
+        CommentResponse response = new CommentResponse(result.id());
+        return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 수정되었습니다."));
     }
 }

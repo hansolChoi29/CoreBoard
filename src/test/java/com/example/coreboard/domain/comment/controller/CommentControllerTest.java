@@ -1,9 +1,8 @@
 package com.example.coreboard.domain.comment.controller;
 
-import com.example.coreboard.domain.comment.dto.command.CreateCommentCommand;
-import com.example.coreboard.domain.comment.dto.request.CreateCommentRequest;
-import com.example.coreboard.domain.comment.dto.result.CreateCommentResult;
-import com.example.coreboard.domain.comment.entity.Comment;
+import com.example.coreboard.domain.comment.dto.command.CommentCommand;
+import com.example.coreboard.domain.comment.dto.request.CommentRequest;
+import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.service.CommentService;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +20,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,9 +48,9 @@ class CommentControllerTest {
     @Test
     @DisplayName("댓글_생성_성공")
     void create() throws Exception {
-        CreateCommentRequest request = new CreateCommentRequest("content");
-        CreateCommentResult result = new CreateCommentResult(1L);
-        given(commentService.create(anyLong(), anyString(), any(CreateCommentCommand.class))).willReturn(result);
+        CommentRequest request = new CommentRequest("content");
+        CommentResult result = new CommentResult(1L);
+        given(commentService.create(anyLong(), anyString(), any(CommentCommand.class))).willReturn(result);
         mockMvc.perform(
                         post(BASE, 1L)
                                 .requestAttr("username", username)
@@ -59,7 +58,28 @@ class CommentControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("댓글이 성공적으로 작성되었습니다."));
-        verify(commentService).create(anyLong(), anyString(), any(CreateCommentCommand.class));
+        verify(commentService).create(anyLong(), anyString(), any(CommentCommand.class));
+        verifyNoMoreInteractions(commentService);
+    }
+
+    @Test
+    @DisplayName("댓글수정_성공")
+    void update() throws Exception {
+        Long postId = 1L;
+        Long id = 1L;
+        String username = "username";
+
+        CommentRequest request = new CommentRequest("수정");
+        CommentResult result = new CommentResult(id);
+        given(commentService.update(anyString(), anyLong(), anyLong(), any())).willReturn(result);
+        mockMvc.perform(
+                        patch(BASE + "/{id}", postId, id)
+                                .requestAttr("username", username)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("성공적으로 수정되었습니다."));
+        verify(commentService).update(anyString(), anyLong(), anyLong(), any());
         verifyNoMoreInteractions(commentService);
     }
 }

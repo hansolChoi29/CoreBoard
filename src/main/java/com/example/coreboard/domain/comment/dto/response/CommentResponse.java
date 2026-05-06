@@ -1,6 +1,6 @@
 package com.example.coreboard.domain.comment.dto.response;
 
-public record CreateCommentResponse(
+public record CommentResponse(
         Long id
 ) {
 }

@@ -118,6 +118,14 @@ public enum PostErrorCode {
                     "attachmentIds",
                     "이 게시판은 첨부파일을 허용하지 않습니다."
             ))),
+    INVALID_RELATION(
+            HttpStatus.BAD_REQUEST,
+            400,
+            "잘못된 접근입니다. 게시글과 댓글 정보가 일치하지 않아요.",
+            List.of(new FieldError(
+                    "id",
+                    "요청하신 경로는 올바른 연결 관계가 아닙니다."
+            ))),
     ;
 
     private final HttpStatus status;

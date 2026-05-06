@@ -1,6 +1,6 @@
 package com.example.coreboard.domain.comment.dto.request;
 
-public record CreateCommentRequest(
+public record CommentRequest(
         String content
 ) {
 }

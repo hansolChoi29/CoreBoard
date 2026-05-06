@@ -1,10 +1,10 @@
 package com.example.coreboard.domain.comment.service;
 
 import com.example.coreboard.domain.board.entity.Board;
-import com.example.coreboard.domain.comment.dto.command.CreateCommentCommand;
+import com.example.coreboard.domain.comment.dto.command.CommentCommand;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
-import com.example.coreboard.domain.comment.dto.result.CreateCommentResult;
+import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.entity.Comment;
 import com.example.coreboard.domain.comment.entity.CommentStatus;
 import com.example.coreboard.domain.comment.repository.CommentRepository;
@@ -22,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -77,13 +78,13 @@ class CommentServiceTest {
                 user,
                 content
         );
-        CreateCommentCommand command = new CreateCommentCommand(content);
+        CommentCommand command = new CommentCommand(content);
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
-        CreateCommentResult result = commentService.create(
+        CommentResult result = commentService.create(
                 postId,
                 username,
                 command
@@ -119,5 +120,74 @@ class CommentServiceTest {
                 eq(CommentStatus.ACTIVE),
                 any(Pageable.class)
         );
+    }
+
+    @Test
+    @DisplayName("댓글수정_성공")
+    void update() {
+        Long postId = 1L;
+        Long commentId = 10L;
+        Long userId = 100L;
+
+        String username = "username";
+        String beforeContent = "content";
+        String afterContent = "updated content";
+
+        Users user = new Users(
+                username,
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        Board board = Board.create(
+                "자유게시판",
+                "free",
+                true,
+                false,
+                false,
+                0,
+                UserRole.USER
+        );
+
+        Post post = Post.create(
+                board,
+                user,
+                "title",
+                "post content",
+                ContentFormat.MARKDOWN
+        );
+
+        Comment comment = Comment.create(
+                post,
+                user,
+                beforeContent
+        );
+
+        ReflectionTestUtils.setField(user, "userId", userId);
+        ReflectionTestUtils.setField(post, "id", postId);
+        ReflectionTestUtils.setField(comment, "id", commentId);
+
+        CommentCommand command = new CommentCommand(afterContent);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+        CommentResult result = commentService.update(
+                username,
+                postId,
+                commentId,
+                command
+        );
+
+        assertThat(result.id()).isEqualTo(commentId);
+        assertThat(comment.getContent()).isEqualTo(afterContent);
+
+        verify(usersRepository).findByUsername(username);
+        verify(postRepository).findById(postId);
+        verify(commentRepository).findById(commentId);
     }
 }
