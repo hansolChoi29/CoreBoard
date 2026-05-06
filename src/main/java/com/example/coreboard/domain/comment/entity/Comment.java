@@ -64,6 +64,10 @@ public class Comment {
         return status;
     }
 
+    public boolean isDeleted() {
+        return this.status == CommentStatus.DELETED;
+    }
+
     public void update(
             String content
     ) {
@@ -71,7 +75,7 @@ public class Comment {
     }
 
     public void delete() {
-        this.status = CommentStatus.DELETE;
+        this.status = CommentStatus.DELETED;
     }
 
     public Long getId() {
@@ -92,9 +96,5 @@ public class Comment {
 
     public LocalDateTime getCreatedDate() {
         return createdDate;
-    }
-
-    public LocalDateTime getLastModifiedDate() {
-        return lastModifiedDate;
     }
 }

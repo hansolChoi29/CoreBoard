@@ -22,6 +22,14 @@ public enum CommentErrorCode {
                     "comment",
                     "존재하지 않는 댓글입니다. 확인 후 다시 이용해 주세요."
             ))),
+    COMMENT_CONTENT_IS_BLANK(
+            HttpStatus.BAD_REQUEST,
+            400,
+                    "댓글 내용을 입력해 주세요.",
+            List.of(new FieldError(
+                    "comment, content",
+                    "댓글 내용을 입력해 주세요."
+    )))
 
     ;
 

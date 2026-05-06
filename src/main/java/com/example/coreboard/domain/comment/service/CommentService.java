@@ -57,6 +57,7 @@ public class CommentService {
         if (post.isDeleted()) {
             throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
         }
+
         Board board = post.getBoard();
 
         if (!board.isCommentEnabled()) {
@@ -68,8 +69,9 @@ public class CommentService {
                 user,
                 command.content()
         );
-        commentRepository.save(comment);
-        return new CommentResult(comment.getId());
+        Comment savedComment = commentRepository.save(comment);
+
+        return new CommentResult(savedComment.getId());
     }
 
     @Transactional(readOnly = true)
@@ -77,18 +79,23 @@ public class CommentService {
         Pageable pageable = PageRequest.of(
                 query.page(),
                 query.size(),
-                Sort.by(Sort.Direction.DESC, "createdDate")
+                Sort.by(
+                        Sort.Order.desc("createdDate"),
+                        Sort.Order.desc("id"))
         );
-        if (!postRepository.existsById(query.postId())) {
+        Post post = postRepository.findById(query.postId())
+                .orElseThrow(() -> new PostErrorException(PostErrorCode.POST_NOT_FOUND));
+        if (post.isDeleted()) {
             throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
         }
+
         Slice<Comment> sliceComment = commentRepository.findByPostIdAndStatus(
                 query.postId(),
                 CommentStatus.ACTIVE,
                 pageable
         );
-
         Slice<GetAllCommentResponse> commentSlice = sliceComment.map(GetAllCommentResponse::from);
+
         return SliceResponse.from(commentSlice);
     }
 
@@ -106,9 +113,11 @@ public class CommentService {
         if (post.isDeleted()) {
             throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
         }
-
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new CommentErrorException(CommentErrorCode.COMMENT_NOT_FOUND));
+        if (comment.isDeleted()) {
+            throw new CommentErrorException(CommentErrorCode.COMMENT_NOT_FOUND);
+        }
         if (!comment.getPost().getId().equals(postId)) {
             throw new PostErrorException(PostErrorCode.INVALID_RELATION);
         }
@@ -127,18 +136,17 @@ public class CommentService {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostErrorException(PostErrorCode.POST_NOT_FOUND));
-
         if (post.isDeleted()) {
             throw new PostErrorException(PostErrorCode.POST_NOT_FOUND);
         }
-
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new CommentErrorException(CommentErrorCode.COMMENT_NOT_FOUND));
-
+        if (comment.isDeleted()) {
+            throw new CommentErrorException(CommentErrorCode.COMMENT_NOT_FOUND);
+        }
         if (!comment.getPost().getId().equals(postId)) {
             throw new PostErrorException(PostErrorCode.INVALID_RELATION);
         }
-
         if (!comment.getUser().getUserId().equals(user.getUserId())
                 && user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);

@@ -1,21 +1,33 @@
 package com.example.coreboard.domain.comment.controller;
 
 import com.example.coreboard.domain.comment.dto.command.CommentCommand;
+import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.request.CommentRequest;
+import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.service.CommentService;
+import com.example.coreboard.domain.common.exception.comment.CommentErrorException;
+import com.example.coreboard.domain.common.response.SliceInfo;
+import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.domain.common.validation.CommentValidation;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -62,6 +74,50 @@ class CommentControllerTest {
         verifyNoMoreInteractions(commentService);
     }
 
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   ", "\t", "\n"})
+    @DisplayName("댓글생성_입력값검증")
+    void create_validate(String content) {
+        CommentRequest request = new CommentRequest(content);
+        assertThatThrownBy(() -> CommentValidation.validate(request))
+                .isInstanceOf(CommentErrorException.class);
+    }
+
+    @Test
+    @DisplayName("댓글생성_입력값검증_request_null")
+    void create_validate_request_is_null() {
+        assertThatThrownBy(() -> CommentValidation.validate(null))
+                .isInstanceOf(CommentErrorException.class);
+    }
+
+    @Test
+    @DisplayName("댓글_전체조회_성공")
+    void getAll() throws Exception {
+        Long postId = 1L;
+        List<GetAllCommentResponse> commentList = List.of();
+        SliceInfo sliceInfo = new SliceInfo(
+                10,
+                0,
+                false
+        );
+        SliceResponse<GetAllCommentResponse> response = new SliceResponse<>(
+                commentList,
+                sliceInfo
+        );
+
+        given(commentService.getAll(any(GetCommentQuery.class))).willReturn(response);
+
+        mockMvc.perform(
+                        get(BASE, postId)
+                                .param("page", "0")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("성공적으로 불러왔습니다."));
+        verify(commentService).getAll(any(GetCommentQuery.class));
+        verifyNoMoreInteractions(commentService);
+    }
+
     @Test
     @DisplayName("댓글수정_성공")
     void update() throws Exception {
@@ -89,11 +145,9 @@ class CommentControllerTest {
         Long postId = 1L;
         Long commentId = 10L;
         String username = "username";
-
-        mockMvc.perform(delete(BASE +"/{id}", postId, commentId)
+        mockMvc.perform(delete(BASE + "/{id}", postId, commentId)
                         .requestAttr("username", username))
                 .andExpect(status().isNoContent());
-
         verify(commentService).delete(postId, commentId, username);
     }
 }

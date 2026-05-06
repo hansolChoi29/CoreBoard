@@ -9,6 +9,7 @@ import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.comment.dto.result.CommentResult;
 import com.example.coreboard.domain.comment.service.CommentService;
 import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.domain.common.validation.CommentValidation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class CommentController {
             @RequestAttribute("username") String username,
             @RequestBody CommentRequest request
     ) {
-        // TODO : validator add (content)
+        CommentValidation.validate(request);
         CommentCommand command = new CommentCommand(request.content());
         CommentResult result = commentService.create(postId, username, command);
         CommentResponse response = new CommentResponse(result.id());
@@ -61,6 +62,7 @@ public class CommentController {
             @PathVariable("id") Long id,
             @RequestBody CommentRequest request
     ) {
+        CommentValidation.validate(request);
         CommentCommand command = new CommentCommand(request.content());
         CommentResult result = commentService.update(
                 username,
