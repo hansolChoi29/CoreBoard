@@ -48,10 +48,7 @@ public class AuthValidation {
     }
 
     public static void signIn(String username, String password) {
-        if (username == null
-                || username.isBlank()
-                || password == null
-                || password.isBlank()) {
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new AuthErrorException(USERNAME_PASSWORD_ISBLANK);
         }
     }

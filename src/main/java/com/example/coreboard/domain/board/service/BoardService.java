@@ -1,24 +1,33 @@
 package com.example.coreboard.domain.board.service;
 
-import com.example.coreboard.domain.board.dto.*;
-import com.example.coreboard.domain.board.dto.command.BoardCreateCommand;
-import com.example.coreboard.domain.board.dto.command.BoardGetOneCommand;
-import com.example.coreboard.domain.board.dto.command.BoardUpdateCommand;
-import com.example.coreboard.domain.board.dto.response.BoardSummaryKeysetResponse;
+import com.example.coreboard.domain.board.dto.command.DeleteBoardCommand;
+import com.example.coreboard.domain.board.dto.command.UpdateBoardCommand;
+import com.example.coreboard.domain.board.dto.response.GetBoardListResponse;
+import com.example.coreboard.domain.board.dto.result.CreateBoardResult;
+import com.example.coreboard.domain.board.dto.result.GetOneBoardResult;
+import com.example.coreboard.domain.board.dto.command.CreateBoardCommand;
+import com.example.coreboard.domain.board.dto.query.GetBoardListQuery;
+import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
+import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
+import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.CursorResponse;
+import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.entity.PostStatus;
+import com.example.coreboard.domain.post.repository.PostRepository;
+import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
-import static com.example.coreboard.domain.common.exception.board.BoardErrorCode.*;
 
 import java.util.List;
 
@@ -26,116 +35,139 @@ import java.util.List;
 public class BoardService {
     private final BoardRepository boardRepository;
     private final UsersRepository usersRepository;
+    private final PostRepository postRepository;
 
     public BoardService(
             BoardRepository boardRepository,
-            UsersRepository usersRepository
+            UsersRepository usersRepository,
+            PostRepository postRepository
     ) {
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
+        this.postRepository = postRepository;
     }
 
     @Transactional
-    public BoardCreateDto create(
-            BoardCreateCommand boardCreateCommand,
-            String username
-    ) {
+    public CreateBoardResult create(CreateBoardCommand command, String username) {
         Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        if (boardRepository.existsByTitle(boardCreateCommand.getTitle())) {
-            throw new BoardErrorException(TITLE_DUPLICATED);
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+        if (boardRepository.existsByNameAndDeletedAtIsNull(command.name())) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_NAME_DUPLICATE);
         }
 
+        if (boardRepository.existsBySlugAndDeletedAtIsNull(command.slug())) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_SLUG_DUPLICATE);
+        }
         Board board = Board.create(
-                user.getUserId(),
-                boardCreateCommand.getTitle(),
-                boardCreateCommand.getContent());
-        Board saved = boardRepository.save(board);
+                command.name(),
+                command.slug(),
+                command.commentEnabled(),
+                command.answerAcceptedEnabled(),
+                command.requireAttachment(),
+                command.maxAttachmentCount(),
+                command.allowedWriteRoles()
+        );
+        boardRepository.save(board);
 
-        return new BoardCreateDto(
-                saved.getId(),
-                saved.getUserId(),
-                saved.getTitle(),
-                saved.getContent(),
-                saved.getCreatedDate());
+        return new CreateBoardResult(board.getId());
     }
 
-    public BoardGetOneDto findOne(BoardGetOneCommand boardGetOneCommand) {
-        Board board = boardRepository.findById(boardGetOneCommand.getId())
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
-
-        return new BoardGetOneDto(board.getId(), board.getUserId(), board.getTitle(), board.getContent(),
-                board.getCreatedDate(), board.getLastModifiedDate());
+    @Transactional(readOnly = true)
+    public GetOneBoardResult getOne(GetOneBoardCommand command) {
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        List<PostSummaryResponse> posts = postRepository.findAllByBoardIdWithUser(command.id(), PostStatus.PUBLISHED)
+                .stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                )).toList();
+        return new GetOneBoardResult(
+                board.getId(),
+                board.getName(),
+                board.getSlug(),
+                board.isAnswerAcceptedEnabled(),
+                board.isCommentEnabled(),
+                board.isRequireAttachment(),
+                board.getMaxAttachmentCount(),
+                board.getAllowedWriteRoles(),
+                posts
+        );
     }
 
-    public CursorResponse<BoardSummaryKeysetResponse> findAll(
-            String cursorTitle,
-            Long cursorId,
-            int size,
-            String sort
-    ) {
-        Pageable pageable = PageRequest.of(0, size + 1);
-        boolean isDesc = "desc".equalsIgnoreCase(sort);
-        List<Board> result = (cursorTitle == null || cursorId == null)
-                ? (isDesc ? boardRepository.findFirstPageDesc(pageable)
-                : boardRepository.findFirstPageAsc(pageable))
-                : (isDesc ? boardRepository.findNextPageDesc(cursorTitle, cursorId, pageable)
-                : boardRepository.findNextPageAsc(cursorTitle, cursorId, pageable));
-
-        boolean hasNext = result.size() > size;
-        if (hasNext) {
-            result = result.subList(0, size);
-        }
-
-        List<BoardSummaryKeysetResponse> contents = result.stream()
-                .map(b -> new BoardSummaryKeysetResponse(
-                        b.getId(),
-                        b.getUserId(),
-                        b.getTitle(),
-                        b.getCreatedDate()))
-                .toList();
-
-        String nextCursorTitle = hasNext ? result.get(result.size() - 1).getTitle() : null;
-        Long nextCursorId = hasNext ? result.get(result.size() - 1).getId() : null;
-
-        return new CursorResponse<>(contents, nextCursorTitle, nextCursorId, hasNext);
-    }
-
-    @Transactional
-    public BoardUpdatedDto update(BoardUpdateCommand boardUpdatedCommad) {
-        Users user = usersRepository.findByUsername(boardUpdatedCommad.getUsername())
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        Board board = boardRepository.findById(boardUpdatedCommad.getId())
-                .orElseThrow(() -> new BoardErrorException(POST_NOT_FOUND));
-
-        if (!board.getUserId().equals(user.getUserId())) {
-            throw new AuthErrorException(FORBIDDEN);
-        }
-
-        board.update(
-                boardUpdatedCommad.getTitle(),
-                boardUpdatedCommad.getContent());
-        return new BoardUpdatedDto(
-                board.getId());
+    @Transactional(readOnly = true)
+    public OffsetPageResponse<GetBoardListResponse> getAll(GetBoardListQuery query) {
+        PageRequest pageRequest = PageRequest.of(
+                query.page(),
+                query.size(),
+                Sort.by(query.direction(), "id")
+        );
+        Page<Board> boardPage = boardRepository.findByDeletedAtIsNull(pageRequest);
+        List<GetBoardListResponse> content = boardPage.getContent()
+                .stream()
+                .map(board -> new GetBoardListResponse(
+                        board.getId(),
+                        board.getName(),
+                        board.getSlug()
+                )).toList();
+        PageInfo pageInfo = new PageInfo(
+                boardPage.getNumber(),
+                boardPage.getSize(),
+                boardPage.getTotalElements(),
+                boardPage.getTotalPages()
+        );
+        return new OffsetPageResponse<>(content, pageInfo);
     }
 
     @Transactional
-    public void delete(
+    public UpdateBoardResult update(
+            UpdateBoardCommand command,
             String username,
             Long id
     ) {
         Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+        if (boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id)) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_NAME_DUPLICATE);
+        }
 
-        boardRepository.findById(id)
-                .filter(board -> {
-                    if (!board.getUserId().equals(user.getUserId())) {
-                        throw new AuthErrorException(FORBIDDEN);
-                    }
-                    return true;
-                })
-                .ifPresent(boardRepository::delete);
+        if (boardRepository.existsBySlugAndIdNotAndDeletedAtIsNull(command.slug(), id)) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_SLUG_DUPLICATE);
+        }
+        board.update(
+                command.name(),
+                command.slug(),
+                command.commentEnabled(),
+                command.answerAcceptedEnabled(),
+                command.requireAttachment(),
+                command.maxAttachmentCount()
+        );
+        return new UpdateBoardResult(board.getId());
+    }
+
+    @Transactional
+    public void delete(DeleteBoardCommand command) {
+        Users user = usersRepository.findByUsername(command.username())
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        if (postRepository.existsByBoardId(command.id())) {
+            throw new BoardErrorException(BoardErrorCode.BOARD_HAS_POSTS);
+        }
+        board.softDelete();
     }
 }

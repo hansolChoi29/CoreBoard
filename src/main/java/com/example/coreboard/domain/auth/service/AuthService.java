@@ -10,6 +10,7 @@ import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 
@@ -30,41 +31,45 @@ public class AuthService {
         this.emailPhoneNumberEncode = emailPhoneNumberEncode;
     }
 
-    public SignUpDto signUp(SignUpCommand signUpCommand) {
-        if (usersRepository.existsByUsername(signUpCommand.getUsername())) {
+    @Transactional
+    public SignUpDto signUp(SignUpCommand command) {
+        if (usersRepository.existsByUsername(command.username())) {
             throw new AuthErrorException(CONFLICT);
         }
 
-        String encodedPassword = passwordEncoder.encrypt(signUpCommand.getPassword());
-        String encryptedEmail = emailPhoneNumberEncode.encrypt(signUpCommand.getEmail());
-        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(signUpCommand.getPhoneNumber());
+        String encodedPassword = passwordEncoder.encrypt(command.password());
+        String encryptedEmail = emailPhoneNumberEncode.encrypt(command.email());
+        String encryptPhoneNubmer = emailPhoneNumberEncode.encrypt(command.phoneNumber());
 
         Users users = Users.createUsers(
-                signUpCommand.getUsername(),
+                command.username(),
+                command.nickname(),
                 encodedPassword,
                 encryptedEmail,
                 encryptPhoneNubmer
         );
         usersRepository.save(users);
 
-        return new SignUpDto(users.getUsername());
+        return new SignUpDto(users.getUsername(), users.getRole());
     }
 
-    public TokenDto signIn(SignInCommand authSignInCommand) {
-        Users users = usersRepository.findByUsername(
-                authSignInCommand.getUsername()).orElseThrow(
-                () -> new AuthErrorException(NOT_FOUND)
-        );
+    @Transactional(readOnly = true)
+    public TokenDto signIn(SignInCommand command) {
+        Users users = usersRepository.findByUsername(command.username())
+                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        if (!passwordEncoder.matches(
-                authSignInCommand.getPassword(),
-                users.getPassword())
-        ) {
+        if (!passwordEncoder.matches(command.password(), users.getPassword())) {
             throw new AuthErrorException(UNAUTHORIZED);
         }
 
-        String accessToken = JwtUtil.createAccessToken(users.getUserId(), users.getUsername());
-        String refreshToken = JwtUtil.createRefreshToken(users.getUserId(), users.getUsername());
+        String accessToken = JwtUtil.createAccessToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
+        String refreshToken = JwtUtil.createRefreshToken(
+                users.getUserId(),
+                users.getUsername(),
+                users.getRole());
 
         return new TokenDto(accessToken, refreshToken);
     }

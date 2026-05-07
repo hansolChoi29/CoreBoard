@@ -1,0 +1,68 @@
+package com.example.coreboard.domain.common.exception.comment;
+
+import com.example.coreboard.domain.common.exception.FieldError;
+import org.springframework.http.HttpStatus;
+
+import java.util.List;
+
+public enum CommentErrorCode {
+    COMMENT_NOT_ALLOWED(
+            HttpStatus.FORBIDDEN,
+            403,
+            "댓글 작성이 허용되지 않은 게시글입니다.",
+            List.of(new FieldError(
+                    "comment, board",
+                    "댓글 작성이 허용되지 않은 게시글입니다."
+            ))),
+    COMMENT_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            404,
+            "존재하지 않는 댓글입니다. 확인 후 다시 이용해 주세요.",
+            List.of(new FieldError(
+                    "comment",
+                    "존재하지 않는 댓글입니다. 확인 후 다시 이용해 주세요."
+            ))),
+    COMMENT_CONTENT_IS_BLANK(
+            HttpStatus.BAD_REQUEST,
+            400,
+                    "댓글 내용을 입력해 주세요.",
+            List.of(new FieldError(
+                    "comment, content",
+                    "댓글 내용을 입력해 주세요."
+    )))
+
+    ;
+
+    private final HttpStatus status;
+    private final int code;
+    private final String message;
+    private final List<FieldError> errors;
+
+    CommentErrorCode(
+            HttpStatus status,
+            int code,
+            String message,
+            List<FieldError> errors
+    ) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.errors = errors;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public List<FieldError> getErrors() {
+        return errors;
+    }
+
+    public HttpStatus getStatus() {
+        return status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+}

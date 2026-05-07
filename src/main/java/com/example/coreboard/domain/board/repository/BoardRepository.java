@@ -1,53 +1,24 @@
 package com.example.coreboard.domain.board.repository;
 
 import com.example.coreboard.domain.board.entity.Board;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
-    Optional<Board> findById(Long id);
+    Page<Board> findByDeletedAtIsNull(Pageable pageable);
 
-    boolean existsByTitle(String title);
+    // create
+    boolean existsBySlugAndDeletedAtIsNull(String slug);
 
-    @Query("""
-            select b from Board b
-            order by b.title desc, b.id desc
-            """)
-    List<Board> findFirstPageDesc(Pageable pageable);
+    boolean existsByNameAndDeletedAtIsNull(String name);
 
-    @Query("""
-            select b from Board b
-            where(b.title < :cursorTitle)
-            or(b.title = :cursorTitle and b.id < :cursorId)
-            order by b.title desc, b.id desc
-            """)
-    List<Board> findNextPageDesc(
-            @Param("cursorTitle") String cursorTitle,
-            @Param("cursorId") Long cursorId,
-            Pageable pageable
-    );
+    //update
+    Optional<Board> findByIdAndDeletedAtIsNull(Long id);
 
-    @Query("""
-            select b from Board b
-            order by b.title asc , b.id asc
-            """)
-    List<Board> findFirstPageAsc(Pageable pageable);
+    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
 
-    @Query("""
-             select b from Board b
-            where(b.title > :cursorTitle)
-            or(b.title = :cursorTitle and b.id > :cursorId)
-            order by b.title asc, b.id asc 
-            """)
-    List<Board> findNextPageAsc(
-            @Param("cursorTitle") String cursorTitle,
-            @Param("cursorId") Long cursorId,
-            Pageable pageable
-    );
+    boolean existsBySlugAndIdNotAndDeletedAtIsNull(String slug, Long id);
 }

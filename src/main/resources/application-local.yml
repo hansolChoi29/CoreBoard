@@ -22,7 +22,7 @@ jwt:
 aes:
   secret:
     key: MySuperSecretKey
-    
+
 management:
   endpoints:
     web:
@@ -31,3 +31,15 @@ management:
   endpoint:
     health:
       show-details: always
+cloud:
+  aws:
+    endpoint: http://localhost:9000
+    credentials:
+      access-key: minioadmin
+      secret-key: minioadmin
+    s3:
+      bucket: coreboard-attachments
+    region:
+      static: us-east-1
+  # 사람이 브라우저로 보는 관리자 화면 → http://localhost:9001
+  # Spring Boot 서버가 S3Client로 접근하는 API → http://localhost:9000

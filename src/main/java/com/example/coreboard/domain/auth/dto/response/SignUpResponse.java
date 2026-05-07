@@ -1,7 +1,9 @@
 package com.example.coreboard.domain.auth.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
+import com.example.coreboard.domain.users.entity.UserRole;
 
 public record SignUpResponse(
-        @NotBlank String username) {
+        String username,
+        UserRole role
+) {
 }

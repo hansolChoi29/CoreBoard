@@ -13,6 +13,9 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.common.validation.AuthValidation;
+import com.example.coreboard.domain.users.entity.UserRole;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +23,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "Auth", description = "인증 관련 API")
 @RequestMapping("/auth")
 @RestController
 public class AuthController {
@@ -30,12 +35,14 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @Operation(summary = "회원가입")
     @PostMapping("/users")
     public ResponseEntity<ApiResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) {
         AuthValidation.signUpValidation(request);
 
         SignUpCommand users = new SignUpCommand(
                 request.username(),
+                request.nickname(),
                 request.password(),
                 request.confirmPassword(),
                 request.email(),
@@ -43,11 +50,15 @@ public class AuthController {
 
         SignUpDto out = authService.signUp(users);
 
-        SignUpResponse response = new SignUpResponse(out.getUsername());
+        SignUpResponse response = new SignUpResponse(
+                out.username(),
+                out.role()
+        );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
 
+    @Operation(summary = "로그인", description = "AccessToken 반환, RefreshToken은 쿠키에 저장")
     @PostMapping("/token")
     public ResponseEntity<ApiResponse<TokenResponse>> signIn(
             @RequestBody SignInRequest request) {
@@ -72,6 +83,7 @@ public class AuthController {
                 .body(ApiResponse.ok(response, "로그인 성공!"));
     }
 
+    @Operation(summary = "토큰 재발급", description = "쿠키의 RefreshToken으로 새 AccessToken 발급")
     @PostMapping("/refresh")
     ResponseEntity<ApiResponse<TokenResponse>> refresh(
             HttpServletRequest request
@@ -91,11 +103,13 @@ public class AuthController {
 
         String username = JwtUtil.getUsername(refreshToken);
         Long userId = JwtUtil.getUserId(refreshToken);
-        String newAccessToken = JwtUtil.createAccessToken(userId, username);
+        UserRole role = JwtUtil.getRole(refreshToken);
+        String newAccessToken = JwtUtil.createAccessToken(userId, username, role);
 
         return ResponseEntity.ok(ApiResponse.ok(new TokenResponse(newAccessToken), "토큰이 성공적으로 재발급되었습니다."));
     }
 
+    @Operation(summary = "로그아웃", description = "RefreshToken 쿠키 삭제")
     @DeleteMapping("/refresh")
     public ResponseEntity<ApiResponse<Void>> logout() {
         ResponseCookie deleteCookie = ResponseCookie.from("refresh", "")

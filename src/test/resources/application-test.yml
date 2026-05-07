@@ -2,7 +2,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
         show_sql: false
@@ -19,7 +19,19 @@ security:
   bcrypt:
     strength: 4
 
+
+cloud:
+  aws:
+    endpoint: http://localhost:9000
+    credentials:
+      access-key: minioadmin
+      secret-key: minioadmin
+    s3:
+      bucket: coreboard-attachments
+    region:
+      static: us-east-1
+
 logging:
   level:
-    org.springframework.test.web.servlet: WARN
-    org.springframework.mock.web: WARN
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

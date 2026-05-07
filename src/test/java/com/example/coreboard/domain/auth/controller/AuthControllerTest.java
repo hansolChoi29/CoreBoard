@@ -8,6 +8,7 @@ import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.users.entity.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Jwts;
@@ -41,9 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @Import(GlobalExceptionHandler.class)
 class AuthControllerTest {
-    ObjectMapper objectMapper = new ObjectMapper();
-
     private static final String BASE = "/auth";
+    ObjectMapper objectMapper = new ObjectMapper();
     String username = "tester";
 
     @Mock
@@ -70,11 +70,11 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_성공")
     void signUp() throws Exception {
-        SignUpDto dummy = new SignUpDto(
-                username);
+        SignUpDto dummy = new SignUpDto(username, UserRole.USER);
+
         given(authService.signUp(any())).willReturn(dummy);
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "gksthf20@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "gksthf20@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(
@@ -89,8 +89,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_불일치_400")
     void signUpConfirmMismatch() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkwst", "gksthf20@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkwst", "gksthf20@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         given(authService.signUp(any()))
                 .willThrow(new AuthErrorException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH));
@@ -107,8 +107,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이미_가입한_계정_409")
     void signUpConflict() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "gksthf20@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "gksthf20@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
 
         given(authService.signUp(any())).willThrow(new AuthErrorException(AuthErrorCode.CONFLICT));
@@ -124,8 +124,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이메일_누락_400")
     void signUpEmailRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", "",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", "",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -139,8 +139,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_이메일_null_400")
     void signUpEmailNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("user03", "gkst", "gkst", null,
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("user03", "nickname", "gkst", "gkst", null,
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -155,8 +155,8 @@ class AuthControllerTest {
     @DisplayName("회원가입_Username_누락_400")
     void signUpUsernameRequired() throws Exception {
 
-        SignUpRequest request = new SignUpRequest("", "gkst", "gkst", "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("", "nickname", "gkst", "gkst", "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -170,8 +170,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_Username_null_400")
     void signUpUsernameNull() throws Exception {
-        SignUpRequest request = new SignUpRequest(null, "gkst", "gkst", "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest(null, "nickname", "gkst", "gkst", "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -185,8 +185,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_누락_400")
     void signUpPasswordRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "", "", "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "", "", "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(
@@ -200,8 +200,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_null_400")
     void signUpPasswordNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", null, null, "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", null, null, "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(
@@ -216,8 +216,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_누락_400")
     void signUpConfirmPasswordRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "", "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "", "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -230,8 +230,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_비밀번호_확인_null_400")
     void signUpConfirmPasswordNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", null, "user03@naver.com",
-                "02012341234");
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", null, "user03@naver.com",
+                "02012341234", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -244,8 +244,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_전화번호_누락_400")
     void signUpPhoneNumberRequired() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "qwer1", "user03@naver.com",
-                "");
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "qwer1", "user03@naver.com",
+                "", UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -259,8 +259,8 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입_전화번호_null_400")
     void signUpPhoneNumberNull() throws Exception {
-        SignUpRequest request = new SignUpRequest("qwer1", "qwer1", "qwer1", "user03@naver.com",
-                null);
+        SignUpRequest request = new SignUpRequest("qwer1", "nickname", "qwer1", "qwer1", "user03@naver.com",
+                null, UserRole.USER);
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         post(BASE + "/users")
@@ -389,7 +389,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_AccessToken을_refresh슬롯에_401")
     void refresh_accessToken_inRefresh_slot() throws Exception {
-        String accessToken = JwtUtil.createAccessToken(1L, "tester");
+        String accessToken = JwtUtil.createAccessToken(1L, "tester", UserRole.USER);
         mockMvc.perform(
                         post(BASE + "/refresh")
                                 .cookie(new Cookie("refresh", accessToken))
@@ -401,11 +401,12 @@ class AuthControllerTest {
     @Test
     @DisplayName("토근_재발급_유효한_리프레시_토근_200")
     void refresh_valid_refreshToken() throws Exception {
-        String refreshToken = JwtUtil.createRefreshToken(1L, "tester");
+        String refreshToken = JwtUtil.createRefreshToken(1L, "tester", UserRole.USER);
+
         mockMvc.perform(
                         post(BASE + "/refresh")
-                                .cookie(new Cookie("refresh", refreshToken))
-                )
+                                .cookie(new Cookie("refresh", refreshToken)))
+
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("토큰이 성공적으로 재발급되었습니다."))
                 .andExpect(jsonPath("$.data.accessToken").isNotEmpty());

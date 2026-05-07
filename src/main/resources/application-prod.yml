@@ -34,3 +34,14 @@ management:
   endpoint:
     health:
       show-details: always
+      # application-prod.yml
+cloud:
+  aws:
+    endpoint: ${STORAGE_ENDPOINT}
+    credentials:
+      access-key: ${STORAGE_ACCESS_KEY}
+      secret-key: ${STORAGE_SECRET_KEY}
+    s3:
+      bucket: ${STORAGE_BUCKET}
+    region:
+      static: auto
