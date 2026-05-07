@@ -19,6 +19,8 @@ jobs:
           java-version: "17"
 
       - name: Test & Build
+        env:
+          SPRING_PROFILES_ACTIVE: test
         run: |
           chmod +x ./gradlew
           ./gradlew clean build
