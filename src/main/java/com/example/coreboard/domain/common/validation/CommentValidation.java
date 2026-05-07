@@ -6,10 +6,7 @@ import com.example.coreboard.domain.common.exception.comment.CommentErrorExcepti
 
 public class CommentValidation {
     public static void validate(CommentRequest request) {
-        if (
-                request == null
-                        || request.content() == null
-                        || request.content().isBlank()) {
+        if (request == null || request.content() == null || request.content().isBlank()) {
             throw new CommentErrorException(CommentErrorCode.COMMENT_CONTENT_IS_BLANK);
         }
     }

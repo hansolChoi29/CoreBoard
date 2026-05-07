@@ -4,7 +4,6 @@ import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
 
-import java.util.List;
 
 import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
 import static io.micrometer.common.util.StringUtils.isBlank;

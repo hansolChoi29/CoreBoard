@@ -1,10 +1,12 @@
 package com.example.coreboard.domain.post.service;
 
+import com.example.coreboard.domain.attachment.service.AttachmentService;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.comment.service.CommentService;
+import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
@@ -25,7 +27,6 @@ import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
-import com.example.coreboard.domain.common.response.CursorResponse;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -46,17 +47,20 @@ public class PostService {
     private final BoardRepository boardRepository;
     private final UsersRepository usersRepository;
     private final CommentService commentService;
+    private final AttachmentService attachmentService;
 
     public PostService(
             PostRepository postRepository,
             BoardRepository boardRepository,
             UsersRepository usersRepository,
-            CommentService commentService
+            CommentService commentService,
+            AttachmentService attachmentService
     ) {
         this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
         this.commentService = commentService;
+        this.attachmentService = attachmentService;
     }
 
     @Transactional
@@ -72,6 +76,10 @@ public class PostService {
         Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
 
+        if (!board.canWrite(user.getRole())) {
+            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+        }
+
         PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
 
         Post post = Post.create(
@@ -79,17 +87,17 @@ public class PostService {
                 user,
                 command.title(),
                 command.content(),
-                ContentFormat.MARKDOWN
+                command.contentFormat()
         );
         Post saved = postRepository.save(post);
+        attachmentService.confirm(command.attachmentIds(), saved, user);
 
         return new CreatePostResult(saved.getId());
     }
 
-    // TODO : 댓글 조회
     @Transactional(readOnly = true)
     public GetOnePostResult getOne(GetOnePostCommand command) {
-        Post post = postRepository.findById(command.id())
+        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
         SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
@@ -144,12 +152,13 @@ public class PostService {
         Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
 
-        Post post = postRepository.findById(command.id())
+        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!post.getUser().getUserId().equals(user.getUserId())) {
+        if (!post.isWrittenBy(user)) {
             throw new AuthErrorException(FORBIDDEN);
         }
+
         post.update(
                 command.title(),
                 command.content(),
@@ -165,32 +174,13 @@ public class PostService {
     public void delete(DeletePostCommand command) {
         Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-        Post post = postRepository.findById(command.id())
+        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!post.getUser().getUserId().equals(user.getUserId())) {
+        if (!post.isWrittenBy(user)) {
             throw new AuthErrorException(FORBIDDEN);
         }
+
         post.delete();
-    }
-
-    @Transactional
-    public CursorResponse<PostSummaryResponse> search(String keyword) {
-        List<Post> posts = postRepository.searchByKeyword(keyword);
-        List<PostSummaryResponse> contents = posts.stream().map(
-                post -> new PostSummaryResponse(
-                        post.getId(),
-                        post.getUser().getNickname(),
-                        post.getTitle(),
-                        post.getCreatedAt(),
-                        post.getUpdatedAt()
-                )).toList();
-
-        return new CursorResponse<>(
-                contents,
-                null,
-                null,
-                false
-        );
     }
 }

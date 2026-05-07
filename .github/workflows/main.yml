@@ -1,4 +1,4 @@
-name: Deploy CoreBoard to EC2
+name: Deploy CoreBoard to GCP
 
 on:
   push:
@@ -20,28 +20,27 @@ jobs:
 
       - name: Test & Build
         run: |
-          chmod +x ./gradlew  
+          chmod +x ./gradlew
           ./gradlew clean build
 
-      - name: Upload jar to EC2
+      - name: Upload jar to GCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build/libs/CoreBoard-0.0.1-SNAPSHOT.jar"
-          target: "/home/ubuntu/apps/coreboard"
-          
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USER }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          source: "build/libs/coreboard.jar"
+          target: "/home/${{ secrets.GCP_USER }}/apps/coreboard"
+
       - name: Switch to app.jar & restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USER }}
+          key: ${{ secrets.GCP_SSH_KEY }}
           script: |
             set -e
-            cd /home/ubuntu/apps/coreboard  
-            LATEST_JAR=$(ls -t build/libs/*-SNAPSHOT.jar | head -n 1)
-            mv -f "$LATEST_JAR" app.jar
+            cd /home/${{ secrets.GCP_USER }}/apps/coreboard
+            mv -f build/libs/coreboard.jar app.jar
             sudo systemctl restart coreboard
             sudo systemctl status coreboard --no-pager

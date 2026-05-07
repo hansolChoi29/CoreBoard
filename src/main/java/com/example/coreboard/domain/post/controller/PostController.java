@@ -5,14 +5,12 @@ import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.dto.response.GetOnePostResponse;
-import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.response.UpdatePostResponse;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.common.validation.PostValidation;
 import com.example.coreboard.domain.common.response.ApiResponse;
-import com.example.coreboard.domain.common.response.CursorResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -92,15 +90,5 @@ public class PostController {
         postService.delete(command);
 
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "게시글 검색")
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<CursorResponse<PostSummaryResponse>>> search(
-            @RequestParam("keyword") String keyword
-    ) {
-        CursorResponse<PostSummaryResponse> response = postService.search(keyword);
-
-        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 검색 성공!"));
     }
 }

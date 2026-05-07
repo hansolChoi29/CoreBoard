@@ -18,6 +18,7 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
+import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
@@ -76,9 +77,9 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public GetOneBoardResult getOne(GetOneBoardCommand command) {
-        Board board = boardRepository.findById(command.id())
+        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-        List<PostSummaryResponse> posts = postRepository.findByIdWithUser(command.id())
+        List<PostSummaryResponse> posts = postRepository.findAllByBoardIdWithUser(command.id(), PostStatus.PUBLISHED)
                 .stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
@@ -147,8 +148,8 @@ public class BoardService {
         board.update(
                 command.name(),
                 command.slug(),
-                command.answerAcceptedEnabled(),
                 command.commentEnabled(),
+                command.answerAcceptedEnabled(),
                 command.requireAttachment(),
                 command.maxAttachmentCount()
         );

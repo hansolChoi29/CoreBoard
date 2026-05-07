@@ -35,24 +35,14 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ContentFormat contentFormat;
-
-    /*
-      게시글 삭제 시 DB에서 바로 삭제할 수도 있지만,
-      운영 서비스에서는 흔적을 남겨서 복구/분쟁/대응/장애 분석 등에 쓰일 수도 있다.
-    */
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PostStatus status = PostStatus.PUBLISHED;
-
-    // TODO adr-0003
     @Column(nullable = false)
     private Long viewCount = 0L; // 조회
-
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -92,6 +82,10 @@ public class Post {
         );
     }
 
+    public ContentFormat getContentFormat() {
+        return contentFormat;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
@@ -100,16 +94,8 @@ public class Post {
         return createdAt;
     }
 
-    public Long getViewCount() {
-        return viewCount;
-    }
-
     public PostStatus getStatus() {
         return status;
-    }
-
-    public ContentFormat getContentFormat() {
-        return contentFormat;
     }
 
     public String getContent() {

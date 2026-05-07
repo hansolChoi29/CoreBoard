@@ -13,20 +13,23 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Optional<Post> findById(Long id);
-
+    Optional<Post> findByIdAndStatus(Long id, PostStatus status);
     boolean existsByTitle(String title);
 
     boolean existsByBoardId(Long boardId);
 
     // getOne
     @Query("""
-            select p 
+            select p
             from Post p
-             join fetch p.user
-              where p.id = :boardId
+            join fetch p.user
+            where p.board.id = :boardId
+            and p.status = :status
             """)
-    List<Post> findByIdWithUser(@Param("id") Long id);
+    List<Post> findAllByBoardIdWithUser(
+            @Param("boardId") Long boardId,
+            @Param("status") PostStatus status
+    );
 
     // 전체조회
     @Query("""
@@ -41,14 +44,4 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") PostStatus status,
             Pageable pageable
     );
-
-    @Query("""
-            select p from Post p
-            join fetch p.user
-            where (p.title like concat('%', :keyword, '%')
-            or p.content like concat('%', :keyword, '%'))
-            and p.status = 'PUBLISHED'
-            """)
-    List<Post> searchByKeyword(@Param("keyword") String keyword);
-
 }
