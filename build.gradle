@@ -51,6 +51,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+bootJar {
+    archiveFileName = 'coreboard.jar'
+}
+
 tasks.jacocoTestReport {
     dependsOn tasks.test
     reports {
