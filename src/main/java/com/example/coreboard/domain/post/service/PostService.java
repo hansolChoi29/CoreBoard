@@ -180,7 +180,7 @@ public class PostService {
         if (!post.isWrittenBy(user)) {
             throw new AuthErrorException(FORBIDDEN);
         }
-
         post.delete();
+        attachmentService.markDeletedByPost(post.getId());
     }
 }

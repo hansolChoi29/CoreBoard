@@ -50,6 +50,9 @@ public class Attachment {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
+    @Column
+    private LocalDateTime deletedAt;
+
     protected Attachment() {
     }
 
@@ -82,6 +85,11 @@ public class Attachment {
         if (this.status != AttachmentStatus.TEMP) {
             throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_ALREADY_CONFIRMED);
         }
+    }
+
+    public void markDeleted() {
+        this.status = AttachmentStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
     }
 
     public String getObjectKey() {

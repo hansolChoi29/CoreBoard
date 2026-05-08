@@ -117,7 +117,7 @@ class AttachmentServiceTest {
                 any(LocalDateTime.class)
         )).willReturn(List.of(orphan));
 
-        attachmentService.deleteOrphanFiles();
+        attachmentService.cleanupAttachments();
 
         verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
         verify(attachmentRepository).delete(orphan);
