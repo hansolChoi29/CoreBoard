@@ -150,4 +150,49 @@ public class AttachmentService {
                 .key(attachment.getObjectKey())
                 .build());
     }
+
+    @Transactional
+    public void updatePostAttachments(
+            Post post,
+            Users user,
+            List<Long> keepAttachmentIds,
+            List<Long> newAttachmentIds
+    ) {
+        List<Attachment> currentAttachments = attachmentRepository.findByPostIdAndStatus(
+                post.getId(),
+                AttachmentStatus.CONFIRMED
+        );
+
+        validateKeepAttachmentIds(currentAttachments, keepAttachmentIds);
+
+        List<Long> safeKeepAttachmentIds = keepAttachmentIds == null
+                ? currentAttachments.stream().map(Attachment::getId).toList()
+                : keepAttachmentIds;
+
+        currentAttachments.stream()
+                .filter(attachment -> !safeKeepAttachmentIds.contains(attachment.getId()))
+                .forEach(Attachment::markDeleted);
+
+        confirm(newAttachmentIds, post, user);
+    }
+
+    private void validateKeepAttachmentIds(
+            List<Attachment> currentAttachments,
+            List<Long> keepAttachmentIds
+    ) {
+        if (keepAttachmentIds == null) {
+            return;
+        }
+
+        List<Long> currentAttachmentIds = currentAttachments.stream()
+                .map(Attachment::getId)
+                .toList();
+
+        boolean hasInvalidId = keepAttachmentIds.stream()
+                .anyMatch(id -> !currentAttachmentIds.contains(id));
+
+        if (hasInvalidId) {
+            throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND);
+        }
+    }
 }

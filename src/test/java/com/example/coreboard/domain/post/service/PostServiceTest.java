@@ -211,7 +211,7 @@ class PostServiceTest {
         verify(postRepository).existsByTitle("제목");
         verify(boardRepository).findById(1L);
         verify(postRepository).save(any(Post.class));
-        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved,admin);
+        verify(attachmentService).confirm(boardCreateCommand.attachmentIds(), saved, admin);
     }
 
     @Test
@@ -665,7 +665,6 @@ class PostServiceTest {
     }
 
 
-
     @Test
     @DisplayName("게시글_단건_조회_성공")
     void findOne() {
@@ -961,4 +960,10 @@ class PostServiceTest {
         verify(post, never()).delete();
         verify(postRepository, never()).delete(any(Post.class));
     }
+    /*
+     * 게시글 삭제 시
+     * 첨부파일 삭제 상태 처리 요청
+     * 권한 없음 시 첨부파일 삭제상태 처리 호출하지 않는지
+     * 존재하지 않는 게시글 삭제 시 첨부파일 삭제상태 처리 호출하지 않는지
+     * */
 }

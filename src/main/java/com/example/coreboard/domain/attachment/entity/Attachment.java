@@ -42,14 +42,11 @@ public class Attachment {
     // 파일 크기 (10MB 초과면 업로드 막을 용도)
     @Column(nullable = false)
     private Long fileSize;
-
     @Column(nullable = false)
     private String objectKey;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
-
     @Column
     private LocalDateTime deletedAt;
 
@@ -73,6 +70,18 @@ public class Attachment {
         attachment.fileSize = fileSize;
         attachment.status = AttachmentStatus.TEMP;
         return attachment;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 
     public void validateOwner(Users user) {

@@ -28,11 +28,6 @@ public class AdminBoardController {
     public AdminBoardController(BoardService boardService) {
         this.boardService = boardService;
     }
-    // TODO : slug 중복 - - create  & update
-    // TODO : 첨부파일 최대개수 초과 - create  & update
-    // TODO : 단건조회 시 id 유효하지 않음 (음수, 문자)
-    // TODO : 존재하지 않은 게시판
-    // 삭제 - 비활성화  TODO : id 잘못됨, 본인아님(!ADMIN), 게시글 존재하면 삭제 불가
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateBoardResponse>> create(
@@ -57,7 +52,6 @@ public class AdminBoardController {
                 .body(ApiResponse.ok(response, "성공적으로 게시판이 생성되었습니다."));
     }
 
-    // TODO : 이 게시판에 이 유저가 글을 써도 되는가? 검사 추가
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<UpdateBoardResponse>> update(
             @PathVariable("id") Long id,

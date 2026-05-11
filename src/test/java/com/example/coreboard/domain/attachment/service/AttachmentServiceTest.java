@@ -91,7 +91,7 @@ class AttachmentServiceTest {
     }
 
     @Test
-    @DisplayName("스케줄러_실행_시_24시간_지난_TEMP_파일_삭제")
+    @DisplayName("스케줄러_실행_시_24시간_지난_TEMP_고아파일을_삭제")
     void deleteOrphanFiles_deletesOldTempFiles() {
         String username = "username";
         Users user = new Users(
@@ -176,16 +176,6 @@ class AttachmentServiceTest {
         verify(attachmentRepository, never()).findAllById(any());
     }
 
-    /*
-    * 1. 같은 attachmentId = 2로 게시글 한 번 더 생성
-    → ATTACHMENT_ALREADY_CONFIRMED
-
-    2. 존재하지 않는 attachmentId = 99999로 생성
-    → ATTACHMENT_NOT_FOUND
-
-    3. 첨부 불가 게시판(maxAttachmentCount=0)에 attachmentIds 넣고 생성
-    → ATTACHMENT_NOT_ALLOWED
-     */
     @Test
     @DisplayName("존재하지_않는_첨부파일_ID가_있으면_예외")
     void confirmAttachmentNotFound() {
@@ -286,4 +276,10 @@ class AttachmentServiceTest {
         verify(s3Client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
         verify(attachmentRepository, never()).save(any());
     }
+    /*
+    * 게시글삭제시 comfirmed 첨부파일을 deleted로 변경하는지
+    * 게시글삭제시 연결된 confirmed 첨부파일 없으면 아무것도 하지 않는지
+    * 스케줄러 실행 시 기준시간 지난 deleted 첨부파일을 삭제하는지
+    *
+    * */
 }

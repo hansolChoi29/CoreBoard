@@ -6,6 +6,7 @@ import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class AuthInterceptor implements HandlerInterceptor {
@@ -16,6 +17,10 @@ public class AuthInterceptor implements HandlerInterceptor {
             HttpServletResponse response,
             Object handler
     ) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
+
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null) {
