@@ -587,4 +587,43 @@ class BoardServiceTest {
         verify(usersRepository).findByUsername(username);
         verifyNoInteractions(boardRepository, postRepository);
     }
+
+    @Test
+    @DisplayName("게시판_삭제_게시글이_존재하면_삭제할_수_없음")
+    void deleteBoardHasPosts() {
+        String username = "admin";
+        Long boardId = 1L;
+
+        Users admin = mock(Users.class);
+
+        Board board = Board.create(
+                "자유게시판",
+                "free",
+                true,
+                false,
+                false,
+                3,
+                UserRole.USER
+        );
+
+        DeleteBoardCommand command = new DeleteBoardCommand(boardId, username);
+
+        given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
+        given(admin.getRole()).willReturn(UserRole.ADMIN);
+        given(boardRepository.findByIdAndDeletedAtIsNull(boardId)).willReturn(Optional.of(board));
+        given(postRepository.existsByBoardId(boardId)).willReturn(true);
+
+        BoardErrorException exception = assertThrows(
+                BoardErrorException.class,
+                () -> boardService.delete(command)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+        assertThat(board.getDeletedAt()).isNull();
+
+        verify(usersRepository).findByUsername(username);
+        verify(boardRepository).findByIdAndDeletedAtIsNull(boardId);
+        verify(postRepository).existsByBoardId(boardId);
+        verify(boardRepository, never()).delete(any(Board.class));
+    }
 }

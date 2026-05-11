@@ -74,7 +74,8 @@ class PostControllerTest {
                 "본문",
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                comments
+                comments,
+                List.of()
         );
         given(postService.getOne(any(GetOnePostCommand.class))).willReturn(dummy);
         mockMvc.perform(
@@ -108,7 +109,13 @@ class PostControllerTest {
     @DisplayName("게시글_수정")
     void update() throws Exception {
         UpdatePostResult dummy = new UpdatePostResult(id, LocalDateTime.now(), LocalDateTime.now());
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "newTitle",
+                "newContent",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
 
         given(postService.update(any())).willReturn(dummy);
@@ -127,7 +134,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_비로그인_401")
     void updateIsUnauthorized() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "newTitle",
+                "newContent",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvcWithInterceptor.perform(
                         put(BASE + "/{id}", id)
@@ -141,7 +154,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_존재하지_않는_게시글_404")
     void updateNotFound() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "newTitle",
+                "newContent",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
 
         given(postService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_NOT_FOUND));
@@ -160,7 +179,13 @@ class PostControllerTest {
     @DisplayName("게시글_수정_본문_길이_초과_400")
     void updateContentTooLong() throws Exception {
         String content = "a".repeat(100100);
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", content, ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "newTitle",
+                content,
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -176,7 +201,13 @@ class PostControllerTest {
     @DisplayName("게시글_수정_제목_길이_초과_400")
     void updateTitleTooLong() throws Exception {
         String title = "a".repeat(256);
-        UpdatePostRequest request = new UpdatePostRequest(title, "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                title,
+                "newContent",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -191,7 +222,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_제목과_본문_비어있음_400")
     void updateTitleAndContentIsBlank() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("", "", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "",
+                "",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -206,7 +243,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_제목_비어있음_400")
     void updateContentIsBlank() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("", "content", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "",
+                "content",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -221,7 +264,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_본문_비어있음_400")
     void updateTitleIsBlank() throws Exception {
-        UpdatePostRequest request = new UpdatePostRequest("newTitle", "", ContentFormat.MARKDOWN);
+        UpdatePostRequest request = new UpdatePostRequest(
+                "newTitle",
+                "",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(request);
         mockMvc.perform(
                         put(BASE + "/{id}", id)
@@ -236,7 +285,13 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글_수정_이미_삭제된_게시글")
     void updateIsDelete() throws Exception {
-        UpdatePostRequest requrest = new UpdatePostRequest("newTitle", "newContent", ContentFormat.MARKDOWN);
+        UpdatePostRequest requrest = new UpdatePostRequest(
+                "newTitle",
+                "newContent",
+                ContentFormat.MARKDOWN,
+                List.of(1L),
+                List.of(2L)
+        );
         String json = objectMapper.writeValueAsString(requrest);
         given(postService.update(any())).willThrow(new PostErrorException(PostErrorCode.POST_ISDELETE));
         mockMvc.perform(

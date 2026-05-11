@@ -44,7 +44,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         request.setAttribute("role", role);
         request.setAttribute("username", username);
 
-        if (request.getRequestURI().startsWith("/admin") && role != UserRole.ADMIN) {
+        if (request.getRequestURI().startsWith("/admin")
+                && role != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
         return true;

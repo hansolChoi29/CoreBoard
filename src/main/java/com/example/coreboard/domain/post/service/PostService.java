@@ -135,18 +135,31 @@ public class PostService {
             Long boardId,
             int page,
             int size,
-            String sort
+            String sort,
+            String keyword
     ) {
         Sort sortObj = "desc".equalsIgnoreCase(sort) ?
                 Sort.by(Sort.Direction.DESC, "createdAt")
                 : Sort.by(Sort.Direction.ASC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sortObj);
 
-        Page<Post> postPage = postRepository.findAllByBoardId(
-                boardId,
-                PostStatus.PUBLISHED,
-                pageable
-        );
+        Page<Post> postPage;
+
+        if (keyword == null || keyword.isBlank()) {
+            postPage = postRepository.findAllByBoardId(
+                    boardId,
+                    PostStatus.PUBLISHED,
+                    pageable
+            );
+        } else {
+            postPage = postRepository.searchByBoardId(
+                    boardId,
+                    PostStatus.PUBLISHED,
+                    keyword.trim(),
+                    pageable
+            );
+        }
+
         List<PostSummaryResponse> contents = postPage.getContent().stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),

@@ -3,6 +3,7 @@ package com.example.coreboard.domain.post.repository;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +43,24 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByBoardId(
             @Param("boardId") Long boardId,
             @Param("status") PostStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+                select p
+                from Post p
+                join fetch p.user
+                where p.board.id = :boardId
+                and p.status = :status
+                and (
+                    lower(p.title) like lower(concat('%', :keyword, '%'))
+                    or p.content like concat('%', :keyword, '%')
+                )
+        """)
+    Page<Post> searchByBoardId(
+            @Param("boardId") Long boardId,
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 }
