@@ -57,7 +57,8 @@ public class BoardPostController {
             @PathVariable Long boardId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "sort", defaultValue = "desc") String sort
+            @RequestParam(name = "sort", defaultValue = "desc") String sort,
+            @RequestParam(name = "keyword", required = false) String keyword
     ) {
         PostValidation.validateSortDirection(sort);
         PostValidation.validatePageSize(size);
@@ -65,7 +66,8 @@ public class BoardPostController {
                 boardId,
                 page,
                 size,
-                sort
+                sort,
+                keyword
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));

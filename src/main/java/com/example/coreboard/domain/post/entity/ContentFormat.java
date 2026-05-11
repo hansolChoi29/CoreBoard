@@ -4,7 +4,7 @@ public enum ContentFormat {
     MARKDOWN
 }
 /*
- * TODO: CommonMark Spec
+ * CommonMark Spec
  * 제목
  * 목록
  * 코드블럭

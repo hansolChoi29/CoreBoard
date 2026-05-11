@@ -108,8 +108,7 @@ class AdminControllerTest {
                 admin,
                 new PageInfo(1, 10, 11, 2)
         );
-        given(adminService.get(any(AdminUserListQuery.class)))
-                .willReturn(response);
+        given(adminService.get(any(AdminUserListQuery.class))).willReturn(response);
         mockMvc.perform(
                         get("/admin/users")
                                 .requestAttr("username", username)
@@ -153,8 +152,7 @@ class AdminControllerTest {
 
         AdminPatchDto result = new AdminPatchDto(userId, role, username);
 
-        given(adminService.promote(any(AdminPatchCommand.class)))
-                .willReturn(result);
+        given(adminService.promote(any(AdminPatchCommand.class))).willReturn(result);
 
         mockMvc.perform(
                         patch("/admin/users/{id}/role", userId)

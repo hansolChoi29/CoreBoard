@@ -42,13 +42,13 @@ public class Attachment {
     // 파일 크기 (10MB 초과면 업로드 막을 용도)
     @Column(nullable = false)
     private Long fileSize;
-
     @Column(nullable = false)
     private String objectKey;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
+    @Column
+    private LocalDateTime deletedAt;
 
     protected Attachment() {
     }
@@ -72,6 +72,18 @@ public class Attachment {
         return attachment;
     }
 
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
     public void validateOwner(Users user) {
         if (!this.user.getUserId().equals(user.getUserId())) {
             throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_FORBIDDEN);
@@ -82,6 +94,11 @@ public class Attachment {
         if (this.status != AttachmentStatus.TEMP) {
             throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_ALREADY_CONFIRMED);
         }
+    }
+
+    public void markDeleted() {
+        this.status = AttachmentStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
     }
 
     public String getObjectKey() {

@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -91,7 +92,7 @@ class AttachmentServiceTest {
     }
 
     @Test
-    @DisplayName("스케줄러_실행_시_24시간_지난_TEMP_파일_삭제")
+    @DisplayName("스케줄러_실행_시_24시간_지난_TEMP_고아파일을_삭제")
     void deleteOrphanFiles_deletesOldTempFiles() {
         String username = "username";
         Users user = new Users(
@@ -117,7 +118,7 @@ class AttachmentServiceTest {
                 any(LocalDateTime.class)
         )).willReturn(List.of(orphan));
 
-        attachmentService.deleteOrphanFiles();
+        attachmentService.cleanupAttachments();
 
         verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
         verify(attachmentRepository).delete(orphan);
@@ -176,24 +177,13 @@ class AttachmentServiceTest {
         verify(attachmentRepository, never()).findAllById(any());
     }
 
-    /*
-    * 1. 같은 attachmentId = 2로 게시글 한 번 더 생성
-    → ATTACHMENT_ALREADY_CONFIRMED
-
-    2. 존재하지 않는 attachmentId = 99999로 생성
-    → ATTACHMENT_NOT_FOUND
-
-    3. 첨부 불가 게시판(maxAttachmentCount=0)에 attachmentIds 넣고 생성
-    → ATTACHMENT_NOT_ALLOWED
-     */
     @Test
     @DisplayName("존재하지_않는_첨부파일_ID가_있으면_예외")
     void confirmAttachmentNotFound() {
         Users user = mock(Users.class);
         Post post = mock(Post.class);
 
-        given(attachmentRepository.findAllById(List.of(99999L)))
-                .willReturn(List.of());
+        given(attachmentRepository.findAllById(List.of(99999L))).willReturn(List.of());
 
         assertThatThrownBy(() -> attachmentService.confirm(List.of(99999L), post, user))
                 .isInstanceOfSatisfying(AttachmentErrorException.class, e -> {
@@ -221,8 +211,7 @@ class AttachmentServiceTest {
         );
         attachment.confirm(oldPost);
 
-        given(attachmentRepository.findAllById(List.of(1L)))
-                .willReturn(List.of(attachment));
+        given(attachmentRepository.findAllById(List.of(1L))).willReturn(List.of(attachment));
 
         assertThatThrownBy(() -> attachmentService.confirm(List.of(1L), newPost, user))
                 .isInstanceOfSatisfying(AttachmentErrorException.class, e -> {
@@ -251,8 +240,7 @@ class AttachmentServiceTest {
                 5L
         );
 
-        given(attachmentRepository.findAllById(List.of(1L)))
-                .willReturn(List.of(attachment));
+        given(attachmentRepository.findAllById(List.of(1L))).willReturn(List.of(attachment));
 
         assertThatThrownBy(() -> attachmentService.confirm(List.of(1L), post, otherUser))
                 .isInstanceOfSatisfying(AttachmentErrorException.class, e -> {
@@ -263,7 +251,7 @@ class AttachmentServiceTest {
 
     @Test
     @DisplayName("파일_업로드_시_10MB를_초과하면_예외")
-    void upload_fileSizeExceeded(){
+    void upload_fileSizeExceeded() {
         String username = "username";
         setUp();
 
@@ -285,5 +273,183 @@ class AttachmentServiceTest {
         verify(usersRepository, never()).findByUsername(anyString());
         verify(s3Client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
         verify(attachmentRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글_첨부파일_수정_keepAttachmentIds가_null이면_기존_첨부파일을_모두_유지")
+    void updatePostAttachmentsKeepAttachmentIdsNullKeepsAllCurrentAttachments() {
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = mock(Post.class);
+        given(post.getId()).willReturn(1L);
+
+        Attachment attachment = Attachment.createTemp(
+                user,
+                "cat.png",
+                "attachments/temp/cat.png",
+                "http://url",
+                "image/png",
+                5L
+        );
+        ReflectionTestUtils.setField(attachment, "id", 10L);
+
+        given(attachmentRepository.findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED)).willReturn(List.of(attachment));
+
+        attachmentService.updatePostAttachments(
+                post,
+                user,
+                null,
+                List.of()
+        );
+
+        assertThat(attachment.getStatus()).isEqualTo(AttachmentStatus.TEMP);
+
+        verify(attachmentRepository).findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED);
+        verify(attachmentRepository, never()).findAllById(any());
+    }
+
+    @Test
+    @DisplayName("게시글_첨부파일_수정_keepAttachmentIds에_현재_첨부파일이_아닌_ID가_있으면_예외")
+    void updatePostAttachmentsInvalidKeepAttachmentId() {
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = mock(Post.class);
+        given(post.getId()).willReturn(1L);
+
+        Attachment currentAttachment = Attachment.createTemp(
+                user,
+                "cat.png",
+                "attachments/temp/cat.png",
+                "http://url",
+                "image/png",
+                5L
+        );
+        ReflectionTestUtils.setField(currentAttachment, "id", 10L);
+
+        given(attachmentRepository.findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED)).willReturn(List.of(currentAttachment));
+
+        assertThatThrownBy(() -> attachmentService.updatePostAttachments(
+                post,
+                user,
+                List.of(999L),
+                List.of()
+        ))
+                .isInstanceOfSatisfying(AttachmentErrorException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(404);
+                    assertThat(e.getMessage()).isEqualTo("존재하지 않는 첨부파일입니다.");
+                });
+
+        verify(attachmentRepository).findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED);
+        verify(attachmentRepository, never()).findAllById(any());
+    }
+
+
+    @Test
+    @DisplayName("게시글_첨부파일_수정_keepAttachmentIds에_없는_기존_첨부파일은_DELETED_처리")
+    void updatePostAttachmentsMarksRemovedAttachmentDeleted() {
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = mock(Post.class);
+        given(post.getId()).willReturn(1L);
+
+        Attachment keepAttachment = Attachment.createTemp(
+                user,
+                "keep.png",
+                "attachments/temp/keep.png",
+                "http://url/keep.png",
+                "image/png",
+                5L
+        );
+        ReflectionTestUtils.setField(keepAttachment, "id", 10L);
+        keepAttachment.confirm(post);
+
+        Attachment removeAttachment = Attachment.createTemp(
+                user,
+                "remove.png",
+                "attachments/temp/remove.png",
+                "http://url/remove.png",
+                "image/png",
+                5L
+        );
+        ReflectionTestUtils.setField(removeAttachment, "id", 20L);
+        removeAttachment.confirm(post);
+
+        given(attachmentRepository.findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED)).willReturn(List.of(keepAttachment, removeAttachment));
+
+        attachmentService.updatePostAttachments(
+                post,
+                user,
+                List.of(10L),
+                List.of()
+        );
+
+        assertEquals(AttachmentStatus.CONFIRMED, keepAttachment.getStatus());
+        assertEquals(AttachmentStatus.DELETED, removeAttachment.getStatus());
+
+        verify(attachmentRepository).findByPostIdAndStatus(1L, AttachmentStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("스케줄러_실행_시_7일_지난_DELETED_첨부파일을_스토리지와_DB에서_삭제한다")
+    void cleanupAttachmentsDeletesOldDeletedFiles() {
+        setUp();
+
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        Attachment deletedAttachment = Attachment.createTemp(
+                user,
+                "deleted.png",
+                "attachments/temp/deleted.png",
+                "http://localhost:9000/coreboard-attachments/attachments/temp/deleted.png",
+                "image/png",
+                10L
+        );
+        deletedAttachment.markDeleted();
+
+        given(attachmentRepository.findByStatusAndCreatedAtBefore(
+                eq(AttachmentStatus.TEMP),
+                any(LocalDateTime.class)
+        )).willReturn(List.of());
+
+        given(attachmentRepository.findByStatusAndDeletedAtBefore(
+                eq(AttachmentStatus.DELETED),
+                any(LocalDateTime.class)
+        )).willReturn(List.of(deletedAttachment));
+
+        attachmentService.cleanupAttachments();
+
+        verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
+        verify(attachmentRepository).delete(deletedAttachment);
     }
 }

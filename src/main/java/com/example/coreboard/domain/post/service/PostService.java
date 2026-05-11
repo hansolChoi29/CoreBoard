@@ -1,5 +1,8 @@
 package com.example.coreboard.domain.post.service;
 
+import com.example.coreboard.domain.attachment.entity.Attachment;
+import com.example.coreboard.domain.attachment.entity.AttachmentStatus;
+import com.example.coreboard.domain.attachment.repository.AttachmentRepository;
 import com.example.coreboard.domain.attachment.service.AttachmentService;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
@@ -13,15 +16,16 @@ import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
+import com.example.coreboard.domain.common.validation.PostAttachmentUpdatePolicy;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.response.PostAttachmentResponse;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
-import com.example.coreboard.domain.post.entity.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
@@ -48,19 +52,22 @@ public class PostService {
     private final UsersRepository usersRepository;
     private final CommentService commentService;
     private final AttachmentService attachmentService;
+    private final AttachmentRepository attachmentRepository;
 
     public PostService(
             PostRepository postRepository,
             BoardRepository boardRepository,
             UsersRepository usersRepository,
             CommentService commentService,
-            AttachmentService attachmentService
+            AttachmentService attachmentService,
+            AttachmentRepository attachmentRepository
     ) {
         this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
         this.commentService = commentService;
         this.attachmentService = attachmentService;
+        this.attachmentRepository = attachmentRepository;
     }
 
     @Transactional
@@ -102,6 +109,15 @@ public class PostService {
 
         SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
 
+        List<PostAttachmentResponse> attachments = attachmentRepository.findByPostIdAndStatus(post.getId(), AttachmentStatus.CONFIRMED).stream()
+                .map(attachment -> new PostAttachmentResponse(
+                        attachment.getId(),
+                        attachment.getOriginalFileName(),
+                        attachment.getStoreUrl(),
+                        attachment.getContentType(),
+                        attachment.getFileSize()
+                )).toList();
+
         return new GetOnePostResult(
                 post.getId(),
                 post.getUser().getUserId(),
@@ -109,7 +125,8 @@ public class PostService {
                 post.getContent(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                comments
+                comments,
+                attachments
         );
     }
 
@@ -118,18 +135,31 @@ public class PostService {
             Long boardId,
             int page,
             int size,
-            String sort
+            String sort,
+            String keyword
     ) {
         Sort sortObj = "desc".equalsIgnoreCase(sort) ?
                 Sort.by(Sort.Direction.DESC, "createdAt")
                 : Sort.by(Sort.Direction.ASC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sortObj);
 
-        Page<Post> postPage = postRepository.findAllByBoardId(
-                boardId,
-                PostStatus.PUBLISHED,
-                pageable
-        );
+        Page<Post> postPage;
+
+        if (keyword == null || keyword.isBlank()) {
+            postPage = postRepository.findAllByBoardId(
+                    boardId,
+                    PostStatus.PUBLISHED,
+                    pageable
+            );
+        } else {
+            postPage = postRepository.searchByBoardId(
+                    boardId,
+                    PostStatus.PUBLISHED,
+                    keyword.trim(),
+                    pageable
+            );
+        }
+
         List<PostSummaryResponse> contents = postPage.getContent().stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
@@ -155,19 +185,40 @@ public class PostService {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!post.isWrittenBy(user)) {
+        if (!post.isWrittenBy(user) && user.getRole() != com.example.coreboard.domain.users.entity.UserRole.ADMIN) {
             throw new AuthErrorException(FORBIDDEN);
         }
+
+        List<Attachment> currentAttachments = attachmentRepository.findByPostIdAndStatus(
+                post.getId(),
+                AttachmentStatus.CONFIRMED
+        );
+
+        PostAttachmentUpdatePolicy.validate(
+                post.getBoard(),
+                currentAttachments,
+                command.keepAttachmentIds(),
+                command.newAttachmentIds()
+        );
 
         post.update(
                 command.title(),
                 command.content(),
-                command.contentFormat());
+                command.contentFormat()
+        );
+
+        attachmentService.updatePostAttachments(
+                post,
+                user,
+                command.keepAttachmentIds(),
+                command.newAttachmentIds()
+        );
 
         return new UpdatePostResult(
                 post.getId(),
                 post.getCreatedAt(),
-                post.getUpdatedAt());
+                post.getUpdatedAt()
+        );
     }
 
     @Transactional
@@ -180,7 +231,7 @@ public class PostService {
         if (!post.isWrittenBy(user)) {
             throw new AuthErrorException(FORBIDDEN);
         }
-
         post.delete();
+        attachmentService.markDeletedByPost(post.getId());
     }
 }

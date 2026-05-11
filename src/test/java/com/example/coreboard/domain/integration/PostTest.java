@@ -149,7 +149,13 @@ class PostTest extends IntegrationTestBase {
         Users user = usersRepository.findByUsername("username").orElseThrow();
         Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
         Long realId = saved.getId();
-        UpdatePostRequest reqeust = new UpdatePostRequest("newtitle", "newcontent", ContentFormat.MARKDOWN);
+        UpdatePostRequest reqeust = new UpdatePostRequest(
+                "newtitle",
+                "newcontent",
+                ContentFormat.MARKDOWN,
+                List.of(),
+                List.of()
+        );
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/posts/{id}", realId)
                                 .header("Authorization", "Bearer " + accessToken)

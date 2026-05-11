@@ -1,6 +1,5 @@
 package com.example.coreboard.domain.common.interceptor;
 
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
@@ -51,7 +50,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    @DisplayName("Authorization_헤더_없음_GET통과")
+    @DisplayName("Authorization_헤더_없음_GET_통과")
     void noHeader_getRequestIsPass() {
         mockHttpServletRequest.setMethod("GET");
         assertDoesNotThrow(
@@ -64,7 +63,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    @DisplayName("Authorization_헤더_없음_POST예외")
+    @DisplayName("Authorization_헤더_없음_POST_예외")
     void noHeader_postRequest_fail() {
         mockHttpServletRequest.setMethod("POST");
         assertThrows(
@@ -119,9 +118,8 @@ class AuthInterceptorTest {
     }
 
     @Test
-    @DisplayName("유효한_토큰_username저장")
+    @DisplayName("유효한_토큰_username_저장")
     void validToken_success() {
-
         String token = JwtUtil.createAccessToken(10L, "tester", UserRole.USER);
         mockHttpServletRequest.setMethod("POST");
         mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
@@ -154,5 +152,39 @@ class AuthInterceptorTest {
         );
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    @DisplayName("OPTIONS_요청은_인증없이_통과")
+    void optionsRequestPass() {
+        mockHttpServletRequest.setMethod("OPTIONS");
+
+        boolean result = authInterceptor.preHandle(
+                mockHttpServletRequest,
+                mockHttpServletResponse,
+                handlerMethod
+        );
+
+        assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("ADMIN_경로에_ADMIN_권한으로_접근하면_통과")
+    void adminPath_adminRole_success() {
+        String token = JwtUtil.createAccessToken(10L, "admin", UserRole.ADMIN);
+
+        mockHttpServletRequest.setMethod("POST");
+        mockHttpServletRequest.setRequestURI("/admin/boards");
+        mockHttpServletRequest.addHeader("Authorization", "Bearer " + token);
+
+        boolean result = authInterceptor.preHandle(
+                mockHttpServletRequest,
+                mockHttpServletResponse,
+                handlerMethod
+        );
+
+        assertTrue(result);
+        assertEquals("admin", mockHttpServletRequest.getAttribute("username"));
+        assertEquals(UserRole.ADMIN, mockHttpServletRequest.getAttribute("role"));
     }
 }

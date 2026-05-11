@@ -105,17 +105,94 @@ public class AttachmentService {
     // 고아 파일 정리 스케줄러 (매일 새벽 3시)
     @Scheduled(cron = "0 0 3 * * *")
     @Transactional
-    public void deleteOrphanFiles() {
+    public void cleanupAttachments() {
+        deleteTempOrphanFiles();
+        deleteDeletedFiles();
+    }
+
+    @Transactional
+    public void markDeletedByPost(Long postId) {
+        List<Attachment> attachments = attachmentRepository.findByPostIdAndStatus(
+                postId,
+                AttachmentStatus.CONFIRMED
+        );
+
+        attachments.forEach(Attachment::markDeleted);
+    }
+
+    private void deleteTempOrphanFiles() {
         List<Attachment> orphans = attachmentRepository.findByStatusAndCreatedAtBefore(
                 AttachmentStatus.TEMP,
                 LocalDateTime.now().minusHours(24)
         );
+
         orphans.forEach(attachment -> {
-            s3Client.deleteObject(DeleteObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(attachment.getObjectKey())
-                    .build());
+            deleteFromStorage(attachment);
             attachmentRepository.delete(attachment);
         });
+    }
+
+    private void deleteDeletedFiles() {
+        List<Attachment> deletedAttachments = attachmentRepository.findByStatusAndDeletedAtBefore(
+                AttachmentStatus.DELETED,
+                LocalDateTime.now().minusDays(7)
+        );
+
+        deletedAttachments.forEach(attachment -> {
+            deleteFromStorage(attachment);
+            attachmentRepository.delete(attachment);
+        });
+    }
+
+    private void deleteFromStorage(Attachment attachment) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(attachment.getObjectKey())
+                .build());
+    }
+
+    @Transactional
+    public void updatePostAttachments(
+            Post post,
+            Users user,
+            List<Long> keepAttachmentIds,
+            List<Long> newAttachmentIds
+    ) {
+        List<Attachment> currentAttachments = attachmentRepository.findByPostIdAndStatus(
+                post.getId(),
+                AttachmentStatus.CONFIRMED
+        );
+
+        validateKeepAttachmentIds(currentAttachments, keepAttachmentIds);
+
+        List<Long> safeKeepAttachmentIds = keepAttachmentIds == null
+                ? currentAttachments.stream().map(Attachment::getId).toList()
+                : keepAttachmentIds;
+
+        currentAttachments.stream()
+                .filter(attachment -> !safeKeepAttachmentIds.contains(attachment.getId()))
+                .forEach(Attachment::markDeleted);
+
+        confirm(newAttachmentIds, post, user);
+    }
+
+    private void validateKeepAttachmentIds(
+            List<Attachment> currentAttachments,
+            List<Long> keepAttachmentIds
+    ) {
+        if (keepAttachmentIds == null) {
+            return;
+        }
+
+        List<Long> currentAttachmentIds = currentAttachments.stream()
+                .map(Attachment::getId)
+                .toList();
+
+        boolean hasInvalidId = keepAttachmentIds.stream()
+                .anyMatch(id -> !currentAttachmentIds.contains(id));
+
+        if (hasInvalidId) {
+            throw new AttachmentErrorException(AttachmentErrorCode.ATTACHMENT_NOT_FOUND);
+        }
     }
 }

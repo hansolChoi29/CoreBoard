@@ -17,10 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -41,10 +43,10 @@ class AuthServiceTest {
     AuthService authService;
 
     @Mock
-    PasswordManager passwordEncode;
+    PasswordManager passwordManager;
 
     @Mock
-    EmailPhoneNumberManager emailPhoneNumberEncode;
+    EmailPhoneNumberManager emailPhoneNumberManager;
 
     SignUpRequest request;
 
@@ -69,9 +71,9 @@ class AuthServiceTest {
     @DisplayName("회원가입_성공")
     void signUp() {
         given(usersRepository.existsByUsername("tester")).willReturn(false);
-        given(passwordEncode.encrypt("password")).willReturn("encodedPassword");
-        given(emailPhoneNumberEncode.encrypt("email@naver.com")).willReturn("encEmail");
-        given(emailPhoneNumberEncode.encrypt("01012341234")).willReturn("encPhoneNumber");
+        given(passwordManager.encrypt("password")).willReturn("encodedPassword");
+        given(emailPhoneNumberManager.encrypt("email@naver.com")).willReturn("encEmail");
+        given(emailPhoneNumberManager.encrypt("01012341234")).willReturn("encPhoneNumber");
         Users savedUser = new Users(
                 "tester",
                 "nickname",
@@ -95,9 +97,46 @@ class AuthServiceTest {
 
         verify(usersRepository).existsByUsername("tester");
 
-        verify(passwordEncode).encrypt("password");
-        verify(emailPhoneNumberEncode).encrypt("email@naver.com");
-        verify(emailPhoneNumberEncode).encrypt("01012341234");
+        verify(passwordManager).encrypt("password");
+        verify(emailPhoneNumberManager).encrypt("email@naver.com");
+        verify(emailPhoneNumberManager).encrypt("01012341234");
+    }
+
+    @Test
+    @DisplayName("회원가입_성공_이메일과_휴대폰번호는_암호화되어_회원엔티티에_저장")
+    void signUpSavesEncryptedEmailAndPhoneNumber() {
+        SignUpCommand command = new SignUpCommand(
+                "tester",
+                "nickname",
+                "password123!",
+                "password123!",
+                "tester@example.com",
+                "01012341234"
+        );
+
+        given(usersRepository.existsByUsername("tester")).willReturn(false);
+        given(passwordManager.encrypt("password123!")).willReturn("encodedPassword");
+        given(emailPhoneNumberManager.encrypt("tester@example.com")).willReturn("encryptedEmail");
+        given(emailPhoneNumberManager.encrypt("01012341234")).willReturn("encryptedPhoneNumber");
+
+        authService.signUp(command);
+
+        ArgumentCaptor<Users> captor = ArgumentCaptor.forClass(Users.class);
+        verify(usersRepository).save(captor.capture());
+
+        Users savedUser = captor.getValue();
+
+        assertEquals("tester", savedUser.getUsername());
+        assertEquals("nickname", savedUser.getNickname());
+        assertEquals("encodedPassword", savedUser.getPassword());
+        assertEquals("encryptedEmail", savedUser.getEmail());
+        assertEquals("encryptedPhoneNumber", savedUser.getPhoneNumber());
+
+        verify(usersRepository).existsByUsername("tester");
+        verify(passwordManager).encrypt("password123!");
+        verify(emailPhoneNumberManager).encrypt("tester@example.com");
+        verify(emailPhoneNumberManager).encrypt("01012341234");
+        verify(usersRepository).save(any(Users.class));
     }
 
     @Test
@@ -129,7 +168,7 @@ class AuthServiceTest {
                 "01012341234",
                 UserRole.USER);
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(dummyUser));
-        given(passwordEncode.matches("password", "encodedPassword")).willReturn(true);
+        given(passwordManager.matches("password", "encodedPassword")).willReturn(true);
 
         TokenDto result = authService.signIn(
                 new SignInCommand("tester", "password"));
@@ -144,10 +183,10 @@ class AuthServiceTest {
         assertFalse(result.refreshToken().isBlank());
 
         verify(usersRepository).findByUsername("tester");
-        verify(passwordEncode).matches(eq("password"), eq("encodedPassword"));
+        verify(passwordManager).matches(eq("password"), eq("encodedPassword"));
 
-        verifyNoMoreInteractions(usersRepository, passwordEncode);
-        verifyNoMoreInteractions(usersRepository, passwordEncode);
+        verifyNoMoreInteractions(usersRepository, passwordManager);
+        verifyNoMoreInteractions(usersRepository, passwordManager);
     }
 
     @Test
@@ -176,7 +215,7 @@ class AuthServiceTest {
                 UserRole.USER);
 
         given(usersRepository.findByUsername("tester")).willReturn(Optional.of(dummy));
-        given(passwordEncode.matches("password", "encodedPassword")).willReturn(false);
+        given(passwordManager.matches("password", "encodedPassword")).willReturn(false);
 
         AuthErrorException passwordUnAuthorized = assertThrows(
                 AuthErrorException.class,
@@ -187,19 +226,6 @@ class AuthServiceTest {
         assertEquals(HttpStatus.UNAUTHORIZED, passwordUnAuthorized.getStatus());
 
         verify(usersRepository).findByUsername("tester");
-        verify(passwordEncode).matches("password", "encodedPassword");
+        verify(passwordManager).matches("password", "encodedPassword");
     }
-
-//    @Test
-//    @DisplayName("로그인_DTO_옮겨갈_때")
-//    void signIn_flow_mapping() {
-//        SignInRequest request = new SignInRequest("tester", "123ps");
-//
-//        SignInCommand command = new SignInCommand(
-//                request.username(),
-//                request.password());
-//
-//        assertEquals("tester", command.getUsername());
-//        assertEquals("123ps", command.getPassword());
-//    }
 }

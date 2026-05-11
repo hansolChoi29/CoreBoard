@@ -44,7 +44,8 @@ public class PostController {
                 out.content(),
                 out.createdDate(),
                 out.lastModifiedDate(),
-                out.comments()
+                out.comments(),
+                out.attachments()
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
@@ -64,7 +65,9 @@ public class PostController {
                 username,
                 request.title(),
                 request.content(),
-                request.contentFormat()
+                request.contentFormat(),
+                request.keepAttachmentIds(),
+                request.newAttachmentIds()
         );
 
         UpdatePostResult out = postService.update(board);
