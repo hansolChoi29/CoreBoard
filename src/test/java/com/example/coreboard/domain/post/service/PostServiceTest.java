@@ -1407,4 +1407,26 @@ class PostServiceTest {
         verify(attachmentService, never()).markDeletedByPost(anyLong());
         verify(postRepository, never()).delete(any(Post.class));
     }
+
+    @Test
+    @DisplayName("게시글_삭제_ADMIN은_작성자가_아니어도_가능")
+    void deleteByAdmin() {
+        Long id = 1L;
+
+        Users admin = mock(Users.class);
+        Post post = mock(Post.class);
+
+        DeletePostCommand command = new DeletePostCommand(id, "admin");
+
+        given(usersRepository.findByUsername("admin")).willReturn(Optional.of(admin));
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
+        given(post.isWrittenBy(admin)).willReturn(false);
+        given(admin.getRole()).willReturn(UserRole.ADMIN);
+        given(post.getId()).willReturn(id);
+
+        postService.delete(command);
+
+        verify(post).delete();
+        verify(attachmentService).markDeletedByPost(id);
+    }
 }
