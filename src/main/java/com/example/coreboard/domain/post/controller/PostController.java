@@ -51,7 +51,7 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
-    @Operation(summary = "게시글 수정", description = "본인 게시글만 수정 가능")
+    @Operation(summary = "게시글 수정", description = "작성자 또는 ADMIN만 게시글을 수정할 수 있습니다.")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UpdatePostResponse>> update(
             @RequestBody UpdatePostRequest request,
@@ -80,15 +80,12 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글이 성공적으로 수정되었습니다."));
     }
 
-    @Operation(summary = "게시글 삭제", description = "본인 게시글만 삭제 가능")
+    @Operation(summary = "게시글 삭제", description = "작성자 또는 ADMIN만 게시글을 삭제할 수 있습니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
             @PathVariable("id") Long id
     ) {
-        // CQRS는 읽기 작업과 쓰기 작업을 별도의 데이터 모델로 분리하는 디자인 패턴이다
-        // 각 모델을 독립적으로 최적화할 수 있고, 성능·확장성·보안을 향상시킬 수 있다
-        // 즉, command가 필요한 이유는 게시판 삭제 명령을 구성하는 데이터이기 때문이다
         DeletePostCommand command = new DeletePostCommand(id, username);
         postService.delete(command);
 

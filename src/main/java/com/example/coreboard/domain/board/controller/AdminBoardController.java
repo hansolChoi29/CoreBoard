@@ -13,6 +13,7 @@ import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.validation.BoardValidation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ public class AdminBoardController {
         this.boardService = boardService;
     }
 
+    @Operation(summary = "게시판 생성", description = "ADMIN 권한으로 새 게시판을 생성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<CreateBoardResponse>> create(
             @RequestBody CreateBoardRequest request,
@@ -52,6 +54,7 @@ public class AdminBoardController {
                 .body(ApiResponse.ok(response, "성공적으로 게시판이 생성되었습니다."));
     }
 
+    @Operation(summary = "게시판 수정", description = "ADMIN 권한으로 게시판 설정을 수정합니다.")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<UpdateBoardResponse>> update(
             @PathVariable("id") Long id,
@@ -74,11 +77,12 @@ public class AdminBoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 수정되었습니다."));
     }
 
+    @Operation(summary = "게시판 삭제", description = "ADMIN 권한으로 게시판을 삭제합니다. 게시글이 존재하는 게시판은 삭제할 수 없습니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute("username") String username,
             @PathVariable("id") Long id
-    ){
+    ) {
         DeleteBoardCommand command = new DeleteBoardCommand(id, username);
         boardService.delete(command);
 
