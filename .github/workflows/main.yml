@@ -24,10 +24,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew clean build
-
-      - name: Prepare deploy jar
-        run: |
-          cp build/libs/*SNAPSHOT.jar build/libs/coreboard.jar
+          ls -al build/libs
 
       - name: Upload jar to GCP
         uses: appleboy/scp-action@v0.1.7
