@@ -1,4 +1,4 @@
-package com.example.coreboard.domain.post.entity;
+package com.example.coreboard.domain.common.type;
 
 public enum ContentFormat {
     MARKDOWN

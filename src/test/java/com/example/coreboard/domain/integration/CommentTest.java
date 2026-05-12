@@ -6,7 +6,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.entity.Comment;
 import com.example.coreboard.domain.comment.entity.CommentStatus;
 import com.example.coreboard.domain.comment.repository.CommentRepository;
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;

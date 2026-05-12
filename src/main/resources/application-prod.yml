@@ -38,6 +38,7 @@ management:
 cloud:
   aws:
     endpoint: ${STORAGE_ENDPOINT}
+    public-url: ${STORAGE_PUBLIC_URL}
     credentials:
       access-key: ${STORAGE_ACCESS_KEY}
       secret-key: ${STORAGE_SECRET_KEY}

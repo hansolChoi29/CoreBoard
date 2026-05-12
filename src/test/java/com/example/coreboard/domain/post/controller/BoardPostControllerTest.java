@@ -7,7 +7,7 @@ import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;

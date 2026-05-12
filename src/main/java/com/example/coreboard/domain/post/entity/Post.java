@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.entity;
 
 import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;

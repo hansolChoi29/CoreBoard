@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.post.dto.command;
 
 
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 
 import java.util.List;
 

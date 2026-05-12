@@ -12,7 +12,7 @@ import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.comment.CommentErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
 import com.example.coreboard.domain.common.response.SliceResponse;
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;
