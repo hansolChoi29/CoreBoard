@@ -25,6 +25,10 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean build
 
+      - name: Prepare deploy jar
+        run: |
+          cp build/libs/*SNAPSHOT.jar build/libs/coreboard.jar
+
       - name: Upload jar to GCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -43,6 +47,18 @@ jobs:
           script: |
             set -e
             cd /home/${{ secrets.GCP_USER }}/apps/coreboard
+
             mv -f build/libs/coreboard.jar app.jar
             sudo systemctl restart coreboard
-            sudo systemctl status coreboard --no-pager
+
+            for i in {1..60}; do
+              if curl -fsS http://localhost:8080/actuator/health > /dev/null; then
+                echo "CoreBoard is healthy"
+                exit 0
+              fi
+              echo "Waiting for CoreBoard... ($i/60)"
+              sleep 10
+            done
+
+            sudo journalctl -u coreboard -n 100 --no-pager
+            exit 1
