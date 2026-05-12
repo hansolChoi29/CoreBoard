@@ -50,7 +50,7 @@ class AttachmentServiceTest {
 
     void setUp() {
         ReflectionTestUtils.setField(attachmentService, "bucket", "coreboard-attachments");
-        ReflectionTestUtils.setField(attachmentService, "endpoint", "http://localhost:9000");
+        ReflectionTestUtils.setField(attachmentService, "publicUrl", "http://localhost:9000/coreboard-attachments");
     }
 
     @Test
