@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.entity;
 
 import com.example.coreboard.domain.board.entity.Board;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import org.junit.jupiter.api.Test;

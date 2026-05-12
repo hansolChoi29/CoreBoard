@@ -34,6 +34,7 @@ management:
 cloud:
   aws:
     endpoint: http://localhost:9000
+    public-url: http://localhost:9000/coreboard-attachments
     credentials:
       access-key: minioadmin
       secret-key: minioadmin

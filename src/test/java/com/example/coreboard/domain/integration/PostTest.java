@@ -5,7 +5,7 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;

@@ -36,8 +36,8 @@ public class AttachmentService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    @Value("${cloud.aws.endpoint}")
-    private String endpoint;
+    @Value("${cloud.aws.public-url}")
+    private String publicUrl;
 
     public AttachmentService(
             S3Client s3Client,
@@ -69,7 +69,7 @@ public class AttachmentService {
                         .build(),
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize())
         );
-        String url = endpoint + "/" + bucket + "/" + objectKey;
+        String url = publicUrl + "/" + objectKey;
 
         Attachment attachment = Attachment.createTemp(
                 user,

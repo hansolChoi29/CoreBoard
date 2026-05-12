@@ -8,7 +8,7 @@ import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
-import com.example.coreboard.domain.post.entity.ContentFormat;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.common.exception.post.PostErrorCode;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
