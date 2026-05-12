@@ -9,12 +9,13 @@ import com.example.coreboard.domain.board.dto.result.GetOneBoardResult;
 import com.example.coreboard.domain.board.service.BoardService;
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Board", description = "게시판 관련 API")
+@Tag(name = "Board", description = "게시판 조회 API")
 @RestController
 @RequestMapping("/boards")
 public class BoardController {
@@ -23,6 +24,7 @@ public class BoardController {
         this.boardService = boardService;
     }
 
+    @Operation(summary = "게시판 단건 조회", description = "게시판 ID로 게시판 설정과 게시글 목록을 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<GetOneBoardResponse>> getOne(
             @PathVariable("id") Long id
@@ -43,6 +45,7 @@ public class BoardController {
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 불러왔습니다."));
     }
 
+    @Operation(summary = "게시판 목록 조회", description = "게시판 목록을 페이지 단위로 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<OffsetPageResponse<GetBoardListResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,

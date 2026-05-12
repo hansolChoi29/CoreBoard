@@ -23,7 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-@Tag(name = "Admin", description = "관리자 권한관련 API")
+@Tag(name = "Admin", description = "관리자 권한 및 사용자 권한 관리 API")
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -33,8 +33,11 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-//    @Profile({"local", "dev"})
-    @Operation(summary = "AMDIN 회원가입")
+    //    @Profile({"local", "dev"})
+    @Operation(
+            summary = "최초 ADMIN 계정 생성",
+            description = "서비스 초기 설정용 ADMIN 계정을 생성합니다."
+    )
     @PostMapping("/setup")
     public ResponseEntity<ApiResponse<SignUpResponse>> setup(
             @RequestBody SignUpRequest request
@@ -55,7 +58,10 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(response, "회원가입 성공"));
     }
 
-    @Operation(summary = "ADMIN 목록 조회")
+    @Operation(
+            summary = "사용자 목록 조회",
+            description = "ADMIN 권한으로 사용자 목록을 조회합니다. role 파라미터로 ADMIN 또는 USER 목록을 필터링할 수 있습니다."
+    )
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<OffsetPageResponse<AdminGetResponse>>> get(
             @RequestParam(defaultValue = "ADMIN") UserRole role,
@@ -67,8 +73,16 @@ public class AdminController {
         OffsetPageResponse<AdminGetResponse> response = adminService.get(query);
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 관리자 목록을 불러왔습니다."));
     }
-    @Operation(summary = "ADMIN/USER 전환 API", description = "- `role=ADMIN` : 해당 사용자를 관리자로 승급\n" +
-            "- `role=USER` : 해당 사용자를 일반 유저로 강등")
+
+    @Operation(
+            summary = "사용자 권한 변경",
+            description = """
+                    ADMIN 권한으로 사용자의 권한을 변경합니다.
+                    
+                    - role=ADMIN : 해당 사용자를 관리자로 승급
+                    - role=USER : 해당 사용자를 일반 사용자로 강등
+                    """
+    )
     @PatchMapping("/users/{id}/role")
     public ResponseEntity<ApiResponse<AdminPatchResponse>> promote(
             @PathVariable Long id,

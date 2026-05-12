@@ -31,6 +31,7 @@ import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -109,7 +110,10 @@ public class PostService {
 
         SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
 
-        List<PostAttachmentResponse> attachments = attachmentRepository.findByPostIdAndStatus(post.getId(), AttachmentStatus.CONFIRMED).stream()
+        List<PostAttachmentResponse> attachments = attachmentRepository.findByPostIdAndStatus(
+                        post.getId(),
+                        AttachmentStatus.CONFIRMED
+                ).stream()
                 .map(attachment -> new PostAttachmentResponse(
                         attachment.getId(),
                         attachment.getOriginalFileName(),
@@ -168,6 +172,7 @@ public class PostService {
                         post.getCreatedAt(),
                         post.getUpdatedAt()
                 )).toList();
+
         PageInfo pageInfo = new PageInfo(
                 postPage.getNumber(),
                 postPage.getSize(),
@@ -185,7 +190,7 @@ public class PostService {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!post.isWrittenBy(user) && user.getRole() != com.example.coreboard.domain.users.entity.UserRole.ADMIN) {
+        if (!post.isWrittenBy(user) && user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(FORBIDDEN);
         }
 
@@ -225,12 +230,14 @@ public class PostService {
     public void delete(DeletePostCommand command) {
         Users user = usersRepository.findByUsername(command.username())
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
 
-        if (!post.isWrittenBy(user)) {
+        if (!post.isWrittenBy(user) && user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(FORBIDDEN);
         }
+
         post.delete();
         attachmentService.markDeletedByPost(post.getId());
     }
