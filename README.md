@@ -4,6 +4,8 @@
 
 서비스 URL : https://coreboard-web.vercel.app/
 
+Devlog : https://winwin0219.tistory.com/category/CoreBoard
+
 CoreBoard는 Spring Boot 기반의 게시판 프로젝트입니다.
 처음에는 기본 게시글 CRUD를 학습하기 위한 미니 게시판으로 시작했지만, 현재는 **게시판 운영 정책, 권한, 첨부파일, 댓글, 검색, 응답 포맷, 테스트, 배포와 관측 가능성**까지 함께 다루는 방향으로 확장하고 있습니다.
 
