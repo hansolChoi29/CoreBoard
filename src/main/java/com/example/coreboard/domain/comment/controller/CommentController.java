@@ -80,8 +80,6 @@ public class CommentController {
         return ResponseEntity.ok(ApiResponse.ok(response, "성공적으로 수정되었습니다."));
     }
 
-    // 내부적으로는 soft delete(status 변경)로 처리하지만,
-    // 클라이언트 의도는 댓글 리소스 삭제이므로 DELETE 메서드를 사용한다.
     @Operation(summary = "댓글 삭제", description = "댓글 작성자만 댓글을 삭제할 수 있습니다. 내부적으로는 soft delete로 처리합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(

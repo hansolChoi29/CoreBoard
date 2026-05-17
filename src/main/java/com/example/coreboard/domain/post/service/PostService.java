@@ -136,6 +136,42 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public OffsetPageResponse<PostSummaryResponse> getAll(
+            int page,
+            int size,
+            String sort
+    ) {
+        Sort sortObj = "desc".equalsIgnoreCase(sort)
+                ? Sort.by(Sort.Direction.DESC, "createdAt")
+                : Sort.by(Sort.Direction.ASC, "createdAt");
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+
+        Page<Post> postPage = postRepository.findAllByStatus(
+                PostStatus.PUBLISHED,
+                pageable
+        );
+
+        List<PostSummaryResponse> contents = postPage.getContent().stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                )).toList();
+
+        PageInfo pageInfo = new PageInfo(
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages()
+        );
+
+        return new OffsetPageResponse<>(contents, pageInfo);
+    }
+
+    @Transactional(readOnly = true)
+    public OffsetPageResponse<PostSummaryResponse> getBoardAll(
             Long boardId,
             int page,
             int size,

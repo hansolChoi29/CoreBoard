@@ -110,7 +110,7 @@ class BoardControllerTest {
                         get("/boards")
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("댓글 목록을 성공적으로 조회했습니다."))
+                .andExpect(jsonPath("$.message").value("게시판 목록을 성공적으로 조회했습니다."))
                 .andExpect(jsonPath("$.data.content[0].boardId").value(1L))
                 .andExpect(jsonPath("$.data.content[0].name").value("자유게시판"))
                 .andExpect(jsonPath("$.data.content[0].slug").value("free"))

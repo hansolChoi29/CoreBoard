@@ -34,6 +34,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -44,6 +47,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,6 +82,22 @@ class PostServiceTest {
 
     CreatePostRequest boardCreateRequest;
     CreatePostCommand boardCreateCommand;
+
+    private static Stream<Arguments> getBoardAllSortCases() {
+        return Stream.of(
+                Arguments.of("desc", Sort.Direction.DESC),
+                Arguments.of("asc", Sort.Direction.ASC)
+        );
+    }
+
+    private static Stream<Arguments> getAllSortCases() {
+        return Stream.of(
+                Arguments.of("desc", Sort.Direction.DESC),
+                Arguments.of("DESC", Sort.Direction.DESC),
+                Arguments.of("asc", Sort.Direction.ASC),
+                Arguments.of("wrong", Sort.Direction.ASC)
+        );
+    }
 
     @BeforeEach
     void setUpCreate() {
@@ -1010,9 +1030,10 @@ class PostServiceTest {
         );
     }
 
-    @Test
-    @DisplayName("게시글_전체조회_오프셋_desc_성공")
-    void getAllOffsetDesc() {
+    @ParameterizedTest
+    @MethodSource("getBoardAllSortCases")
+    @DisplayName("게시판별_게시글_목록조회_정렬_성공")
+    void getBoardAllSort(String sort, Sort.Direction expectedDirection) {
         Board board = freeBoard();
 
         Users user = new Users(
@@ -1037,7 +1058,7 @@ class PostServiceTest {
         PageRequest pageRequest = PageRequest.of(
                 0,
                 10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
+                Sort.by(expectedDirection, "createdAt")
         );
 
         Page<Post> postPage = new PageImpl<>(
@@ -1052,7 +1073,8 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(1L, 0, 10, "desc", null);
+        OffsetPageResponse<PostSummaryResponse> result =
+                postService.getBoardAll(1L, 0, 10, sort, null);
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1075,70 +1097,8 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글_전체조회_오프셋_asc_성공")
-    void getAllOffsetAsc() {
-        Board board = freeBoard();
-
-        Users user = new Users(
-                "username",
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-        ReflectionTestUtils.setField(user, "userId", 1L);
-
-        Post post = new Post(
-                board,
-                user,
-                "title",
-                "content",
-                ContentFormat.MARKDOWN
-        );
-        ReflectionTestUtils.setField(post, "id", 1L);
-
-        PageRequest pageRequest = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.ASC, "createdAt")
-        );
-
-        Page<Post> postPage = new PageImpl<>(
-                List.of(post),
-                pageRequest,
-                1
-        );
-
-        given(postRepository.findAllByBoardId(
-                1L,
-                PostStatus.PUBLISHED,
-                pageRequest
-        )).willReturn(postPage);
-
-        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(1L, 0, 10, "asc", null);
-
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("title", result.getContent().get(0).title());
-
-        assertEquals(0, result.getPageInfo().getPage());
-        assertEquals(10, result.getPageInfo().getSize());
-        assertEquals(1L, result.getPageInfo().getTotalElements());
-        assertEquals(1, result.getPageInfo().getTotalPages());
-
-        verify(postRepository).findAllByBoardId(
-                1L,
-                PostStatus.PUBLISHED,
-                pageRequest
-        );
-        verify(postRepository, never()).searchByBoardId(anyLong(), any(), anyString(), any());
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시글_전체조회_keyword가_있으면_검색_쿼리_사용")
-    void getAllWithKeyword() {
+    @DisplayName("게시판별_게시글_목록조회_keyword가_있으면_검색_쿼리_사용")
+    void getBoardAllWithKeyword() {
         Board board = freeBoard();
 
         Users user = new Users(
@@ -1179,7 +1139,7 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(1L, 0, 10, "desc", "spring");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "spring");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1203,8 +1163,8 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글_전체조회_keyword가_공백이면_일반_목록을_조회")
-    void getAllWithBlankKeyword() {
+    @DisplayName("게시판별_게시글_목록조회_keyword가_공백이면_일반_목록_조회")
+    void getBoardAllWithBlankKeyword() {
         Board board = freeBoard();
 
         Users user = new Users(
@@ -1243,7 +1203,7 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(1L, 0, 10, "desc", "   ");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "   ");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1258,8 +1218,8 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글_전체조회_keyword는_앞뒤_공백을_제거하고_검색")
-    void getAllWithKeywordTrim() {
+    @DisplayName("게시판별_게시글_목록조회_keyword는_앞뒤_공백을_제거하고_검색")
+    void getBoardAllWithKeywordTrim() {
         Board board = freeBoard();
 
         Users user = new Users(
@@ -1299,7 +1259,7 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(1L, 0, 10, "desc", "  spring  ");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "  spring  ");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1311,6 +1271,107 @@ class PostServiceTest {
                 pageRequest
         );
         verify(postRepository, never()).findAllByBoardId(anyLong(), any(), any());
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @ParameterizedTest
+    @MethodSource("getAllSortCases")
+    @DisplayName("전체_게시글_목록조회_정렬_성공")
+    void getAllSort(String sort, Sort.Direction expectedDirection) {
+        Board board = freeBoard();
+
+        Users user = new Users(
+                "username",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        Post post = new Post(
+                board,
+                user,
+                "title",
+                "content",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", 1L);
+
+        PageRequest pageRequest = PageRequest.of(
+                0,
+                10,
+                Sort.by(expectedDirection, "createdAt")
+        );
+
+        Page<Post> postPage = new PageImpl<>(
+                List.of(post),
+                pageRequest,
+                1
+        );
+
+        given(postRepository.findAllByStatus(
+                PostStatus.PUBLISHED,
+                pageRequest
+        )).willReturn(postPage);
+
+        OffsetPageResponse<PostSummaryResponse> result =
+                postService.getAll(0, 10, sort);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(1L, result.getContent().get(0).id());
+        assertEquals("nickname", result.getContent().get(0).writerName());
+        assertEquals("title", result.getContent().get(0).title());
+
+        assertEquals(0, result.getPageInfo().getPage());
+        assertEquals(10, result.getPageInfo().getSize());
+        assertEquals(1L, result.getPageInfo().getTotalElements());
+        assertEquals(1, result.getPageInfo().getTotalPages());
+
+        verify(postRepository).findAllByStatus(
+                PostStatus.PUBLISHED,
+                pageRequest
+        );
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_게시글이_없으면_빈_목록과_PageInfo_반환")
+    void getAllEmpty() {
+        PageRequest pageRequest = PageRequest.of(
+                0,
+                10,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<Post> postPage = new PageImpl<>(
+                List.of(),
+                pageRequest,
+                0
+        );
+
+        given(postRepository.findAllByStatus(
+                PostStatus.PUBLISHED,
+                pageRequest
+        )).willReturn(postPage);
+
+        OffsetPageResponse<PostSummaryResponse> result =
+                postService.getAll(0, 10, "desc");
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+
+        assertEquals(0, result.getPageInfo().getPage());
+        assertEquals(10, result.getPageInfo().getSize());
+        assertEquals(0L, result.getPageInfo().getTotalElements());
+        assertEquals(0, result.getPageInfo().getTotalPages());
+
+        verify(postRepository).findAllByStatus(
+                PostStatus.PUBLISHED,
+                pageRequest
+        );
         verifyNoMoreInteractions(postRepository);
     }
 

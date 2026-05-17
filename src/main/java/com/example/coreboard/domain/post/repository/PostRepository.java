@@ -49,6 +49,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     @Query("""
+                 select p
+                        from Post p
+                        join fetch p.user
+                        where p.status = :status
+            """)
+    Page<Post> findAllByStatus(
+            @Param("status") PostStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
                     select p
                     from Post p
                     join fetch p.user

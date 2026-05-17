@@ -1,10 +1,12 @@
 package com.example.coreboard.domain.post.controller;
 
+import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.dto.response.GetOnePostResponse;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.response.UpdatePostResponse;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
@@ -26,6 +28,24 @@ public class PostController {
 
     public PostController(PostService postService) {
         this.postService = postService;
+    }
+
+    @Operation()
+    @GetMapping
+    public ResponseEntity<ApiResponse<OffsetPageResponse<PostSummaryResponse>>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "sort", defaultValue = "desc") String sort
+    ) {
+        PostValidation.validateSortDirection(sort);
+        PostValidation.validatePageSize(size);
+        OffsetPageResponse<PostSummaryResponse> response = postService.getAll(
+                page,
+                size,
+                sort
+        );
+        
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체조회!"));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "로그인 없이도 id로 조회")
