@@ -545,7 +545,7 @@ class BoardServiceTest {
 
         given(boardRepository.findByIdAndDeletedAtIsNull(boardId)).willReturn(Optional.of(board));
 
-        given(postRepository.existsByBoardId(boardId)).willReturn(false);
+        given(postRepository.existsByBoardIdAndStatus(boardId, PostStatus.PUBLISHED)).willReturn(false);
 
         boardService.delete(command);
 
@@ -553,7 +553,7 @@ class BoardServiceTest {
 
         verify(usersRepository).findByUsername(username);
         verify(boardRepository).findByIdAndDeletedAtIsNull(boardId);
-        verify(postRepository).existsByBoardId(boardId);
+        verify(postRepository).existsByBoardIdAndStatus(boardId, PostStatus.PUBLISHED);
         verify(boardRepository, never()).delete(any(Board.class));
         verifyNoMoreInteractions(usersRepository, boardRepository, postRepository);
     }
@@ -611,7 +611,7 @@ class BoardServiceTest {
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(admin));
         given(admin.getRole()).willReturn(UserRole.ADMIN);
         given(boardRepository.findByIdAndDeletedAtIsNull(boardId)).willReturn(Optional.of(board));
-        given(postRepository.existsByBoardId(boardId)).willReturn(true);
+        given(postRepository.existsByBoardIdAndStatus(boardId, PostStatus.PUBLISHED)).willReturn(true);
 
         BoardErrorException exception = assertThrows(
                 BoardErrorException.class,
@@ -623,7 +623,7 @@ class BoardServiceTest {
 
         verify(usersRepository).findByUsername(username);
         verify(boardRepository).findByIdAndDeletedAtIsNull(boardId);
-        verify(postRepository).existsByBoardId(boardId);
+        verify(postRepository).existsByBoardIdAndStatus(boardId, PostStatus.PUBLISHED);
         verify(boardRepository, never()).delete(any(Board.class));
     }
 }

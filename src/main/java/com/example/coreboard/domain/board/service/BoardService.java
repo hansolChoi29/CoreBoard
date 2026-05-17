@@ -165,7 +165,7 @@ public class BoardService {
         }
         Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-        if (postRepository.existsByBoardId(command.id())) {
+        if (postRepository.existsByBoardIdAndStatus(command.id(), PostStatus.PUBLISHED)) {
             throw new BoardErrorException(BoardErrorCode.BOARD_HAS_POSTS);
         }
         board.softDelete();

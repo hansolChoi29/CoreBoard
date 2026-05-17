@@ -54,6 +54,6 @@ public class BoardController {
     ) {
         GetBoardListQuery query = new GetBoardListQuery(page, size, direction);
         OffsetPageResponse<GetBoardListResponse> response = boardService.getAll(query);
-        return ResponseEntity.ok(ApiResponse.ok(response, "댓글 목록을 성공적으로 조회했습니다."));
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시판 목록을 성공적으로 조회했습니다."));
     }
 }

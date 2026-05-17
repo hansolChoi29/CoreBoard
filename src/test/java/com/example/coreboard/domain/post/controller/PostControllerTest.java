@@ -1,11 +1,14 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.PageInfo;
 import com.example.coreboard.domain.common.response.SliceInfo;
 import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
+import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.common.type.ContentFormat;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 
 import static org.mockito.BDDMockito.willThrow;
@@ -58,6 +62,31 @@ class PostControllerTest {
     void setup() {
         mockMvc = MockMvcSupport.create(postControler);
         mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(postControler);
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_성공")
+    void getAll() throws Exception {
+        OffsetPageResponse<PostSummaryResponse> response = new OffsetPageResponse<>(
+                List.of(),
+                new PageInfo(0, 10, 0L, 0)
+        );
+
+        given(postService.getAll(0, 10, "desc")).willReturn(response);
+
+        mockMvc.perform(get(BASE)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("게시글 전체조회!"))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.pageInfo.page").value(0))
+                .andExpect(jsonPath("$.data.pageInfo.size").value(10));
+
+        verify(postService).getAll(0, 10, "desc");
+        verifyNoMoreInteractions(postService);
     }
 
     @Test

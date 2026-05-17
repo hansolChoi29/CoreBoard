@@ -62,7 +62,7 @@ public class BoardPostController {
     ) {
         PostValidation.validateSortDirection(sort);
         PostValidation.validatePageSize(size);
-        OffsetPageResponse<PostSummaryResponse> response = postService.getAll(
+        OffsetPageResponse<PostSummaryResponse> response = postService.getBoardAll(
                 boardId,
                 page,
                 size,

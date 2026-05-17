@@ -184,7 +184,7 @@ class BoardPostControllerTest {
 
     @Test
     @DisplayName("게시글_전체_조회")
-    void getAll() throws Exception {
+    void getBoardAll() throws Exception {
         List<PostSummaryResponse> items = List.of(
                 new PostSummaryResponse(
                         1L,
@@ -205,7 +205,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getAll(boardId, 0, 10, "desc", null))
+        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -224,13 +224,13 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
                 .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
 
-        verify(postService).getAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
         verifyNoMoreInteractions(postService);
     }
 
     @Test
     @DisplayName("게시글_전체조회_쿼리파라미터_없으면_기본값으로_조회")
-    void getAllDefaultParams() throws Exception {
+    void getBoardAllDefaultParams() throws Exception {
         List<PostSummaryResponse> items = List.of(
                 new PostSummaryResponse(
                         1L,
@@ -245,7 +245,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getAll(boardId, 0, 10, "desc", null))
+        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -255,13 +255,13 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].id").value(1));
 
-        verify(postService).getAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
         verifyNoMoreInteractions(postService);
     }
 
     @Test
     @DisplayName("게시글_전체조회_keyword가_있으면_검색어를_서비스로_전달")
-    void getAllWithKeyword() throws Exception {
+    void getBoardAllWithKeyword() throws Exception {
         String keyword = "spring";
 
         List<PostSummaryResponse> items = List.of(
@@ -278,7 +278,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getAll(boardId, 0, 10, "desc", keyword))
+        given(postService.getBoardAll(boardId, 0, 10, "desc", keyword))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -292,13 +292,13 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].title").value("spring title"));
 
-        verify(postService).getAll(boardId, 0, 10, "desc", keyword);
+        verify(postService).getBoardAll(boardId, 0, 10, "desc", keyword);
         verifyNoMoreInteractions(postService);
     }
 
     @Test
     @DisplayName("게시글_전체_조회_Size_10_이상_400")
-    void getAllSizeTooLonger() throws Exception {
+    void getBoardAllSizeTooLonger() throws Exception {
         mockMvc.perform(
                         get(BASE, boardId)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -306,7 +306,7 @@ class BoardPostControllerTest {
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
-        verify(postService, never()).getAll(
+        verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
                 anyInt(),
@@ -317,7 +317,7 @@ class BoardPostControllerTest {
 
     @Test
     @DisplayName("게시글_전체_조회_정렬_방향_공백_400")
-    void getAllBlankSortDirection() throws Exception {
+    void getBoardAllBlankSortDirection() throws Exception {
         mockMvc.perform(
                         get(BASE, boardId)
                                 .param("size", "10")
@@ -325,7 +325,7 @@ class BoardPostControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(postService, never()).getAll(
+        verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
                 anyInt(),
@@ -337,7 +337,7 @@ class BoardPostControllerTest {
 
     @Test
     @DisplayName("게시글_전체조회_size_0")
-    void getAllShortSize() throws Exception {
+    void getBoardAllShortSize() throws Exception {
         mockMvc.perform(
                         get(BASE, boardId)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -345,7 +345,7 @@ class BoardPostControllerTest {
                                 .param("sort", "asc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
-        verify(postService, never()).getAll(
+        verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
                 anyInt(),
@@ -356,7 +356,7 @@ class BoardPostControllerTest {
 
     @Test
     @DisplayName("게시글_전체조회_size_11")
-    void getAllTooLongsize() throws Exception {
+    void getBoardAllTooLongsize() throws Exception {
         mockMvc.perform(
                         get(BASE, boardId)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -364,7 +364,7 @@ class BoardPostControllerTest {
                                 .param("sort", "desc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
-        verify(postService, never()).getAll(
+        verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
                 anyInt(),
@@ -375,7 +375,7 @@ class BoardPostControllerTest {
 
     @Test
     @DisplayName("게시글_전체_조회_desc_정상")
-    void getAllDesc() throws Exception {
+    void getBoardAllDesc() throws Exception {
         String keyword = "spring";
         List<PostSummaryResponse> items = List.of(
                 new PostSummaryResponse(
@@ -397,7 +397,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getAll(boardId, 0, 10, "desc", null)).willReturn(offsetResponse);
+        given(postService.getBoardAll(boardId, 0, 10, "desc", null)).willReturn(offsetResponse);
 
         mockMvc.perform(
                         get(BASE, boardId)
@@ -408,12 +408,12 @@ class BoardPostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
 
-        verify(postService).getAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
     }
 
     @Test
     @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_404")
-    void getAllInvalidSortDirection() throws Exception {
+    void getBoardAllInvalidSortDirection() throws Exception {
         mockMvc.perform(
                         get(BASE, boardId)
                                 .param("size", "10")
@@ -421,7 +421,7 @@ class BoardPostControllerTest {
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(postService, never()).getAll(
+        verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
                 anyInt(),

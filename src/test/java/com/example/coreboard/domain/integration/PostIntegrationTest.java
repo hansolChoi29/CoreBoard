@@ -2,39 +2,36 @@ package com.example.coreboard.domain.integration;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
+import com.example.coreboard.domain.common.type.ContentFormat;
 import com.example.coreboard.domain.common.util.JwtUtil;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
-import com.example.coreboard.domain.common.type.ContentFormat;
-import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static com.example.coreboard.domain.support.fixture.BoardFixture.*;
-
 import org.springframework.http.MediaType;
-
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 
+import static com.example.coreboard.domain.support.fixture.BoardFixture.freeBoard;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class PostTest extends IntegrationTestBase {
-    Long boardId = 1L;
+class PostIntegrationTest extends IntegrationTestBase {
+
     @Autowired
     UsersRepository usersRepository;
 
@@ -51,12 +48,11 @@ class PostTest extends IntegrationTestBase {
     ObjectMapper objectMapper;
 
     private String accessToken;
-    private Long savedUserId;
-    private String savedUsername;
+    private Users user;
 
     @BeforeEach
     void setup() {
-        Users user = usersRepository.save(
+        user = usersRepository.save(
                 new Users(
                         "username",
                         "nickname",
@@ -66,9 +62,8 @@ class PostTest extends IntegrationTestBase {
                         UserRole.USER
                 )
         );
-        this.savedUserId = user.getUserId();
-        this.savedUsername = user.getUsername();
-        this.accessToken = JwtUtil.createAccessToken(
+
+        accessToken = JwtUtil.createAccessToken(
                 user.getUserId(),
                 user.getUsername(),
                 user.getRole()
@@ -76,56 +71,43 @@ class PostTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("POST/posts")
-    void boardCreate() throws Exception {
+    @DisplayName("사용자는_게시글을_작성하고_조회하고_수정하고_삭제할_수_있다")
+    void postLifecycle() throws Exception {
         Board board = boardRepository.save(freeBoard());
-        CreatePostRequest request = new CreatePostRequest("title", "content", ContentFormat.MARKDOWN, List.of());
-        mockMvc.perform(
+
+        CreatePostRequest createRequest = new CreatePostRequest(
+                "title",
+                "content",
+                ContentFormat.MARKDOWN,
+                List.of()
+        );
+
+        MvcResult createResult = mockMvc.perform(
                         post("/boards/{boardId}/posts", board.getId())
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+                                .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 생성되었습니다."))
-                .andExpect(jsonPath("$.data.id").exists());
-        assertThat(postRepository.count()).isEqualTo(1);
-    }
+                .andExpect(jsonPath("$.data.id").exists())
+                .andReturn();
 
-    @Test
-    @DisplayName("GET/posts/id")
-    void getOne() throws Exception {
-        Board board = boardRepository.save(freeBoard());
-        Users user = usersRepository.save(new Users("username2", "nickname", "password", "qwe@qwe.com", "010-1234-1234", UserRole.USER));
-        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
-        Long realId = saved.getId();
+        Long postId = objectMapper
+                .readTree(createResult.getResponse().getContentAsString())
+                .path("data")
+                .path("id")
+                .asLong();
+
+        assertThat(postRepository.count()).isEqualTo(1);
+
         mockMvc.perform(
-                        get("/posts/{id}", realId)
+                        get("/posts/{id}", postId)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(realId))
+                .andExpect(jsonPath("$.data.id").value(postId))
                 .andExpect(jsonPath("$.data.title").value("title"))
                 .andExpect(jsonPath("$.data.content").value("content"));
-    }
 
-    @Test
-    @DisplayName("GET /boards/{boardId}/posts")
-    void getAll() throws Exception {
-        Board board = boardRepository.save(freeBoard());
-        Users user = usersRepository.save(new Users(
-                "username2",
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "010-1234-1234",
-                UserRole.USER
-        ));
-        postRepository.save(new Post(
-                board,
-                user,
-                "title",
-                "content",
-                ContentFormat.MARKDOWN
-        ));
         mockMvc.perform(
                         get("/boards/{boardId}/posts", board.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -140,42 +122,33 @@ class PostTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.data.pageInfo.size").value(10))
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
                 .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
-    }
 
-    @Test
-    @DisplayName("PUT/posts/id")
-    void put() throws Exception {
-        Board board = boardRepository.save(freeBoard());
-        Users user = usersRepository.findByUsername("username").orElseThrow();
-        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
-        Long realId = saved.getId();
-        UpdatePostRequest reqeust = new UpdatePostRequest(
+        UpdatePostRequest updateRequest = new UpdatePostRequest(
                 "newtitle",
                 "newcontent",
                 ContentFormat.MARKDOWN,
                 List.of(),
                 List.of()
         );
+
         mockMvc.perform(
-                        MockMvcRequestBuilders.put("/posts/{id}", realId)
+                        put("/posts/{id}", postId)
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(reqeust)))
+                                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(realId));
-    }
+                .andExpect(jsonPath("$.data.id").value(postId));
 
-    @Test
-    @DisplayName("DELETE/posts/id")
-    void delete() throws Exception {
-        Board board = boardRepository.save(freeBoard());
-
-        Users user = usersRepository.findByUsername("username").orElseThrow();
-        Post saved = postRepository.save(new Post(board, user, "title", "content", ContentFormat.MARKDOWN));
-
-        Long realId = saved.getId();
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/posts/{id}", realId)
+                        get("/posts/{id}", postId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(postId))
+                .andExpect(jsonPath("$.data.title").value("newtitle"))
+                .andExpect(jsonPath("$.data.content").value("newcontent"));
+
+        mockMvc.perform(
+                        delete("/posts/{id}", postId)
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
