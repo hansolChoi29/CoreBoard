@@ -31,6 +31,7 @@ import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
 import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.users.dto.query.UserNicknameProjection;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -44,7 +45,10 @@ import org.springframework.data.domain.Pageable;
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PostService {
@@ -200,14 +204,42 @@ public class PostService {
             );
         }
 
-        List<PostSummaryResponse> contents = postPage.getContent().stream()
-                .map(post -> new PostSummaryResponse(
-                        post.getId(),
-                        post.getUser().getNickname(),
-                        post.getTitle(),
-                        post.getCreatedAt(),
-                        post.getUpdatedAt()
-                )).toList();
+        List<Post> posts = postPage.getContent();
+
+        List<Long> userIds = new ArrayList<>();
+
+        for (Post post : posts) {
+            Long userId = post.getUser().getUserId();
+
+            if (!userIds.contains(userId)) {
+                userIds.add(userId);
+            }
+        }
+
+        List<UserNicknameProjection> nicknameResults = usersRepository.findNicknamesByUserIds(userIds);
+
+        Map<Long, String> nicknameMap = new HashMap<>();
+
+        for (UserNicknameProjection result : nicknameResults) {
+            nicknameMap.put(result.getUserId(), result.getNickname());
+        }
+
+        List<PostSummaryResponse> contents = new ArrayList<>();
+
+        for (Post post : posts) {
+            Long userId = post.getUser().getUserId();
+            String nickname = nicknameMap.get(userId);
+
+            PostSummaryResponse response = new PostSummaryResponse(
+                    post.getId(),
+                    nickname,
+                    post.getTitle(),
+                    post.getCreatedAt(),
+                    post.getUpdatedAt()
+            );
+
+            contents.add(response);
+        }
 
         PageInfo pageInfo = new PageInfo(
                 postPage.getNumber(),
