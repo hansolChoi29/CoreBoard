@@ -13,7 +13,6 @@ Prometheus/Grafana를 통해 응답 시간과 서버 자원 사용률을 관찰�
 
 - [Smoke Test](./scenario-a-guest-browsing/smoke-test.md)
 - [Load Test](./scenario-a-guest-browsing/load-test.md)
-- [Bottleneck Analysis](./scenario-a-guest-browsing/bottleneck-analysis.md)
 
 ### Scenario B - 검색 흐름
 
