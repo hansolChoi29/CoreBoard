@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX uk_post_title ON post (title);

@@ -15,7 +15,8 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-
+  flyway:
+    enabled: false
 jwt:
   secret:
     key: ad28a1bb3bad96055ba5345cbe3c6b99
