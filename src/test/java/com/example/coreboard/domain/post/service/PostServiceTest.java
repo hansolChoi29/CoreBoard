@@ -1074,7 +1074,7 @@ class PostServiceTest {
         )).willReturn(postPage);
 
         OffsetPageResponse<PostSummaryResponse> result =
-                postService.getBoardAll(1L, 0, 10, sort, null);
+                postService.getBoardAll(1L, 0, 10, null);
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1134,17 +1134,17 @@ class PostServiceTest {
 
         given(postRepository.searchByBoardId(
                 1L,
-                PostStatus.PUBLISHED,
+                PostStatus.PUBLISHED.name(),
                 "spring",
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "spring");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "spring");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
         assertEquals(1L, result.getContent().get(0).id());
-        assertEquals("nickname", result.getContent().get(0).writerName());
+        assertEquals("nickname", result.getContent().get(0).getWriterName());
         assertEquals("spring title", result.getContent().get(0).title());
 
         assertEquals(0, result.getPageInfo().getPage());
@@ -1154,7 +1154,7 @@ class PostServiceTest {
 
         verify(postRepository).searchByBoardId(
                 1L,
-                PostStatus.PUBLISHED,
+                PostStatus.PUBLISHED.name(),
                 "spring",
                 pageRequest
         );
@@ -1203,7 +1203,7 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "   ");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "   ");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -1254,19 +1254,19 @@ class PostServiceTest {
 
         given(postRepository.searchByBoardId(
                 1L,
-                PostStatus.PUBLISHED,
+                PostStatus.PUBLISHED.name(),
                 "spring",
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "desc", "  spring  ");
+        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "  spring  ");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
 
         verify(postRepository).searchByBoardId(
                 1L,
-                PostStatus.PUBLISHED,
+                PostStatus.PUBLISHED.name(),
                 "spring",
                 pageRequest
         );

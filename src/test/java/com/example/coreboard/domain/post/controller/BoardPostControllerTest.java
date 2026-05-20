@@ -205,7 +205,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
+        given(postService.getBoardAll(boardId, 0, 10,  null))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -224,7 +224,7 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
                 .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10,  null);
         verifyNoMoreInteractions(postService);
     }
 
@@ -245,7 +245,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
+        given(postService.getBoardAll(boardId, 0, 10, null))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -255,7 +255,7 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].id").value(1));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10,  null);
         verifyNoMoreInteractions(postService);
     }
 
@@ -278,7 +278,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getBoardAll(boardId, 0, 10, "desc", keyword))
+        given(postService.getBoardAll(boardId, 0, 10, keyword))
                 .willReturn(offsetResponse);
 
         mockMvc.perform(
@@ -292,7 +292,7 @@ class BoardPostControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].title").value("spring title"));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", keyword);
+        verify(postService).getBoardAll(boardId, 0, 10,  keyword);
         verifyNoMoreInteractions(postService);
     }
 
@@ -310,7 +310,6 @@ class BoardPostControllerTest {
                 anyLong(),
                 anyInt(),
                 anyInt(),
-                anyString(),
                 any()
         );
     }
@@ -329,7 +328,6 @@ class BoardPostControllerTest {
                 anyLong(),
                 anyInt(),
                 anyInt(),
-                anyString(),
                 any()
         );
         verifyNoMoreInteractions(postService);
@@ -349,7 +347,6 @@ class BoardPostControllerTest {
                 anyLong(),
                 anyInt(),
                 anyInt(),
-                anyString(),
                 any()
         );
     }
@@ -368,7 +365,6 @@ class BoardPostControllerTest {
                 anyLong(),
                 anyInt(),
                 anyInt(),
-                anyString(),
                 any()
         );
     }
@@ -397,7 +393,7 @@ class BoardPostControllerTest {
         OffsetPageResponse<PostSummaryResponse> offsetResponse =
                 new OffsetPageResponse<>(items, pageInfo);
 
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null)).willReturn(offsetResponse);
+        given(postService.getBoardAll(boardId, 0, 10,  null)).willReturn(offsetResponse);
 
         mockMvc.perform(
                         get(BASE, boardId)
@@ -408,7 +404,7 @@ class BoardPostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10,  null);
     }
 
     @Test
@@ -425,7 +421,6 @@ class BoardPostControllerTest {
                 anyLong(),
                 anyInt(),
                 anyInt(),
-                anyString(),
                 any()
         );
         verifyNoMoreInteractions(postService);

@@ -14,6 +14,7 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.common.response.SliceInfo;
 import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
 import com.example.coreboard.domain.common.validation.PostAttachmentUpdatePolicy;
@@ -21,6 +22,7 @@ import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.query.PostSummaryProjection;
 import com.example.coreboard.domain.post.dto.response.PostAttachmentResponse;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
@@ -35,20 +37,15 @@ import com.example.coreboard.domain.users.dto.query.UserNicknameProjection;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class PostService {
@@ -178,68 +175,25 @@ public class PostService {
     public OffsetPageResponse<PostSummaryResponse> getBoardAll(
             Long boardId,
             int page,
-            int size,
-            String sort,
-            String keyword
+            int size
     ) {
-        Sort sortObj = "desc".equalsIgnoreCase(sort) ?
-                Sort.by(Sort.Direction.DESC, "createdAt")
-                : Sort.by(Sort.Direction.ASC, "createdAt");
-        Pageable pageable = PageRequest.of(page, size, sortObj);
+        Pageable pageable = PageRequest.of(page, size);
 
-        Page<Post> postPage;
+        Page<Post> postPage = postRepository.findAllByBoardId(
+                boardId,
+                PostStatus.PUBLISHED,
+                pageable
+        );
 
-        if (keyword == null || keyword.isBlank()) {
-            postPage = postRepository.findAllByBoardId(
-                    boardId,
-                    PostStatus.PUBLISHED,
-                    pageable
-            );
-        } else {
-            postPage = postRepository.searchByBoardId(
-                    boardId,
-                    PostStatus.PUBLISHED,
-                    keyword.trim(),
-                    pageable
-            );
-        }
-
-        List<Post> posts = postPage.getContent();
-
-        List<Long> userIds = new ArrayList<>();
-
-        for (Post post : posts) {
-            Long userId = post.getUser().getUserId();
-
-            if (!userIds.contains(userId)) {
-                userIds.add(userId);
-            }
-        }
-
-        List<UserNicknameProjection> nicknameResults = usersRepository.findNicknamesByUserIds(userIds);
-
-        Map<Long, String> nicknameMap = new HashMap<>();
-
-        for (UserNicknameProjection result : nicknameResults) {
-            nicknameMap.put(result.getUserId(), result.getNickname());
-        }
-
-        List<PostSummaryResponse> contents = new ArrayList<>();
-
-        for (Post post : posts) {
-            Long userId = post.getUser().getUserId();
-            String nickname = nicknameMap.get(userId);
-
-            PostSummaryResponse response = new PostSummaryResponse(
-                    post.getId(),
-                    nickname,
-                    post.getTitle(),
-                    post.getCreatedAt(),
-                    post.getUpdatedAt()
-            );
-
-            contents.add(response);
-        }
+        List<PostSummaryResponse> contents = postPage.getContent().stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                ))
+                .toList();
 
         PageInfo pageInfo = new PageInfo(
                 postPage.getNumber(),
@@ -247,7 +201,42 @@ public class PostService {
                 postPage.getTotalElements(),
                 postPage.getTotalPages()
         );
+
         return new OffsetPageResponse<>(contents, pageInfo);
+    }
+
+    @Transactional(readOnly = true)
+    public SliceResponse<PostSummaryResponse> searchPosts(
+            int page,
+            int size,
+            String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Slice<PostSummaryProjection> postSlice = postRepository.searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                keyword.trim(),
+                pageable
+        );
+
+        List<PostSummaryResponse> contents = postSlice.getContent().stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getWriterName(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                ))
+                .toList();
+
+        return new SliceResponse<>(
+                contents,
+                new SliceInfo(
+                        postSlice.getSize(),
+                        postSlice.getNumberOfElements(),
+                        postSlice.hasNext()
+                )
+        );
     }
 
     @Transactional

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record PostSummaryResponse(
         Long id,
-        String writerName,
+        String getWriterName,
         String title,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
