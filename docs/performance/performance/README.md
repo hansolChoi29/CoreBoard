@@ -22,7 +22,7 @@ Prometheus/Grafana를 통해 응답 시간과 서버 자원 사용률을 관찰�
 ### Scenario C - 로그인 후 글 작성 및 댓글 작성
 
 - [Smoke Test](./scenario-c-write-comment/smoke-test.md)
-- [Load Test](./scenario-c-write-comment/load-test.md)
+- [Load Test](scenario-c-write-comment/load-test-before.md)
 - [Bottleneck Analysis](./scenario-c-write-comment/bottleneck-analysis.md)
 
 ### Scenario D - 첨부파일이 있는 게시글 조회
