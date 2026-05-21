@@ -41,6 +41,7 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
+          command_timeout: 20m
           script: |
             set -e
             cd /home/${{ secrets.GCP_USER }}/apps/coreboard
@@ -48,14 +49,14 @@ jobs:
             mv -f build/libs/coreboard.jar app.jar
             sudo systemctl restart coreboard
 
-            for i in {1..60}; do
+            for i in {1..90}; do
               if curl -fsS http://localhost:8080/actuator/health > /dev/null; then
                 echo "CoreBoard is healthy"
                 exit 0
               fi
-              echo "Waiting for CoreBoard... ($i/60)"
+              echo "Waiting for CoreBoard... ($i/90)"
               sleep 10
             done
 
-            sudo journalctl -u coreboard -n 100 --no-pager
+            sudo journalctl -u coreboard -n 150 --no-pager
             exit 1
