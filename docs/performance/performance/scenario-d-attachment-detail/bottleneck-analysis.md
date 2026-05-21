@@ -178,11 +178,36 @@ Grafana 지표상 CPU, JVM Memory, DB Connection에서 명확한 포화 상태�
 
 ## 9. 적용 결과
 
-| 개선 전                            | 개선 후                            | 변화                     |
-|---------------------------------|---------------------------------|------------------------|
-| 게시글 목록 조회에서 `Using filesort` 발생 | 복합 인덱스 적용 후 `Using filesort` 제거 | 정렬 병목 1차 개선            |
-| `Page` 응답으로 count query 실행 가능   | 개선 미적용                          | 내일 `Slice` 변경 후 재측정 예정 |
-| Smoke Test p95 3,075ms          | 개선 미적용                          | 내일 개선 후 JMeter 재측정 예정  |
+| 개선 항목 | 개선 전 | 개선 후 | 결과 |
+|---|---|---|---|
+| 응답 모델 | Page | Slice | count query 제거 |
+| 목록 조회 인덱스 | board_id FK 인덱스 중심 | `(board_id, status, created_at DESC)` 복합 인덱스 | filesort 제거 |
+| 목록 조회 SQL | 대량 후보군 확인 가능 | 인덱스 순서대로 11건 조회 | 조회 비용 감소 |
+| 게시글 목록 조회 응답 시간 | 3,075ms | 55ms | 약 98.2% 감소 |
+| Smoke Test p95 | 3,075ms | 55ms | 중단 기준 초과 → 통과 |
+
+## 10. 결론
+
+Scenario D Smoke Test에서 최초 병목은 첨부파일 상세 조회가 아니라 게시글 목록 조회 API였다.
+
+초기 실행에서는 게시글 목록 조회가 3,075ms로 측정되어 p95 3초 기준을 초과했다. 원인 분석 결과, `Page` 응답 생성을 위한 count query와 정렬 비용이 주요 병목 후보로 확인되었다.
+
+복합 인덱스 `(board_id, status, created_at DESC)`를 적용하여 정렬 비용을 줄였고, 게시글 목록 응답을 `Page`에서 `Slice`로 변경하여 전체 개수 계산을 제거했다.
+
+개선 후 `EXPLAIN ANALYZE` 결과 게시글 목록 조회는 인덱스를 사용해 11건만 읽고 종료했다.
+
+```text
+-> Limit: 11 row(s)  (actual time=0.0342..0.0595 rows=11 loops=1)
+    -> Index lookup on p using idx_post_board_status_created_at
+       (board_id=2, status='PUBLISHED')
+       (actual time=0.0333..0.0579 rows=11 loops=1)
+```
+
+Smoke Test 재실행 결과 게시글 목록 조회는 55ms, 전체 p95는 55ms로 개선되었다.
+
+따라서 Scenario D의 병목은 Page 기반 전체 개수 계산과 정렬 비용에서 발생한 것으로 판단하며, 최신순 탐색 중심의 앨범형 게시판에는 Slice 기반 응답이 더 적합하다고 결론 내렸다.
+
+
 
 ## 10. 결론
 

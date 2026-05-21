@@ -38,21 +38,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     // 전체조회
-    @Query(
-            value = """
-                    select p
-                    from Post p
-                    where p.board.id = :boardId
-                    and p.status = :status
-                    """,
-            countQuery = """
-                    select count(p)
-                    from Post p
-                    where p.board.id = :boardId
-                    and p.status = :status
-                    """
-    )
-    Page<Post> findAllByBoardId(
+    @Query("""
+                select p
+                from Post p
+                where p.board.id = :boardId
+                and p.status = :status
+            """)
+    Slice<Post> findAllByBoardId(
             @Param("boardId") Long boardId,
             @Param("status") PostStatus status,
             Pageable pageable

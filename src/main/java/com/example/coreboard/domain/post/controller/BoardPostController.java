@@ -52,16 +52,16 @@ public class BoardPostController {
                 .body(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
-    @Operation(summary = "게시글 전체 조회", description = "오프셋 + Page 기반 게시글 전체 조회")
+    @Operation(summary = "게시글 전체 조회", description = "오프셋 + Slice 기반 게시글 전체 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<OffsetPageResponse<PostSummaryResponse>>> getAll(
+    public ResponseEntity<ApiResponse<SliceResponse<PostSummaryResponse>>> getAll(
             @PathVariable Long boardId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         PostValidation.validatePageSize(size);
 
-        OffsetPageResponse<PostSummaryResponse> response = postService.getBoardAll(
+        SliceResponse<PostSummaryResponse> response = postService.getBoardAll(
                 boardId,
                 page,
                 size

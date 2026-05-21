@@ -199,20 +199,21 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public OffsetPageResponse<PostSummaryResponse> getBoardAll(
+    public SliceResponse<PostSummaryResponse> getBoardAll(
             Long boardId,
             int page,
             int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Post> postPage = postRepository.findAllByBoardId(
+        Slice<Post> postSlice = postRepository.findAllByBoardId(
                 boardId,
                 PostStatus.PUBLISHED,
                 pageable
         );
 
-        List<PostSummaryResponse> contents = postPage.getContent().stream()
+        List<PostSummaryResponse> contents = postSlice.getContent().stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),
@@ -222,14 +223,12 @@ public class PostService {
                 ))
                 .toList();
 
-        PageInfo pageInfo = new PageInfo(
-                postPage.getNumber(),
-                postPage.getSize(),
-                postPage.getTotalElements(),
-                postPage.getTotalPages()
-        );
-
-        return new OffsetPageResponse<>(contents, pageInfo);
+        return new SliceResponse<>(contents,
+                new SliceInfo(
+                        postSlice.getSize(),
+                        postSlice.getNumberOfElements(),
+                        postSlice.hasNext()
+                ));
     }
 
     @Transactional(readOnly = true)
