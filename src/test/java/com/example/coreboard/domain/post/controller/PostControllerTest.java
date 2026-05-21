@@ -25,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 
 import static org.mockito.BDDMockito.willThrow;
@@ -370,5 +369,119 @@ class PostControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("다시 로그인해 주세요."));
         verify(postService, never()).update(any());
+    }
+
+    @Test
+    @DisplayName("게시글_검색_조회_성공")
+    void search() throws Exception {
+        List<PostSummaryResponse> items = List.of(
+                new PostSummaryResponse(
+                        1L,
+                        "nickname",
+                        "spring title",
+                        LocalDateTime.now(),
+                        LocalDateTime.now()
+                )
+        );
+
+        SliceResponse<PostSummaryResponse> response = new SliceResponse<>(
+                items,
+                new SliceInfo(10, 1, false)
+        );
+
+        given(postService.searchPosts(0, 10, "spring")).willReturn(response);
+
+        mockMvc.perform(
+                        get(BASE + "/search")
+                                .param("keyword", "spring")
+                                .param("page", "0")
+                                .param("size", "10")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("게시글 검색 조회!"))
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.content[0].writerName").value("nickname"))
+                .andExpect(jsonPath("$.data.content[0].title").value("spring title"))
+                .andExpect(jsonPath("$.data.sliceInfo.size").value(10))
+                .andExpect(jsonPath("$.data.sliceInfo.numberOfElement").value(1))
+                .andExpect(jsonPath("$.data.sliceInfo.hasNext").value(false));
+
+        verify(postService).searchPosts(0, 10, "spring");
+        verifyNoMoreInteractions(postService);
+    }
+
+    @Test
+    @DisplayName("게시글_검색_조회_size_0_이면_400")
+    void searchSizeZero() throws Exception {
+        mockMvc.perform(
+                        get(BASE + "/search")
+                                .param("keyword", "spring")
+                                .param("page", "0")
+                                .param("size", "0")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
+
+        verify(postService, never()).searchPosts(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_검색_조회_size_11_이면_400")
+    void searchSizeTooLarge() throws Exception {
+        mockMvc.perform(
+                        get(BASE + "/search")
+                                .param("keyword", "spring")
+                                .param("page", "0")
+                                .param("size", "11")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
+
+        verify(postService, never()).searchPosts(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_size_0_이면_400")
+    void getAllSizeZero() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "0")
+                                .param("size", "0")
+                                .param("sort", "desc")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("size는 1 이상 10 이하이어야 합니다."));
+
+        verify(postService, never()).getAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_sort_공백이면_400")
+    void getAllBlankSort() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", " ")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+
+        verify(postService, never()).getAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("게시글_전체조회_sort_잘못되면_400")
+    void getAllInvalidSort() throws Exception {
+        mockMvc.perform(
+                        get(BASE)
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("sort", "wrong")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
+
+        verify(postService, never()).getAll(anyInt(), anyInt(), anyString());
     }
 }

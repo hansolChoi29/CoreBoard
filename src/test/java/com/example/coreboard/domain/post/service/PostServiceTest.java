@@ -16,6 +16,7 @@ import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.query.PostSummaryProjection;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
@@ -82,13 +83,6 @@ class PostServiceTest {
 
     CreatePostRequest boardCreateRequest;
     CreatePostCommand boardCreateCommand;
-
-    private static Stream<Arguments> getBoardAllSortCases() {
-        return Stream.of(
-                Arguments.of("desc", Sort.Direction.DESC),
-                Arguments.of("asc", Sort.Direction.ASC)
-        );
-    }
 
     private static Stream<Arguments> getAllSortCases() {
         return Stream.of(
@@ -888,6 +882,69 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글_수정_유저없음_404")
+    void updateUserNotFound() {
+        UpdatePostCommand cmd = new UpdatePostCommand(
+                1L,
+                "ghost",
+                "title",
+                "content",
+                ContentFormat.MARKDOWN,
+                List.of(),
+                List.of()
+        );
+
+        given(usersRepository.findByUsername("ghost")).willReturn(Optional.empty());
+
+        AuthErrorException exception = assertThrows(AuthErrorException.class,
+                () -> postService.update(cmd)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+
+        verify(usersRepository).findByUsername("ghost");
+        verifyNoInteractions(attachmentRepository, attachmentService);
+        verify(postRepository, never()).findByIdAndStatus(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("게시글_수정_게시글없음_404")
+    void updatePostNotFound() {
+        UpdatePostCommand cmd = new UpdatePostCommand(
+                1L,
+                "tester",
+                "title",
+                "content",
+                ContentFormat.MARKDOWN,
+                List.of(),
+                List.of()
+        );
+
+        Users user = new Users(
+                "tester",
+                "nickname",
+                "password",
+                "qwe@qwe.com",
+                "01012341234",
+                UserRole.USER
+        );
+
+        given(usersRepository.findByUsername("tester")).willReturn(Optional.of(user));
+        given(postRepository.findByIdAndStatus(1L, PostStatus.PUBLISHED))
+                .willReturn(Optional.empty());
+
+        PostErrorException exception = assertThrows(PostErrorException.class,
+                () -> postService.update(cmd)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+
+        verify(usersRepository).findByUsername("tester");
+        verify(postRepository).findByIdAndStatus(1L, PostStatus.PUBLISHED);
+        verifyNoInteractions(attachmentRepository, attachmentService);
+    }
+
+    @Test
     @DisplayName("게시글_수정_권한없음_403")
     void updateFobiddern() {
         Users loginUser = mock(Users.class);
@@ -1030,10 +1087,9 @@ class PostServiceTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("getBoardAllSortCases")
-    @DisplayName("게시판별_게시글_목록조회_정렬_성공")
-    void getBoardAllSort(String sort, Sort.Direction expectedDirection) {
+    @Test
+    @DisplayName("게시판별_게시글_목록조회_성공")
+    void getBoardAll() {
         Board board = freeBoard();
 
         Users user = new Users(
@@ -1058,219 +1114,40 @@ class PostServiceTest {
         PageRequest pageRequest = PageRequest.of(
                 0,
                 10,
-                Sort.by(expectedDirection, "createdAt")
+                Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Page<Post> postPage = new PageImpl<>(
+        Slice<Post> postSlice = new SliceImpl<>(
                 List.of(post),
                 pageRequest,
-                1
+                false
         );
 
         given(postRepository.findAllByBoardId(
                 1L,
                 PostStatus.PUBLISHED,
                 pageRequest
-        )).willReturn(postPage);
+        )).willReturn(postSlice);
 
-        OffsetPageResponse<PostSummaryResponse> result =
-                postService.getBoardAll(1L, 0, 10, null);
+        SliceResponse<PostSummaryResponse> result =
+                postService.getBoardAll(1L, 0, 10);
 
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals(1L, result.getContent().get(0).id());
-        assertEquals("nickname", result.getContent().get(0).writerName());
-        assertEquals("title", result.getContent().get(0).title());
+        assertEquals(1, result.content().size());
 
-        assertEquals(0, result.getPageInfo().getPage());
-        assertEquals(10, result.getPageInfo().getSize());
-        assertEquals(1L, result.getPageInfo().getTotalElements());
-        assertEquals(1, result.getPageInfo().getTotalPages());
+        assertEquals(1L, result.content().get(0).id());
+        assertEquals("nickname", result.content().get(0).writerName());
+        assertEquals("title", result.content().get(0).title());
+
+        assertEquals(10, result.sliceInfo().getSize());
+        assertEquals(1, result.sliceInfo().getNumberOfElement());
+        assertFalse(result.sliceInfo().isHasNext());
 
         verify(postRepository).findAllByBoardId(
                 1L,
                 PostStatus.PUBLISHED,
                 pageRequest
         );
-        verify(postRepository, never()).searchByBoardId(anyLong(), any(), anyString(), any());
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시판별_게시글_목록조회_keyword가_있으면_검색_쿼리_사용")
-    void getBoardAllWithKeyword() {
-        Board board = freeBoard();
-
-        Users user = new Users(
-                "username",
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-        ReflectionTestUtils.setField(user, "userId", 1L);
-
-        Post post = new Post(
-                board,
-                user,
-                "spring title",
-                "spring content",
-                ContentFormat.MARKDOWN
-        );
-        ReflectionTestUtils.setField(post, "id", 1L);
-
-        PageRequest pageRequest = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Post> postPage = new PageImpl<>(
-                List.of(post),
-                pageRequest,
-                1
-        );
-
-        given(postRepository.searchByBoardId(
-                1L,
-                PostStatus.PUBLISHED.name(),
-                "spring",
-                pageRequest
-        )).willReturn(postPage);
-
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "spring");
-
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals(1L, result.getContent().get(0).id());
-        assertEquals("nickname", result.getContent().get(0).getWriterName());
-        assertEquals("spring title", result.getContent().get(0).title());
-
-        assertEquals(0, result.getPageInfo().getPage());
-        assertEquals(10, result.getPageInfo().getSize());
-        assertEquals(1L, result.getPageInfo().getTotalElements());
-        assertEquals(1, result.getPageInfo().getTotalPages());
-
-        verify(postRepository).searchByBoardId(
-                1L,
-                PostStatus.PUBLISHED.name(),
-                "spring",
-                pageRequest
-        );
-        verify(postRepository, never()).findAllByBoardId(anyLong(), any(), any());
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시판별_게시글_목록조회_keyword가_공백이면_일반_목록_조회")
-    void getBoardAllWithBlankKeyword() {
-        Board board = freeBoard();
-
-        Users user = new Users(
-                "username",
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-
-        Post post = new Post(
-                board,
-                user,
-                "title",
-                "content",
-                ContentFormat.MARKDOWN
-        );
-        ReflectionTestUtils.setField(post, "id", 1L);
-
-        PageRequest pageRequest = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Post> postPage = new PageImpl<>(
-                List.of(post),
-                pageRequest,
-                1
-        );
-
-        given(postRepository.findAllByBoardId(
-                1L,
-                PostStatus.PUBLISHED,
-                pageRequest
-        )).willReturn(postPage);
-
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "   ");
-
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-
-        verify(postRepository).findAllByBoardId(
-                1L,
-                PostStatus.PUBLISHED,
-                pageRequest
-        );
-        verify(postRepository, never()).searchByBoardId(anyLong(), any(), anyString(), any());
-        verifyNoMoreInteractions(postRepository);
-    }
-
-    @Test
-    @DisplayName("게시판별_게시글_목록조회_keyword는_앞뒤_공백을_제거하고_검색")
-    void getBoardAllWithKeywordTrim() {
-        Board board = freeBoard();
-
-        Users user = new Users(
-                "username",
-                "nickname",
-                "password",
-                "qwe@qwe.com",
-                "01012341234",
-                UserRole.USER
-        );
-
-        Post post = new Post(
-                board,
-                user,
-                "spring title",
-                "spring content",
-                ContentFormat.MARKDOWN
-        );
-        ReflectionTestUtils.setField(post, "id", 1L);
-
-        PageRequest pageRequest = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Post> postPage = new PageImpl<>(
-                List.of(post),
-                pageRequest,
-                1
-        );
-
-        given(postRepository.searchByBoardId(
-                1L,
-                PostStatus.PUBLISHED.name(),
-                "spring",
-                pageRequest
-        )).willReturn(postPage);
-
-        OffsetPageResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10, "  spring  ");
-
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-
-        verify(postRepository).searchByBoardId(
-                1L,
-                PostStatus.PUBLISHED.name(),
-                "spring",
-                pageRequest
-        );
-        verify(postRepository, never()).findAllByBoardId(anyLong(), any(), any());
         verifyNoMoreInteractions(postRepository);
     }
 
@@ -1489,5 +1366,91 @@ class PostServiceTest {
 
         verify(post).delete();
         verify(attachmentService).markDeletedByPost(id);
+    }
+
+    @Test
+    @DisplayName("게시글_검색_성공")
+    void searchPosts() {
+        PostSummaryProjection projection = mock(PostSummaryProjection.class);
+
+        given(projection.getId()).willReturn(1L);
+        given(projection.getWriterName()).willReturn("nickname");
+        given(projection.getTitle()).willReturn("spring title");
+        given(projection.getCreatedAt()).willReturn(java.time.LocalDateTime.now());
+        given(projection.getUpdatedAt()).willReturn(java.time.LocalDateTime.now());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        Slice<PostSummaryProjection> postSlice = new SliceImpl<>(
+                List.of(projection),
+                pageRequest,
+                false
+        );
+
+        given(postRepository.searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                "spring",
+                pageRequest
+        )).willReturn(postSlice);
+
+        SliceResponse<PostSummaryResponse> result =
+                postService.searchPosts(0, 10, "  spring  ");
+
+        assertNotNull(result);
+        assertEquals(1, result.content().size());
+
+        assertEquals(1L, result.content().get(0).id());
+        assertEquals("nickname", result.content().get(0).writerName());
+        assertEquals("spring title", result.content().get(0).title());
+
+        assertEquals(10, result.sliceInfo().getSize());
+        assertEquals(1, result.sliceInfo().getNumberOfElement());
+        assertFalse(result.sliceInfo().isHasNext());
+
+        verify(postRepository).searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                "spring",
+                pageRequest
+        );
+        verifyNoMoreInteractions(postRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_검색_다음_페이지가_있으면_hasNext_true")
+    void searchPostsHasNext() {
+        PostSummaryProjection projection = mock(PostSummaryProjection.class);
+
+        given(projection.getId()).willReturn(1L);
+        given(projection.getWriterName()).willReturn("nickname");
+        given(projection.getTitle()).willReturn("spring title");
+        given(projection.getCreatedAt()).willReturn(java.time.LocalDateTime.now());
+        given(projection.getUpdatedAt()).willReturn(java.time.LocalDateTime.now());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        Slice<PostSummaryProjection> postSlice = new SliceImpl<>(
+                List.of(projection),
+                pageRequest,
+                true
+        );
+
+        given(postRepository.searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                "spring",
+                pageRequest
+        )).willReturn(postSlice);
+
+        SliceResponse<PostSummaryResponse> result =
+                postService.searchPosts(0, 10, "spring");
+
+        assertNotNull(result);
+        assertTrue(result.sliceInfo().isHasNext());
+
+        verify(postRepository).searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                "spring",
+                pageRequest
+        );
+        verifyNoMoreInteractions(postRepository);
     }
 }

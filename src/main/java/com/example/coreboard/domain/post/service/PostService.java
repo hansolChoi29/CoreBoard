@@ -41,13 +41,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StopWatch;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class PostService {
@@ -81,35 +79,20 @@ public class PostService {
             CreatePostCommand command,
             String username
     ) {
-        StopWatch sw = new StopWatch("POST_CREATE");
-        sw.start("1. find user");
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-        sw.stop();
 
-        sw.start("2. exists title");
         if (postRepository.existsByTitle(command.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
-        sw.stop();
 
-
-        sw.start("3. find board");
         Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-        sw.stop();
-
-        sw.start("4. check permission");
         if (!board.canWrite(user.getRole())) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
-        sw.stop();
 
-        sw.start("5. attachment policy validate");
         PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
-        sw.stop();
-
-        sw.start("6. create post entity");
         Post post = Post.create(
                 board,
                 user,
@@ -117,17 +100,10 @@ public class PostService {
                 command.content(),
                 command.contentFormat()
         );
-        sw.stop();
-
-        sw.start("7. save post");
         Post saved = postRepository.save(post);
-        sw.stop();
 
-        sw.start("8. attachment confirm");
         attachmentService.confirm(command.attachmentIds(), saved, user);
-        sw.stop();
 
-        log.info("\n{}", sw.prettyPrint(TimeUnit.MILLISECONDS));
         return new CreatePostResult(saved.getId());
     }
 
