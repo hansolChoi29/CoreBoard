@@ -6,6 +6,10 @@
 
 Devlog : https://winwin0219.tistory.com/category/CoreBoard
 
+성능 테스트 계획 : https://winwin0219.tistory.com/326
+
+성능 테스트 문서 : [CoreBoard Performance Test](docs/performance/performance/README.md)
+
 CoreBoard는 Spring Boot 기반의 게시판 프로젝트입니다.
 처음에는 기본 게시글 CRUD를 학습하기 위한 미니 게시판으로 시작했지만, 현재는 **게시판 운영 정책, 권한, 첨부파일, 댓글, 검색, 응답 포맷, 테스트, 배포와 관측 가능성**까지 함께 다루는 방향으로 확장하고 있습니다.
 
@@ -16,8 +20,8 @@ CoreBoard는 Spring Boot 기반의 게시판 프로젝트입니다.
 - `request → command → result → response` 흐름으로 DTO 역할 분리
 - 입력값 검증은 Controller 진입 전용 Validator에서 처리하고, Service는 비즈니스 흐름과 권한 검증에 집중
 - 게시판별 정책으로 댓글 허용 여부, 첨부파일 필수 여부, 첨부파일 최대 개수, 작성 가능 권한 관리
-- 게시글 목록은 게시판 단위로 조회하고, 검색어가 있으면 제목 또는 본문 기준으로 검색
-- 게시글 목록은 Page 기반 오프셋 페이지네이션, 댓글 목록은 Slice 기반 페이지네이션으로 분리
+- 게시판별 게시글 목록은 최신순 Slice 기반으로 조회
+- 전체 게시글 목록은 Page 기반으로 조회하고, 검색 조회는 별도 `/posts/search` API에서 Slice 기반으로 처리
 - 첨부파일은 게시글 작성 전 임시 업로드 후, 게시글 저장 시 확정 처리
 - 오래된 임시 첨부파일과 삭제 대기 첨부파일은 스케줄러로 정리
 
@@ -158,56 +162,56 @@ http://localhost:8080/swagger-ui/index.html
 
 #### Admin API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/admin/setup` | 최초 관리자 계정 생성 | 불필요 |
-| GET | `/admin/users` | 사용자 목록 조회 | ADMIN |
-| PATCH | `/admin/users/{id}/role` | 사용자 권한 변경 | ADMIN |
+| Method | URL                      | 설명           | 인증    |
+|--------|--------------------------|--------------|-------|
+| POST   | `/admin/setup`           | 최초 관리자 계정 생성 | 불필요   |
+| GET    | `/admin/users`           | 사용자 목록 조회    | ADMIN |
+| PATCH  | `/admin/users/{id}/role` | 사용자 권한 변경    | ADMIN |
 
 #### Auth API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/auth/users` | 회원가입 | 불필요 |
-| POST | `/auth/token` | 로그인, AccessToken 발급, RefreshToken 쿠키 저장 | 불필요 |
-| POST | `/auth/refresh` | RefreshToken 쿠키로 AccessToken 재발급 | 불필요 |
-| DELETE | `/auth/refresh` | RefreshToken 쿠키 삭제 | 불필요 |
+| Method | URL             | 설명                                      | 인증  |
+|--------|-----------------|-----------------------------------------|-----|
+| POST   | `/auth/users`   | 회원가입                                    | 불필요 |
+| POST   | `/auth/token`   | 로그인, AccessToken 발급, RefreshToken 쿠키 저장 | 불필요 |
+| POST   | `/auth/refresh` | RefreshToken 쿠키로 AccessToken 재발급        | 불필요 |
+| DELETE | `/auth/refresh` | RefreshToken 쿠키 삭제                      | 불필요 |
 
 #### Board API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/admin/boards` | 게시판 생성 | ADMIN |
-| GET | `/boards` | 게시판 목록 조회 | 불필요 |
-| GET | `/boards/{id}` | 게시판 단건 조회와 해당 게시판의 게시글 목록 조회 | 불필요 |
-| PATCH | `/admin/boards/{id}` | 게시판 수정 | ADMIN |
-| DELETE | `/admin/boards/{id}` | 게시판 삭제 요청 | ADMIN |
+| Method | URL                  | 설명                           | 인증    |
+|--------|----------------------|------------------------------|-------|
+| POST   | `/admin/boards`      | 게시판 생성                       | ADMIN |
+| GET    | `/boards`            | 게시판 목록 조회                    | 불필요   |
+| GET    | `/boards/{id}`       | 게시판 단건 조회와 해당 게시판의 게시글 목록 조회 | 불필요   |
+| PATCH  | `/admin/boards/{id}` | 게시판 수정                       | ADMIN |
+| DELETE | `/admin/boards/{id}` | 게시판 삭제 요청                    | ADMIN |
 
 #### Post API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/boards/{boardId}/posts` | 특정 게시판에 게시글 생성 | USER 또는 ADMIN |
-| GET | `/boards/{boardId}/posts` | 특정 게시판 게시글 목록 조회 | 불필요 |
-| GET | `/boards/{boardId}/posts?keyword={keyword}` | 특정 게시판 안에서 검색어로 게시글 목록 조회 | 불필요 |
-| GET | `/posts/{id}` | 게시글 단건 조회 | 불필요 |
-| PUT | `/posts/{id}` | 게시글 수정 | 작성자 또는 ADMIN |
-| DELETE | `/posts/{id}` | 게시글 삭제 | 작성자 |
+| Method | URL                                                       | 설명               | 인증            |
+|--------|-----------------------------------------------------------|------------------|---------------|
+| POST   | `/boards/{boardId}/posts`                                 | 특정 게시판에 게시글 생성   | USER 또는 ADMIN |
+| GET    | `/boards/{boardId}/posts`                                 | 특정 게시판 게시글 목록 조회 | 불필요           |
+| GET    | `/posts/search?keyword={keyword}&page={page}&size={size}` | 전체 게시글 검색 조회     | 불필요           |
+| GET    | `/posts/{id}`                                             | 게시글 단건 조회        | 불필요           |
+| PUT    | `/posts/{id}`                                             | 게시글 수정           | 작성자 또는 ADMIN  |
+| DELETE | `/posts/{id}`                                             | 게시글 삭제           | 작성자 또는 ADMIN  |
 
 #### Comment API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/posts/{postId}/comments` | 댓글 생성 | USER 또는 ADMIN |
-| GET | `/posts/{postId}/comments?page={page}&size={size}` | 댓글 목록 조회 | 불필요 |
-| PATCH | `/posts/{postId}/comments/{id}` | 댓글 수정 | 작성자 |
-| DELETE | `/posts/{postId}/comments/{id}` | 댓글 삭제 | 작성자 |
+| Method | URL                                                | 설명       | 인증            |
+|--------|----------------------------------------------------|----------|---------------|
+| POST   | `/posts/{postId}/comments`                         | 댓글 생성    | USER 또는 ADMIN |
+| GET    | `/posts/{postId}/comments?page={page}&size={size}` | 댓글 목록 조회 | 불필요           |
+| PATCH  | `/posts/{postId}/comments/{id}`                    | 댓글 수정    | 작성자           |
+| DELETE | `/posts/{postId}/comments/{id}`                    | 댓글 삭제    | 작성자           |
 
 #### Attachment API
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/attachments` | 게시글 저장 전 첨부파일 임시 업로드 | USER 또는 ADMIN |
+| Method | URL            | 설명                   | 인증            |
+|--------|----------------|----------------------|---------------|
+| POST   | `/attachments` | 게시글 저장 전 첨부파일 임시 업로드 | USER 또는 ADMIN |
 
 ---
 
@@ -233,8 +237,9 @@ http://localhost:8080/swagger-ui/index.html
 #### 3. 게시글과 댓글
 
 - 게시글은 게시판에 속하며, 상태는 `PUBLISHED`, `DELETED`로 관리합니다.
-- 게시글 목록은 게시판 단위로 조회하고, 검색어가 있으면 제목 또는 본문 기준으로 목록을 좁힙니다.
-- 검색 범위는 현재 게시판과 `PUBLISHED` 상태 게시글로 제한합니다.
+- 게시판별 게시글 목록은 최신순 Slice 기반으로 조회합니다.
+- 전체 게시글 목록은 Page 기반으로 조회하고, 검색 조회는 `/posts/search`에서 별도로 처리합니다.
+- 검색 범위는 `PUBLISHED` 상태 게시글로 제한합니다.
 - 게시글 수정은 제목, 본문, 본문 형식, 첨부파일 유지/추가 목록을 함께 다룹니다.
 - 댓글은 게시글에 속하며, 댓글 목록은 Slice 기반으로 조회합니다.
 - 삭제된 게시글이나 댓글이 비활성화된 게시판에는 댓글을 작성할 수 없습니다.
@@ -262,80 +267,80 @@ http://localhost:8080/swagger-ui/index.html
 
 사용자 정보와 인증 정보를 관리합니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| userId | Long | 사용자 ID |
-| username | String | 로그인 아이디 |
-| nickname | String | 사용자 표시 이름 |
-| password | String | 암호화된 비밀번호 |
-| email | String | 암호화된 이메일 |
-| phoneNumber | String | 암호화된 휴대폰번호 |
-| role | UserRole | USER 또는 ADMIN |
+| 필드          | 타입       | 설명            |
+|-------------|----------|---------------|
+| userId      | Long     | 사용자 ID        |
+| username    | String   | 로그인 아이디       |
+| nickname    | String   | 사용자 표시 이름     |
+| password    | String   | 암호화된 비밀번호     |
+| email       | String   | 암호화된 이메일      |
+| phoneNumber | String   | 암호화된 휴대폰번호    |
+| role        | UserRole | USER 또는 ADMIN |
 
 #### Board
 
 게시판 메뉴와 게시판별 정책을 관리합니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| id | Long | 게시판 ID |
-| name | String | 화면에 표시되는 게시판 이름 |
-| slug | String | 시스템에서 사용하는 게시판 식별자 |
-| commentEnabled | boolean | 댓글 허용 여부 |
-| answerAcceptedEnabled | boolean | 답변 채택 허용 여부 |
-| requireAttachment | boolean | 첨부파일 필수 여부 |
-| maxAttachmentCount | int | 첨부파일 최대 개수 |
-| allowedWriteRoles | UserRole | 게시글 작성 가능 권한 |
-| deletedAt | LocalDateTime | 게시판 삭제 시각 |
+| 필드                    | 타입            | 설명                 |
+|-----------------------|---------------|--------------------|
+| id                    | Long          | 게시판 ID             |
+| name                  | String        | 화면에 표시되는 게시판 이름    |
+| slug                  | String        | 시스템에서 사용하는 게시판 식별자 |
+| commentEnabled        | boolean       | 댓글 허용 여부           |
+| answerAcceptedEnabled | boolean       | 답변 채택 허용 여부        |
+| requireAttachment     | boolean       | 첨부파일 필수 여부         |
+| maxAttachmentCount    | int           | 첨부파일 최대 개수         |
+| allowedWriteRoles     | UserRole      | 게시글 작성 가능 권한       |
+| deletedAt             | LocalDateTime | 게시판 삭제 시각          |
 
 #### Post
 
 게시판에 작성되는 게시글입니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| id | Long | 게시글 ID |
-| board | Board | 소속 게시판 |
-| user | Users | 작성자 |
-| title | String | 제목 |
-| content | String | 본문 |
-| contentFormat | ContentFormat | 본문 형식 |
-| status | PostStatus | PUBLISHED 또는 DELETED |
-| viewCount | Long | 조회수 저장용 필드 |
-| createdAt | LocalDateTime | 생성 시각 |
-| updatedAt | LocalDateTime | 수정 시각 |
+| 필드            | 타입            | 설명                   |
+|---------------|---------------|----------------------|
+| id            | Long          | 게시글 ID               |
+| board         | Board         | 소속 게시판               |
+| user          | Users         | 작성자                  |
+| title         | String        | 제목                   |
+| content       | String        | 본문                   |
+| contentFormat | ContentFormat | 본문 형식                |
+| status        | PostStatus    | PUBLISHED 또는 DELETED |
+| viewCount     | Long          | 조회수 저장용 필드           |
+| createdAt     | LocalDateTime | 생성 시각                |
+| updatedAt     | LocalDateTime | 수정 시각                |
 
 #### Comment
 
 게시글에 작성되는 댓글입니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| id | Long | 댓글 ID |
-| post | Post | 댓글이 속한 게시글 |
-| user | Users | 댓글 작성자 |
-| content | String | 댓글 내용 |
-| status | CommentStatus | ACTIVE 또는 DELETED |
-| createdDate | LocalDateTime | 생성 시각 |
-| lastModifiedDate | LocalDateTime | 수정 시각 |
+| 필드               | 타입            | 설명                |
+|------------------|---------------|-------------------|
+| id               | Long          | 댓글 ID             |
+| post             | Post          | 댓글이 속한 게시글        |
+| user             | Users         | 댓글 작성자            |
+| content          | String        | 댓글 내용             |
+| status           | CommentStatus | ACTIVE 또는 DELETED |
+| createdDate      | LocalDateTime | 생성 시각             |
+| lastModifiedDate | LocalDateTime | 수정 시각             |
 
 #### Attachment
 
 게시글 첨부파일의 메타데이터를 관리합니다.
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| id | Long | 첨부파일 ID |
-| user | Users | 업로드한 사용자 |
-| post | Post | 연결된 게시글 |
-| originalFileName | String | 원본 파일명 |
-| objectKey | String | 스토리지 객체 키 |
-| storeUrl | String | 스토리지 접근 URL |
-| contentType | String | 파일 형식 |
-| fileSize | Long | 파일 크기 |
-| status | AttachmentStatus | TEMP, CONFIRMED, DELETED |
-| createdAt | LocalDateTime | 생성 시각 |
-| deletedAt | LocalDateTime | 삭제 처리 시각 |
+| 필드               | 타입               | 설명                       |
+|------------------|------------------|--------------------------|
+| id               | Long             | 첨부파일 ID                  |
+| user             | Users            | 업로드한 사용자                 |
+| post             | Post             | 연결된 게시글                  |
+| originalFileName | String           | 원본 파일명                   |
+| objectKey        | String           | 스토리지 객체 키                |
+| storeUrl         | String           | 스토리지 접근 URL              |
+| contentType      | String           | 파일 형식                    |
+| fileSize         | Long             | 파일 크기                    |
+| status           | AttachmentStatus | TEMP, CONFIRMED, DELETED |
+| createdAt        | LocalDateTime    | 생성 시각                    |
+| deletedAt        | LocalDateTime    | 삭제 처리 시각                 |
 
 #### 관계
 
@@ -352,18 +357,18 @@ http://localhost:8080/swagger-ui/index.html
 
 프로젝트의 주요 설계 결정은 ADR로 기록합니다.
 
-| ADR | 내용 |
-|-----|------|
-| [ADR-0001](docs/adr/0001-manage-boards-as-data.md) | 운영 중 변경 가능한 게시판 메뉴를 DB 데이터로 관리한 이유 |
-| [ADR-0002](docs/adr/0002-pagination-strategy-by-use-case.md) | 조회 목적별 페이지네이션 전략을 분리한 이유 |
-| [ADR-0003](docs/adr/0003-post-view-count-strategy.md) | 게시글 조회수 저장 방식과 중복 조회 처리 기준 |
-| [ADR-0004](docs/adr/0004-name-slug-separation.md) | 게시판 표시 이름과 시스템 식별자를 분리한 이유 |
-| [ADR-0005](docs/adr/0005-admin-policy-for-board-management.md) | 관리자 초기 생성 및 권한 전환 정책 |
-| [ADR-0006](docs/adr/0006-auth-with-handler-interceptor.md) | Spring Security 대신 HandlerInterceptor로 인증 흐름을 직접 구현한 이유 |
-| [ADR-0007](docs/adr/0007-request-command-response-dto.md) | DTO를 요청, 명령, 결과, 응답으로 분리한 이유 |
-| [ADR-0008](docs/adr/0008-password-and-personal-data-encryption.md) | 비밀번호와 개인정보 암호화 전략을 분리한 이유 |
-| [ADR-0009](docs/adr/0009-refresh-token-http-only-cookie.md) | RefreshToken을 HttpOnly 쿠키에 저장한 이유 |
-| [ADR-0010](docs/adr/0010-use-testcontainers-instead-of-h2.md) | H2 대신 Testcontainers를 선택한 이유 |
+| ADR                                                                | 내용                                                      |
+|--------------------------------------------------------------------|---------------------------------------------------------|
+| [ADR-0001](docs/adr/0001-manage-boards-as-data.md)                 | 운영 중 변경 가능한 게시판 메뉴를 DB 데이터로 관리한 이유                      |
+| [ADR-0002](docs/adr/0002-pagination-strategy-by-use-case.md)       | 조회 목적별 페이지네이션 전략을 분리한 이유                                |
+| [ADR-0003](docs/adr/0003-post-view-count-strategy.md)              | 게시글 조회수 저장 방식과 중복 조회 처리 기준                              |
+| [ADR-0004](docs/adr/0004-name-slug-separation.md)                  | 게시판 표시 이름과 시스템 식별자를 분리한 이유                              |
+| [ADR-0005](docs/adr/0005-admin-policy-for-board-management.md)     | 관리자 초기 생성 및 권한 전환 정책                                    |
+| [ADR-0006](docs/adr/0006-auth-with-handler-interceptor.md)         | Spring Security 대신 HandlerInterceptor로 인증 흐름을 직접 구현한 이유 |
+| [ADR-0007](docs/adr/0007-request-command-response-dto.md)          | DTO를 요청, 명령, 결과, 응답으로 분리한 이유                            |
+| [ADR-0008](docs/adr/0008-password-and-personal-data-encryption.md) | 비밀번호와 개인정보 암호화 전략을 분리한 이유                               |
+| [ADR-0009](docs/adr/0009-refresh-token-http-only-cookie.md)        | RefreshToken을 HttpOnly 쿠키에 저장한 이유                       |
+| [ADR-0010](docs/adr/0010-use-testcontainers-instead-of-h2.md)      | H2 대신 Testcontainers를 선택한 이유                            |
 
 ---
 
@@ -375,12 +380,12 @@ http://localhost:8080/swagger-ui/index.html
 
 테스트는 컨트롤러 테스트, 서비스 단위 테스트, 유틸/설정 테스트, Testcontainers 기반 통합 테스트로 구성되어 있습니다.
 
-| 종류 | 설명 |
-|------|------|
-| 컨트롤러 테스트 | MockMvc 기반 요청, 응답, 검증 실패 흐름 확인 |
-| 서비스 테스트 | Mockito 기반 비즈니스 흐름, 권한, 예외, 저장 대상 검증 |
-| 유틸/설정 테스트 | JWT, 암호화, 설정 객체 검증 |
-| 통합 테스트 | Testcontainers MySQL 기반 주요 흐름 검증 |
+| 종류        | 설명                                   |
+|-----------|--------------------------------------|
+| 컨트롤러 테스트  | MockMvc 기반 요청, 응답, 검증 실패 흐름 확인       |
+| 서비스 테스트   | Mockito 기반 비즈니스 흐름, 권한, 예외, 저장 대상 검증 |
+| 유틸/설정 테스트 | JWT, 암호화, 설정 객체 검증                   |
+| 통합 테스트    | Testcontainers MySQL 기반 주요 흐름 검증     |
 
 커버리지 리포트는 아래 명령어로 확인할 수 있습니다.
 
