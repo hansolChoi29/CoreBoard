@@ -112,16 +112,14 @@ class PostIntegrationTest extends IntegrationTestBase {
                         get("/boards/{boardId}/posts", board.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .param("page", "0")
-                                .param("size", "10")
-                                .param("sort", "asc"))
+                                .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].title").value("title"))
                 .andExpect(jsonPath("$.data.content[0].writerName").value("nickname"))
-                .andExpect(jsonPath("$.data.pageInfo.page").value(0))
-                .andExpect(jsonPath("$.data.pageInfo.size").value(10))
-                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
-                .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
+                .andExpect(jsonPath("$.data.sliceInfo.size").value(10))
+                .andExpect(jsonPath("$.data.sliceInfo.numberOfElement").value(1))
+                .andExpect(jsonPath("$.data.sliceInfo.hasNext").value(false));
 
         UpdatePostRequest updateRequest = new UpdatePostRequest(
                 "newtitle",

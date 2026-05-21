@@ -43,7 +43,11 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:3.6.0'
 
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.0'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 }
+
 jacoco {
     toolVersion = "0.8.12"
 }

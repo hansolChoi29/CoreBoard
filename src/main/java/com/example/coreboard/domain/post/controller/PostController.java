@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
@@ -44,7 +45,7 @@ public class PostController {
                 size,
                 sort
         );
-        
+
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체조회!"));
     }
 
@@ -69,6 +70,25 @@ public class PostController {
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
+    }
+
+
+    @Operation(summary = "게시글 검색 조회", description = "오프셋 + Slice 기반 게시글 검색 조회")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<SliceResponse<PostSummaryResponse>>> search(
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        PostValidation.validatePageSize(size);
+
+        SliceResponse<PostSummaryResponse> response = postService.searchPosts(
+                page,
+                size,
+                keyword
+        );
+
+        return ResponseEntity.ok(ApiResponse.ok(response, "게시글 검색 조회!"));
     }
 
     @Operation(summary = "게시글 수정", description = "작성자 또는 ADMIN만 게시글을 수정할 수 있습니다.")

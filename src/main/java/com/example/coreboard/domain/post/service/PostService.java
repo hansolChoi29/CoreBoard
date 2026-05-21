@@ -14,6 +14,7 @@ import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
 import com.example.coreboard.domain.common.exception.board.BoardErrorException;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
 import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.common.response.SliceInfo;
 import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
 import com.example.coreboard.domain.common.validation.PostAttachmentUpdatePolicy;
@@ -21,6 +22,7 @@ import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
+import com.example.coreboard.domain.post.dto.query.PostSummaryProjection;
 import com.example.coreboard.domain.post.dto.response.PostAttachmentResponse;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
@@ -34,12 +36,11 @@ import com.example.coreboard.domain.common.exception.post.PostErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
 import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
@@ -48,6 +49,8 @@ import java.util.List;
 
 @Service
 public class PostService {
+    private static final Logger log = LoggerFactory.getLogger(PostService.class);
+
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
     private final UsersRepository usersRepository;
@@ -78,18 +81,18 @@ public class PostService {
     ) {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+
         if (postRepository.existsByTitle(command.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
         }
+
         Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
-
         if (!board.canWrite(user.getRole())) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
 
         PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
-
         Post post = Post.create(
                 board,
                 user,
@@ -98,6 +101,7 @@ public class PostService {
                 command.contentFormat()
         );
         Post saved = postRepository.save(post);
+
         attachmentService.confirm(command.attachmentIds(), saved, user);
 
         return new CreatePostResult(saved.getId());
@@ -171,51 +175,70 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public OffsetPageResponse<PostSummaryResponse> getBoardAll(
+    public SliceResponse<PostSummaryResponse> getBoardAll(
             Long boardId,
             int page,
-            int size,
-            String sort,
-            String keyword
+            int size
     ) {
-        Sort sortObj = "desc".equalsIgnoreCase(sort) ?
-                Sort.by(Sort.Direction.DESC, "createdAt")
-                : Sort.by(Sort.Direction.ASC, "createdAt");
-        Pageable pageable = PageRequest.of(page, size, sortObj);
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Post> postPage;
+        Slice<Post> postSlice = postRepository.findAllByBoardId(
+                boardId,
+                PostStatus.PUBLISHED,
+                pageable
+        );
 
-        if (keyword == null || keyword.isBlank()) {
-            postPage = postRepository.findAllByBoardId(
-                    boardId,
-                    PostStatus.PUBLISHED,
-                    pageable
-            );
-        } else {
-            postPage = postRepository.searchByBoardId(
-                    boardId,
-                    PostStatus.PUBLISHED,
-                    keyword.trim(),
-                    pageable
-            );
-        }
-
-        List<PostSummaryResponse> contents = postPage.getContent().stream()
+        List<PostSummaryResponse> contents = postSlice.getContent().stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),
                         post.getTitle(),
                         post.getCreatedAt(),
                         post.getUpdatedAt()
-                )).toList();
+                ))
+                .toList();
 
-        PageInfo pageInfo = new PageInfo(
-                postPage.getNumber(),
-                postPage.getSize(),
-                postPage.getTotalElements(),
-                postPage.getTotalPages()
+        return new SliceResponse<>(contents,
+                new SliceInfo(
+                        postSlice.getSize(),
+                        postSlice.getNumberOfElements(),
+                        postSlice.hasNext()
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public SliceResponse<PostSummaryResponse> searchPosts(
+            int page,
+            int size,
+            String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Slice<PostSummaryProjection> postSlice = postRepository.searchAllPosts(
+                PostStatus.PUBLISHED.name(),
+                keyword.trim(),
+                pageable
         );
-        return new OffsetPageResponse<>(contents, pageInfo);
+
+        List<PostSummaryResponse> contents = postSlice.getContent().stream()
+                .map(post -> new PostSummaryResponse(
+                        post.getId(),
+                        post.getWriterName(),
+                        post.getTitle(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                ))
+                .toList();
+
+        return new SliceResponse<>(
+                contents,
+                new SliceInfo(
+                        postSlice.getSize(),
+                        postSlice.getNumberOfElements(),
+                        postSlice.hasNext()
+                )
+        );
     }
 
     @Transactional

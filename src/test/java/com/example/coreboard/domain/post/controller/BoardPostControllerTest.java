@@ -2,8 +2,8 @@ package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
 import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.PageInfo;
+import com.example.coreboard.domain.common.response.SliceInfo;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
@@ -195,36 +195,28 @@ class BoardPostControllerTest {
                 )
         );
 
-        PageInfo pageInfo = new PageInfo(
-                0,
-                10,
-                1L,
-                1
+        SliceResponse<PostSummaryResponse> response = new SliceResponse<>(
+                items,
+                new SliceInfo(10, 1, false)
         );
 
-        OffsetPageResponse<PostSummaryResponse> offsetResponse =
-                new OffsetPageResponse<>(items, pageInfo);
-
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
-                .willReturn(offsetResponse);
+        given(postService.getBoardAll(boardId, 0, 10)).willReturn(response);
 
         mockMvc.perform(
                         get(BASE, boardId)
                                 .param("page", "0")
                                 .param("size", "10")
-                                .param("sort", "desc")
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
                 .andExpect(jsonPath("$.data.content[0].writerName").value("nickname"))
                 .andExpect(jsonPath("$.data.content[0].title").value("title"))
-                .andExpect(jsonPath("$.data.pageInfo.page").value(0))
-                .andExpect(jsonPath("$.data.pageInfo.size").value(10))
-                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
-                .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
+                .andExpect(jsonPath("$.data.sliceInfo.size").value(10))
+                .andExpect(jsonPath("$.data.sliceInfo.numberOfElement").value(1))
+                .andExpect(jsonPath("$.data.sliceInfo.hasNext").value(false));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
+        verify(postService).getBoardAll(boardId, 0, 10);
         verifyNoMoreInteractions(postService);
     }
 
@@ -241,58 +233,23 @@ class BoardPostControllerTest {
                 )
         );
 
-        PageInfo pageInfo = new PageInfo(0, 10, 1L, 1);
-        OffsetPageResponse<PostSummaryResponse> offsetResponse =
-                new OffsetPageResponse<>(items, pageInfo);
-
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null))
-                .willReturn(offsetResponse);
-
-        mockMvc.perform(
-                        get(BASE, boardId)
-                                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
-                .andExpect(jsonPath("$.data.content[0].id").value(1));
-
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
-        verifyNoMoreInteractions(postService);
-    }
-
-    @Test
-    @DisplayName("게시글_전체조회_keyword가_있으면_검색어를_서비스로_전달")
-    void getBoardAllWithKeyword() throws Exception {
-        String keyword = "spring";
-
-        List<PostSummaryResponse> items = List.of(
-                new PostSummaryResponse(
-                        1L,
-                        "nickname",
-                        "spring title",
-                        LocalDateTime.now(),
-                        LocalDateTime.now()
-                )
+        SliceResponse<PostSummaryResponse> response = new SliceResponse<>(
+                items,
+                new SliceInfo(10, 1, false)
         );
 
-        PageInfo pageInfo = new PageInfo(0, 10, 1L, 1);
-        OffsetPageResponse<PostSummaryResponse> offsetResponse =
-                new OffsetPageResponse<>(items, pageInfo);
-
-        given(postService.getBoardAll(boardId, 0, 10, "desc", keyword))
-                .willReturn(offsetResponse);
+        given(postService.getBoardAll(boardId, 0, 10)).willReturn(response);
 
         mockMvc.perform(
                         get(BASE, boardId)
-                                .param("page", "0")
-                                .param("size", "10")
-                                .param("sort", "desc")
-                                .param("keyword", keyword)
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("게시글 전체 조회!"))
-                .andExpect(jsonPath("$.data.content[0].title").value("spring title"));
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.sliceInfo.size").value(10))
+                .andExpect(jsonPath("$.data.sliceInfo.hasNext").value(false));
 
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", keyword);
+        verify(postService).getBoardAll(boardId, 0, 10);
         verifyNoMoreInteractions(postService);
     }
 
@@ -309,30 +266,8 @@ class BoardPostControllerTest {
         verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
-                anyInt(),
-                anyString(),
-                any()
+                anyInt()
         );
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_정렬_방향_공백_400")
-    void getBoardAllBlankSortDirection() throws Exception {
-        mockMvc.perform(
-                        get(BASE, boardId)
-                                .param("size", "10")
-                                .param("sort", " ")
-                                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(postService, never()).getBoardAll(
-                anyLong(),
-                anyInt(),
-                anyInt(),
-                anyString(),
-                any()
-        );
-        verifyNoMoreInteractions(postService);
     }
 
     @Test
@@ -348,9 +283,7 @@ class BoardPostControllerTest {
         verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
-                anyInt(),
-                anyString(),
-                any()
+                anyInt()
         );
     }
 
@@ -367,67 +300,7 @@ class BoardPostControllerTest {
         verify(postService, never()).getBoardAll(
                 anyLong(),
                 anyInt(),
-                anyInt(),
-                anyString(),
-                any()
+                anyInt()
         );
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_desc_정상")
-    void getBoardAllDesc() throws Exception {
-        String keyword = "spring";
-        List<PostSummaryResponse> items = List.of(
-                new PostSummaryResponse(
-                        10L,
-                        "nickname",
-                        "title",
-                        LocalDateTime.now(),
-                        LocalDateTime.now()
-                )
-        );
-
-        PageInfo pageInfo = new PageInfo(
-                0,
-                10,
-                1L,
-                1
-        );
-
-        OffsetPageResponse<PostSummaryResponse> offsetResponse =
-                new OffsetPageResponse<>(items, pageInfo);
-
-        given(postService.getBoardAll(boardId, 0, 10, "desc", null)).willReturn(offsetResponse);
-
-        mockMvc.perform(
-                        get(BASE, boardId)
-                                .param("page", "0")
-                                .param("size", "10")
-                                .param("sort", "desc")
-                                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("게시글 전체 조회!"));
-
-        verify(postService).getBoardAll(boardId, 0, 10, "desc", null);
-    }
-
-    @Test
-    @DisplayName("게시글_전체_조회_정렬_방향_잘못됨_404")
-    void getBoardAllInvalidSortDirection() throws Exception {
-        mockMvc.perform(
-                        get(BASE, boardId)
-                                .param("size", "10")
-                                .param("sort", "wrong")
-                                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
-        verify(postService, never()).getBoardAll(
-                anyLong(),
-                anyInt(),
-                anyInt(),
-                anyString(),
-                any()
-        );
-        verifyNoMoreInteractions(postService);
     }
 }

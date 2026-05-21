@@ -3,6 +3,7 @@ package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.common.response.ApiResponse;
 import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.common.response.SliceResponse;
 import com.example.coreboard.domain.common.validation.PostValidation;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
@@ -51,23 +52,19 @@ public class BoardPostController {
                 .body(ApiResponse.ok(response, "게시글이 성공적으로 생성되었습니다."));
     }
 
-    @Operation(summary = "게시글 전체 조회", description = "오프셋 기반 페이지네이션. page: 0부터 시작, sort: asc/desc")
+    @Operation(summary = "게시글 전체 조회", description = "오프셋 + Slice 기반 게시글 전체 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<OffsetPageResponse<PostSummaryResponse>>> getAll(
+    public ResponseEntity<ApiResponse<SliceResponse<PostSummaryResponse>>> getAll(
             @PathVariable Long boardId,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "sort", defaultValue = "desc") String sort,
-            @RequestParam(name = "keyword", required = false) String keyword
+            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        PostValidation.validateSortDirection(sort);
         PostValidation.validatePageSize(size);
-        OffsetPageResponse<PostSummaryResponse> response = postService.getBoardAll(
+
+        SliceResponse<PostSummaryResponse> response = postService.getBoardAll(
                 boardId,
                 page,
-                size,
-                sort,
-                keyword
+                size
         );
 
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체 조회!"));

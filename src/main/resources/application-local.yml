@@ -15,7 +15,8 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-
+  flyway:
+    enabled: false
 jwt:
   secret:
     key: ad28a1bb3bad96055ba5345cbe3c6b99
@@ -44,3 +45,9 @@ cloud:
       static: us-east-1
   # 사람이 브라우저로 보는 관리자 화면 → http://localhost:9001
   # Spring Boot 서버가 S3Client로 접근하는 API → http://localhost:9000
+
+# 바인딩값까지
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
