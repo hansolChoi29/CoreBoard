@@ -1457,4 +1457,58 @@ class PostServiceTest {
         );
         verifyNoMoreInteractions(postRepository);
     }
+
+    @Test
+    @DisplayName("게시글_단건_조회_조회수_증가_실패해도_조회는_성공")
+    void findOneSuccessWhenViewCountIncreaseFails() {
+        Long id = 1L;
+        Board board = freeBoard();
+
+        Users user = new Users(
+                "username1",
+                "nickname",
+                "password1",
+                "qwe1@qwe.com",
+                "010-1234-1231",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 5L);
+
+        Post post = new Post(
+                board,
+                user,
+                "title1",
+                "content1",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", id);
+
+        SliceResponse<GetAllCommentResponse> emptyComments = new SliceResponse<>(
+                List.of(),
+                new SliceInfo(10, 0, false)
+        );
+
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
+
+        doThrow(new RuntimeException("Redis 장애"))
+                .when(postViewCountService)
+                .increaseIfFirstView(id, "test-viewer");
+
+        given(commentService.getAll(any(GetCommentQuery.class))).willReturn(emptyComments);
+
+        given(attachmentRepository.findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED)).willReturn(List.of());
+
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id, "test-viewer"));
+
+        assertNotNull(out);
+        assertEquals(id, out.id());
+        assertEquals(5L, out.userId());
+        assertEquals("title1", out.title());
+        assertEquals("content1", out.content());
+
+        verify(postViewCountService).increaseIfFirstView(id, "test-viewer");
+        verify(postRepository).findByIdAndStatus(id, PostStatus.PUBLISHED);
+        verify(commentService).getAll(any(GetCommentQuery.class));
+        verify(attachmentRepository).findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED);
+    }
 }

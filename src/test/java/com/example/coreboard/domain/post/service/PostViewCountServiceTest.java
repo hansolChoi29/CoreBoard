@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -114,6 +115,7 @@ class PostViewCountServiceTest {
     }
 
     @ParameterizedTest
+    @NullAndEmptySource
     @ValueSource(strings = {"         "})
     @DisplayName("viewerKey가_null_또는_공백이면_Redis_접근불가")
     void notIncreaseWhenViewerKeyInvalid(String viewerKey) {
