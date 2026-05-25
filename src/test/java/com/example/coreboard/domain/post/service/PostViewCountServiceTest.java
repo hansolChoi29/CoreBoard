@@ -13,8 +13,9 @@ import org.springframework.data.redis.core.ZSetOperations;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostViewCountServiceTest {
@@ -57,5 +58,30 @@ class PostViewCountServiceTest {
                 "post:10",
                 1
         );
+    }
+
+    @Test
+    @DisplayName("Redis_setIfAbsent_결과가_null_이면_조회수delta와_인기글_점수를_증가시키지_않음")
+    void notIncreaseWhenSetIfAbsentResultNull() {
+        Long postId = 10L;
+        String viewerKey = "user:1";
+
+        given(template.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.setIfAbsent(
+                "post:viewed:10:user:1",
+                "1",
+                Duration.ofSeconds(600)
+        )).willReturn(null);
+
+        postViewCountService.increaseIfFirstView(postId, viewerKey);
+
+        verify(valueOperations).setIfAbsent(
+                "post:viewed:10:user:1",
+                "1",
+                Duration.ofSeconds(600)
+        );
+        verify(valueOperations, never()).increment(anyString());
+        verify(template, never()).opsForZSet();
+        verifyNoInteractions(zSetOperations);
     }
 }
