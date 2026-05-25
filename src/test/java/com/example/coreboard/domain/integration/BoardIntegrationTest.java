@@ -3,7 +3,7 @@ package com.example.coreboard.domain.integration;
 import com.example.coreboard.domain.board.dto.request.CreateBoardRequest;
 import com.example.coreboard.domain.board.dto.request.UpdateBoardRequest;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.global.security.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;

@@ -9,15 +9,14 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.comment.service.CommentService;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
-import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
-import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.PageInfo;
-import com.example.coreboard.domain.common.response.SliceInfo;
-import com.example.coreboard.domain.common.response.SliceResponse;
-import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
-import com.example.coreboard.domain.common.validation.PostAttachmentUpdatePolicy;
+import com.example.coreboard.domain.board.exception.BoardErrorCode;
+import com.example.coreboard.domain.board.exception.BoardErrorException;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.response.PageInfo;
+import com.example.coreboard.global.response.SliceInfo;
+import com.example.coreboard.global.response.SliceResponse;
+import com.example.coreboard.domain.post.validation.PostAttachmentPolicyValidator;
+import com.example.coreboard.domain.post.validation.PostAttachmentUpdatePolicy;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
@@ -31,8 +30,8 @@ import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.domain.post.exception.PostErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -42,14 +41,29 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
-import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
+import static com.example.coreboard.domain.auth.exception.AuthErrorCode.*;
+import static com.example.coreboard.domain.post.exception.PostErrorCode.*;
 
 import java.util.List;
 
 @Service
 public class PostService {
     private static final Logger log = LoggerFactory.getLogger(PostService.class);
+    // 게시글 CRUD 담당
+
+    // PostViewCountService
+    // Redis 조회수 증가, 중복 조회 방지 담당
+
+    // PopularPostService
+    // Redis ZSET 기반 인기글 조회 담당
+
+    // PostViewCountSyncService
+    // Redis delete를 DB view_count에 반영 담당
+
+    // 조회수 INCR, 인기글 ZSET 구조
+    // INCR : 숫자 1 증가 명령
+    // ZSET : 점수로 정렬되는 Redis 자료구조
+    private final PostViewCountService postViewCountService;
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
@@ -59,6 +73,7 @@ public class PostService {
     private final AttachmentRepository attachmentRepository;
 
     public PostService(
+            PostViewCountService postViewCountService,
             PostRepository postRepository,
             BoardRepository boardRepository,
             UsersRepository usersRepository,
@@ -66,6 +81,7 @@ public class PostService {
             AttachmentService attachmentService,
             AttachmentRepository attachmentRepository
     ) {
+        this.postViewCountService = postViewCountService;
         this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
@@ -89,7 +105,7 @@ public class PostService {
         Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
         if (!board.canWrite(user.getRole())) {
-            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+            throw new AuthErrorException(FORBIDDEN);
         }
 
         PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
@@ -111,6 +127,17 @@ public class PostService {
     public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+        // 조회수 증가를 넣어야 하는데 음.. 실패해도 조회는 성공되게
+        // getOne은 읽기 전용인데, redis는 write하고 있다
+        // 게시글 DB 조회는 readOnly 트랜잭션으로 처리하고
+        // 조회수 증가는 redis에 별도 site-effect로 기록한다
+        // db write 부하는 즉시 발생시키지 않고 scheduler가 나중에 반영되도록 분리한다
+
+        try{
+            postViewCountService.increaseIfFirstView(command.id(), command.viewerKey());
+        }catch(Exception e){
+            log.warn("조회수 증가 실패. postId = {}", command.id(), e);
+        }
 
         SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
 

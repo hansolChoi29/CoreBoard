@@ -1,13 +1,13 @@
 package com.example.coreboard.domain.post.controller;
 
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.response.SliceInfo;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.domain.auth.exception.AuthErrorCode;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.global.response.SliceInfo;
+import com.example.coreboard.global.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.global.type.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;

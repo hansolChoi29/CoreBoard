@@ -11,10 +11,10 @@ import com.example.coreboard.domain.board.dto.command.GetOneBoardCommand;
 import com.example.coreboard.domain.board.dto.result.UpdateBoardResult;
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.domain.board.exception.BoardErrorException;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.type.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
@@ -298,14 +298,14 @@ class BoardServiceTest {
 
         OffsetPageResponse<GetBoardListResponse> response = boardService.getAll(query);
 
-        assertThat(response.getContent()).hasSize(1);
-        assertThat(response.getContent().get(0).name()).isEqualTo("자유게시판");
-        assertThat(response.getContent().get(0).slug()).isEqualTo("free");
+        assertThat(response.content()).hasSize(1);
+        assertThat(response.content().get(0).name()).isEqualTo("자유게시판");
+        assertThat(response.content().get(0).slug()).isEqualTo("free");
 
-        assertThat(response.getPageInfo().getPage()).isEqualTo(0);
-        assertThat(response.getPageInfo().getSize()).isEqualTo(20);
-        assertThat(response.getPageInfo().getTotalElements()).isEqualTo(1L);
-        assertThat(response.getPageInfo().getTotalPages()).isEqualTo(1);
+        assertThat(response.pageInfo().page()).isEqualTo(0);
+        assertThat(response.pageInfo().size()).isEqualTo(20);
+        assertThat(response.pageInfo().totalElements()).isEqualTo(1L);
+        assertThat(response.pageInfo().totalPages()).isEqualTo(1);
 
         verify(boardRepository).findByDeletedAtIsNull(pageRequest);
         verifyNoMoreInteractions(boardRepository);

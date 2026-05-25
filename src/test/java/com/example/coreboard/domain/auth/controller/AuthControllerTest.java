@@ -4,10 +4,10 @@ import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.dto.request.SignInRequest;
 import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
 import com.example.coreboard.domain.auth.service.AuthService;
-import com.example.coreboard.domain.common.exception.GlobalExceptionHandler;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.global.exception.GlobalExceptionHandler;
+import com.example.coreboard.domain.auth.exception.AuthErrorCode;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.global.security.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

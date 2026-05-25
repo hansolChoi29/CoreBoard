@@ -3,6 +3,8 @@ package com.example.coreboard.domain.post.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -108,6 +110,27 @@ class PostViewCountServiceTest {
         );
         verify(valueOperations, never()).increment(anyString());
         verify(template, never()).opsForZSet();
+        verifyNoInteractions(zSetOperations);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"         "})
+    @DisplayName("viewerKey가_null_또는_공백이면_Redis_접근불가")
+    void notIncreaseWhenViewerKeyInvalid(String viewerKey) {
+        postViewCountService.increaseIfFirstView(10L, viewerKey);
+
+        verifyNoInteractions(template);
+        verifyNoInteractions(valueOperations);
+        verifyNoInteractions(zSetOperations);
+    }
+
+    @Test
+    @DisplayName("postId가_null이면_Redis에_접근불가")
+    void notIncreaseWhenPostIdNull() {
+        postViewCountService.increaseIfFirstView(null, "user:1");
+
+        verifyNoInteractions(template);
+        verifyNoInteractions(valueOperations);
         verifyNoInteractions(zSetOperations);
     }
 }

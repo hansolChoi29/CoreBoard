@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.post.controller;
 
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.command.UpdatePostCommand;
@@ -12,23 +12,31 @@ import com.example.coreboard.domain.post.dto.response.UpdatePostResponse;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.service.PostService;
-import com.example.coreboard.domain.common.validation.PostValidation;
-import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.domain.post.validation.PostValidation;
+import com.example.coreboard.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.coreboard.domain.post.support.ViewerKeyGenerator;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "Post", description = "게시판에 종속되지 않은 게시글 관련 API")
 @RestController
 @RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
+    private final ViewerKeyGenerator viewerKeyGenerator;
 
-    public PostController(PostService postService) {
+    public PostController(
+            PostService postService,
+            ViewerKeyGenerator viewerKeyGenerator
+    ) {
         this.postService = postService;
+        this.viewerKeyGenerator = viewerKeyGenerator;
     }
 
     @Operation()
@@ -52,11 +60,13 @@ public class PostController {
     @Operation(summary = "게시글 단건 조회", description = "로그인 없이도 id로 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<GetOnePostResponse>> getOne(
-            @PathVariable("id") Long id
+            @PathVariable("id") Long id,
+            HttpServletRequest request
     ) {
-        GetOnePostCommand board = new GetOnePostCommand(id);
+        String viewerKey = viewerKeyGenerator.generate(request);
+        GetOnePostCommand command = new GetOnePostCommand(id, viewerKey);
 
-        GetOnePostResult out = postService.getOne(board);
+        GetOnePostResult out = postService.getOne(command);
 
         GetOnePostResponse response = new GetOnePostResponse(
                 out.id(),

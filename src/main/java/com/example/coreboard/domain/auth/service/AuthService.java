@@ -3,17 +3,16 @@ package com.example.coreboard.domain.auth.service;
 import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.dto.command.SignInCommand;
 import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
-import com.example.coreboard.domain.common.config.PasswordManager;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import static com.example.coreboard.domain.auth.exception.AuthErrorCode.*;
 
-import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
-
+import com.example.coreboard.domain.auth.support.EmailPhoneNumberManager;
+import com.example.coreboard.domain.auth.support.PasswordManager;
+import com.example.coreboard.global.security.JwtUtil;
 
 @Service
 public class AuthService {

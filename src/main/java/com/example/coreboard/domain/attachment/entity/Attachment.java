@@ -1,8 +1,8 @@
 package com.example.coreboard.domain.attachment.entity;
 
 
-import com.example.coreboard.domain.common.exception.Attachment.AttachmentErrorCode;
-import com.example.coreboard.domain.common.exception.Attachment.AttachmentErrorException;
+import com.example.coreboard.domain.attachment.exception.AttachmentErrorCode;
+import com.example.coreboard.domain.attachment.exception.AttachmentErrorException;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;

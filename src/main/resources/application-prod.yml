@@ -10,6 +10,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 jwt:
   secret:
@@ -34,7 +38,10 @@ management:
   endpoint:
     health:
       show-details: always
-      # application-prod.yml
+  health:
+    redis:
+      enabled: false
+
 cloud:
   aws:
     endpoint: ${STORAGE_ENDPOINT}
