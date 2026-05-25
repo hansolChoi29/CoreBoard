@@ -84,4 +84,30 @@ class PostViewCountServiceTest {
         verify(template, never()).opsForZSet();
         verifyNoInteractions(zSetOperations);
     }
+
+    @Test
+    @DisplayName("게시글_중복_조회이면_조회수_delta와_인기글_점수를_증가시키지_않음")
+    void notIncreaseAlreadyViewed() {
+        Long postId = 10L;
+        String viewerKey = "user:1";
+
+        given(template.opsForValue()).willReturn(valueOperations);
+
+        given(valueOperations.setIfAbsent(
+                "post:viewed:10:user:1",
+                "1",
+                Duration.ofSeconds(600)
+        )).willReturn(false);
+
+        postViewCountService.increaseIfFirstView(postId, viewerKey);
+
+        verify(valueOperations).setIfAbsent(
+                "post:viewed:10:user:1",
+                "1",
+                Duration.ofSeconds(600)
+        );
+        verify(valueOperations, never()).increment(anyString());
+        verify(template, never()).opsForZSet();
+        verifyNoInteractions(zSetOperations);
+    }
 }
