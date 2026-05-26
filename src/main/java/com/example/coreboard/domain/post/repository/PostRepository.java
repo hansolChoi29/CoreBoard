@@ -101,4 +101,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("postId") Long postId,
             @Param("delta") long delta
     );
+
+    //인기글 postId 목록을 redis에서 뽑으면 DB에서 그 게시글을 다시 조회한다
+    @Query("""
+                select p
+                from Post p
+                where p.id in :postIds
+                and p.status = :status
+            """)
+    List<Post> findAllByIdInAndStatusWithUser(
+            @Param("postIds") List<Long> postIds,
+            @Param("status") PostStatus status
+    );
 }

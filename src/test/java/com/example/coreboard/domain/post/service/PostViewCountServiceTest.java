@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;

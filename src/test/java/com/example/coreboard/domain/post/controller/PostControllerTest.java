@@ -488,4 +488,10 @@ class PostControllerTest {
 
         verify(postService, never()).getAll(anyInt(), anyInt(), anyString());
     }
+
+    @Test
+    @DisplayName("")
+    void popular() throws Exception{
+
+    }
 }
