@@ -1,6 +1,7 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
+import com.example.coreboard.domain.post.service.PopularPostService;
 import com.example.coreboard.domain.post.support.ViewerKeyGenerator;
 import com.example.coreboard.global.response.OffsetPageResponse;
 import com.example.coreboard.global.response.PageInfo;
@@ -57,6 +58,9 @@ class PostControllerTest {
 
     @Mock
     ViewerKeyGenerator viewerKeyGenerator;
+
+    @Mock
+    PopularPostService popularPostService;
 
     MockMvc mockMvc;
     MockMvc mockMvcWithInterceptor;
@@ -490,8 +494,13 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("")
-    void popular() throws Exception{
-
+    @DisplayName("인기글목록_조회")
+    void popular() throws Exception {
+        mockMvc.perform(
+                        get(BASE + "/popular")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("인기목록 조회 성공!"));
+        verify(popularPostService).getPopularPosts(anyInt());
     }
 }
