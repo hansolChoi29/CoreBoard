@@ -127,12 +127,6 @@ public class PostService {
     public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
-        // 조회수 증가를 넣어야 하는데 음.. 실패해도 조회는 성공되게
-        // getOne은 읽기 전용인데, redis는 write하고 있다
-        // 게시글 DB 조회는 readOnly 트랜잭션으로 처리하고
-        // 조회수 증가는 redis에 별도 site-effect로 기록한다
-        // db write 부하는 즉시 발생시키지 않고 scheduler가 나중에 반영되도록 분리한다
-
         try{
             postViewCountService.increaseIfFirstView(command.id(), command.viewerKey());
         }catch(Exception e){
