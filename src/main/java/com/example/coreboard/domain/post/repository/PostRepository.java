@@ -50,6 +50,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") PostStatus status,
             Pageable pageable
     );
+    // Page에선 join fetch 함부로 썼다간 메모리가 터질 수 있다
+    @Query("""
+                    select p
+                    from Post p
+                    join fetch p.user
+                    where p.id in :ids
+            """)
+    List<Post> findAllByIdInWithUser(
+            @Param("ids") List<Long> ids
+    );
 
     @Query(
             value = """
@@ -106,6 +116,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("""
                 select p
                 from Post p
+                join fetch p.user
                 where p.id in :postIds
                 and p.status = :status
             """)

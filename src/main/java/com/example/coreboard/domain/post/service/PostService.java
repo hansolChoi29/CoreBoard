@@ -127,9 +127,9 @@ public class PostService {
     public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
-        try{
+        try {
             postViewCountService.increaseIfFirstView(command.id(), command.viewerKey());
-        }catch(Exception e){
+        } catch (Exception e) {
             log.warn("조회수 증가 실패. postId = {}", command.id(), e);
         }
 
@@ -176,7 +176,12 @@ public class PostService {
                 pageable
         );
 
-        List<PostSummaryResponse> contents = postPage.getContent().stream()
+        List<Long> ids = postPage.getContent()
+                .stream()
+                .map(Post::getId)
+                .toList();
+        List<Post> postsWithUser = postRepository.findAllByIdInWithUser(ids);
+        List<PostSummaryResponse> contents = postsWithUser.stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),
@@ -209,8 +214,13 @@ public class PostService {
                 PostStatus.PUBLISHED,
                 pageable
         );
+        List<Long> ids = postSlice.getContent()
+                .stream()
+                .map(Post::getId)
+                .toList();
+        List<Post> postWithUser = postRepository.findAllByIdInWithUser(ids);
 
-        List<PostSummaryResponse> contents = postSlice.getContent().stream()
+        List<PostSummaryResponse> contents = postWithUser.stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),
