@@ -42,12 +42,10 @@ public class Post {
     private PostStatus status = PostStatus.PUBLISHED;
 
     @Column(nullable = false)
-    private Long viewCount = 0L;
-
+    private long viewCount = 0L;
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -85,6 +83,10 @@ public class Post {
                 content,
                 contentFormat == null ? ContentFormat.MARKDOWN : contentFormat
         );
+    }
+
+    public Long getViewCount() {
+        return viewCount;
     }
 
     public ContentFormat getContentFormat() {

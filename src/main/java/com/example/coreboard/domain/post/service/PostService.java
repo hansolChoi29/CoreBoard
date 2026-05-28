@@ -139,6 +139,7 @@ public class PostService {
                 post.getUser().getUserId(),
                 post.getTitle(),
                 post.getContent(),
+                post.getViewCount(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 comments,
