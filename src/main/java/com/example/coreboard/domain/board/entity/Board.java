@@ -18,28 +18,24 @@ public class Board {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 사람이 보는 이름: 자유게시판, Q&A, 공지사항
     @Column(name = "name", nullable = false)
-    private String name; // 2~20
+    private String name;
 
-    // 시스템 주소 이름: free, qna, notice
     @Column(nullable = false, unique = true)
-    private String slug; // 2~50
-    // 첨부파일 필수냐 (갤러리=true)
+    private String slug;
+
     @Column(name = "require_attachment", nullable = false)
     private boolean requireAttachment;
-    // 첨부파일 몇 개까지 (자료실=2)
+
     @Column(name = "max_attachment_count", nullable = false)
     private int maxAttachmentCount;
 
-    // 답변 채택 허용 여부
     @Column(nullable = false)
     private boolean answerAcceptedEnabled;
-    // 댓글 허용 여부
+
     @Column(nullable = false)
     private boolean commentEnabled;
 
-    // 누가 쓸 수 있냐 (예 : 공지사항=ADMIN)
     @Enumerated(EnumType.STRING)
     @Column(name = "required_write_role", nullable = false, length = 20)
     private UserRole allowedWriteRoles;

@@ -9,7 +9,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-// 엔티티가 저장되거나 업데이트될 때 auditing 정보를 캡처하는 JPA entity listener
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Table(name = "comments")

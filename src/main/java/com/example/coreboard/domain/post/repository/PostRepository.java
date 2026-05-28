@@ -1,7 +1,6 @@
 package com.example.coreboard.domain.post.repository;
 
 import com.example.coreboard.domain.post.dto.query.PostSummaryProjection;
-import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import org.springframework.data.domain.Page;
@@ -21,11 +20,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     boolean existsByTitle(String title);
 
-    boolean existsByBoardId(Long boardId);
-
     boolean existsByBoardIdAndStatus(Long boardId, PostStatus status);
 
-    // getOne
     @Query("""
             select p
             from Post p
@@ -38,7 +34,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") PostStatus status
     );
 
-    // 전체조회
     @Query("""
                 select p
                 from Post p
@@ -50,7 +45,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") PostStatus status,
             Pageable pageable
     );
-    // Page에선 join fetch 함부로 썼다간 메모리가 터질 수 있다
+
     @Query("""
                     select p
                     from Post p
@@ -112,7 +107,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("delta") long delta
     );
 
-    //인기글 postId 목록을 redis에서 뽑으면 DB에서 그 게시글을 다시 조회한다
     @Query("""
                 select p
                 from Post p

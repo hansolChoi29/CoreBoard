@@ -38,7 +38,6 @@ public enum BoardErrorCode {
                     "boardId",
                     "게시판에 게시글이 남아 있어 삭제할 수 없습니다. 게시글을 먼저 삭제해 주세요."
             ))),
-    // 입력값 예외
     BOARD_NAME_REQUIRED(
             HttpStatus.BAD_REQUEST,
             400,

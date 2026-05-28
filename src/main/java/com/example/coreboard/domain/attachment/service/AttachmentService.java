@@ -49,7 +49,6 @@ public class AttachmentService {
         this.usersRepository = usersRepository;
     }
 
-    // 파일 임시 업로드 (게시글 작성 전)
     @Transactional
     public Long upload(String username, MultipartFile file) throws IOException {
         if (file.getSize() > MAX_FILE_SIZE) {
@@ -83,7 +82,6 @@ public class AttachmentService {
         return attachmentRepository.save(attachment).getId();
     }
 
-    // 게시글 저장 완료 시 TEMP → CONFIRMED
     @Transactional
     public void confirm(List<Long> attachmentIds, Post post, Users user) {
         if (attachmentIds == null || attachmentIds.isEmpty()) {
@@ -102,7 +100,6 @@ public class AttachmentService {
         });
     }
 
-    // 고아 파일 정리 스케줄러 (매일 새벽 3시)
     @Scheduled(cron = "0 0 3 * * *")
     @Transactional
     public void cleanupAttachments() {

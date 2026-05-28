@@ -49,20 +49,7 @@ import java.util.List;
 @Service
 public class PostService {
     private static final Logger log = LoggerFactory.getLogger(PostService.class);
-    // 게시글 CRUD 담당
 
-    // PostViewCountService
-    // Redis 조회수 증가, 중복 조회 방지 담당
-
-    // PopularPostService
-    // Redis ZSET 기반 인기글 조회 담당
-
-    // PostViewCountSyncService
-    // Redis delete를 DB view_count에 반영 담당
-
-    // 조회수 INCR, 인기글 ZSET 구조
-    // INCR : 숫자 1 증가 명령
-    // ZSET : 점수로 정렬되는 Redis 자료구조
     private final PostViewCountService postViewCountService;
 
     private final PostRepository postRepository;
@@ -175,11 +162,22 @@ public class PostService {
                 PostStatus.PUBLISHED,
                 pageable
         );
+        PageInfo pageInfo = new PageInfo(
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages()
+        );
 
         List<Long> ids = postPage.getContent()
                 .stream()
                 .map(Post::getId)
                 .toList();
+
+        if (ids.isEmpty()) {
+            return new OffsetPageResponse<>(List.of(), pageInfo);
+        }
+
         List<Post> postsWithUser = postRepository.findAllByIdInWithUser(ids);
         List<PostSummaryResponse> contents = postsWithUser.stream()
                 .map(post -> new PostSummaryResponse(
@@ -189,13 +187,6 @@ public class PostService {
                         post.getCreatedAt(),
                         post.getUpdatedAt()
                 )).toList();
-
-        PageInfo pageInfo = new PageInfo(
-                postPage.getNumber(),
-                postPage.getSize(),
-                postPage.getTotalElements(),
-                postPage.getTotalPages()
-        );
 
         return new OffsetPageResponse<>(contents, pageInfo);
     }

@@ -42,7 +42,7 @@ public class Post {
     private PostStatus status = PostStatus.PUBLISHED;
 
     @Column(nullable = false)
-    private Long viewCount = 0L; // 조회
+    private Long viewCount = 0L;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

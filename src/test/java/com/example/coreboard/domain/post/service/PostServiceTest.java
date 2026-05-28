@@ -1076,7 +1076,6 @@ class PostServiceTest {
         assertEquals("새제목", post.getTitle());
         assertEquals("새본문", post.getContent());
 
-        // 핵심: contentFormat은 null로 수정 요청했으므로 기존 MARKDOWN 유지
         assertEquals(ContentFormat.MARKDOWN, post.getContentFormat());
 
         verify(usersRepository).findByUsername(username);
@@ -1133,8 +1132,9 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postSlice);
 
-        SliceResponse<PostSummaryResponse> result =
-                postService.getBoardAll(1L, 0, 10);
+        given(postRepository.findAllByIdInWithUser(List.of(1L))).willReturn(List.of(post));
+
+        SliceResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());
@@ -1152,6 +1152,7 @@ class PostServiceTest {
                 PostStatus.PUBLISHED,
                 pageRequest
         );
+        verify(postRepository).findAllByIdInWithUser(List.of(1L));
         verifyNoMoreInteractions(postRepository);
     }
 
@@ -1197,8 +1198,9 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result =
-                postService.getAll(0, 10, sort);
+        given(postRepository.findAllByIdInWithUser(List.of(1L))).willReturn(List.of(post));
+
+        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(0, 10, sort);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());
@@ -1215,6 +1217,7 @@ class PostServiceTest {
                 PostStatus.PUBLISHED,
                 pageRequest
         );
+        verify(postRepository).findAllByIdInWithUser(List.of(1L));
         verifyNoMoreInteractions(postRepository);
     }
 

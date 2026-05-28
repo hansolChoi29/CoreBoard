@@ -7,7 +7,6 @@ import com.example.coreboard.domain.board.exception.BoardErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 
 import static io.micrometer.common.util.StringUtils.isBlank;
-import static com.example.coreboard.domain.board.exception.BoardErrorCode.*;
 
 
 public class BoardValidation {
