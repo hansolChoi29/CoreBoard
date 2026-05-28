@@ -61,7 +61,6 @@ public class PostController {
                 size,
                 sort
         );
-
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 전체조회!"));
     }
 
@@ -84,12 +83,12 @@ public class PostController {
                 out.userId(),
                 out.title(),
                 out.content(),
+                out.viewCount(),
                 out.createdDate(),
                 out.lastModifiedDate(),
                 out.comments(),
                 out.attachments()
         );
-
         return ResponseEntity.ok(ApiResponse.ok(response, "게시글 단건 조회!"));
     }
 
@@ -136,7 +135,6 @@ public class PostController {
                 request.keepAttachmentIds(),
                 request.newAttachmentIds()
         );
-
         UpdatePostResult out = postService.update(board);
 
         UpdatePostResponse response = new UpdatePostResponse(

@@ -12,6 +12,7 @@ public record GetOnePostResult(
         long userId,
         String title,
         String content,
+        long viewCount,
         LocalDateTime createdDate,
         LocalDateTime lastModifiedDate,
         SliceResponse<GetAllCommentResponse> comments,

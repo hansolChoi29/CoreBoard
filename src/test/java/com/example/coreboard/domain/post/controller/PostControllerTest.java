@@ -108,6 +108,7 @@ class PostControllerTest {
                 userId,
                 "제목",
                 "본문",
+                10,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 comments,
