@@ -1,6 +1,6 @@
 package com.example.coreboard.domain.post.dto.request;
 
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.global.type.ContentFormat;
 
 import java.util.List;
 

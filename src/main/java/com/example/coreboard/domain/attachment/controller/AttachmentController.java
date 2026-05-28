@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.attachment.controller;
 
 import com.example.coreboard.domain.attachment.service.AttachmentService;
-import com.example.coreboard.domain.common.response.ApiResponse;
+import com.example.coreboard.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

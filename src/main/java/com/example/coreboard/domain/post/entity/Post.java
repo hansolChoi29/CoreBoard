@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.post.entity;
 
 import com.example.coreboard.domain.board.entity.Board;
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.global.type.ContentFormat;
 import com.example.coreboard.domain.users.entity.Users;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -42,7 +42,7 @@ public class Post {
     private PostStatus status = PostStatus.PUBLISHED;
 
     @Column(nullable = false)
-    private Long viewCount = 0L; // 조회
+    private Long viewCount = 0L;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

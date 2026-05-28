@@ -3,12 +3,11 @@ package com.example.coreboard.domain.auth.service;
 import com.example.coreboard.domain.auth.dto.*;
 import com.example.coreboard.domain.auth.dto.command.SignInCommand;
 import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
-import com.example.coreboard.domain.auth.dto.request.SignInRequest;
 import com.example.coreboard.domain.auth.dto.request.SignUpRequest;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
-import com.example.coreboard.domain.common.config.PasswordManager;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.domain.auth.support.EmailPhoneNumberManager;
+import com.example.coreboard.domain.auth.support.PasswordManager;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.global.security.JwtUtil;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -22,7 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.ArgumentMatchers.any;
 

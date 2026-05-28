@@ -1,7 +1,7 @@
 package com.example.coreboard.domain.post.dto.response;
 
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.global.response.SliceResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;

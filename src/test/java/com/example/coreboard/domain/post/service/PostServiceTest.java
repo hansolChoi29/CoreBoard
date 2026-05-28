@@ -9,9 +9,9 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.comment.service.CommentService;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.SliceInfo;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.response.SliceInfo;
+import com.example.coreboard.global.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
@@ -22,12 +22,12 @@ import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.CreatePostResult;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.global.type.ContentFormat;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.domain.post.exception.PostErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -77,6 +77,9 @@ class PostServiceTest {
 
     @Mock
     AttachmentService attachmentService;
+
+    @Mock
+    PostViewCountService postViewCountService;
 
     @InjectMocks
     PostService postService;
@@ -724,7 +727,7 @@ class PostServiceTest {
         given(attachmentRepository.findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED))
                 .willReturn(List.of());
 
-        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id));
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id, "test-viewer"));
 
         assertNotNull(out);
         assertEquals(id, out.id());
@@ -732,6 +735,7 @@ class PostServiceTest {
         assertEquals("title1", out.title());
         assertEquals("content1", out.content());
 
+        verify(postViewCountService).increaseIfFirstView(id, "test-viewer");
         verify(postRepository).findByIdAndStatus(id, PostStatus.PUBLISHED);
         verify(commentService).getAll(any(GetCommentQuery.class));
         verify(attachmentRepository).findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED);
@@ -743,7 +747,7 @@ class PostServiceTest {
     void findOnNotFound() {
         Long id = 1L;
         given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.empty());
-        GetOnePostCommand command = new GetOnePostCommand(id);
+        GetOnePostCommand command = new GetOnePostCommand(id, "test-viewer");
 
         PostErrorException findOneNotFound = assertThrows(PostErrorException.class,
                 () -> postService.getOne(command));
@@ -803,7 +807,7 @@ class PostServiceTest {
         given(attachmentRepository.findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED))
                 .willReturn(List.of(attachment));
 
-        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id));
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id, "test-viewer"));
 
         assertNotNull(out);
         assertEquals(1, out.attachments().size());
@@ -1072,7 +1076,6 @@ class PostServiceTest {
         assertEquals("새제목", post.getTitle());
         assertEquals("새본문", post.getContent());
 
-        // 핵심: contentFormat은 null로 수정 요청했으므로 기존 MARKDOWN 유지
         assertEquals(ContentFormat.MARKDOWN, post.getContentFormat());
 
         verify(usersRepository).findByUsername(username);
@@ -1129,8 +1132,9 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postSlice);
 
-        SliceResponse<PostSummaryResponse> result =
-                postService.getBoardAll(1L, 0, 10);
+        given(postRepository.findAllByIdInWithUser(List.of(1L))).willReturn(List.of(post));
+
+        SliceResponse<PostSummaryResponse> result = postService.getBoardAll(1L, 0, 10);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());
@@ -1139,15 +1143,16 @@ class PostServiceTest {
         assertEquals("nickname", result.content().get(0).writerName());
         assertEquals("title", result.content().get(0).title());
 
-        assertEquals(10, result.sliceInfo().getSize());
-        assertEquals(1, result.sliceInfo().getNumberOfElement());
-        assertFalse(result.sliceInfo().isHasNext());
+        assertEquals(10, result.sliceInfo().size());
+        assertEquals(1, result.sliceInfo().numberOfElement());
+        assertFalse(result.sliceInfo().hasNext());
 
         verify(postRepository).findAllByBoardId(
                 1L,
                 PostStatus.PUBLISHED,
                 pageRequest
         );
+        verify(postRepository).findAllByIdInWithUser(List.of(1L));
         verifyNoMoreInteractions(postRepository);
     }
 
@@ -1193,24 +1198,26 @@ class PostServiceTest {
                 pageRequest
         )).willReturn(postPage);
 
-        OffsetPageResponse<PostSummaryResponse> result =
-                postService.getAll(0, 10, sort);
+        given(postRepository.findAllByIdInWithUser(List.of(1L))).willReturn(List.of(post));
+
+        OffsetPageResponse<PostSummaryResponse> result = postService.getAll(0, 10, sort);
 
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals(1L, result.getContent().get(0).id());
-        assertEquals("nickname", result.getContent().get(0).writerName());
-        assertEquals("title", result.getContent().get(0).title());
+        assertEquals(1, result.content().size());
+        assertEquals(1L, result.content().get(0).id());
+        assertEquals("nickname", result.content().get(0).writerName());
+        assertEquals("title", result.content().get(0).title());
 
-        assertEquals(0, result.getPageInfo().getPage());
-        assertEquals(10, result.getPageInfo().getSize());
-        assertEquals(1L, result.getPageInfo().getTotalElements());
-        assertEquals(1, result.getPageInfo().getTotalPages());
+        assertEquals(0, result.pageInfo().page());
+        assertEquals(10, result.pageInfo().size());
+        assertEquals(1L, result.pageInfo().totalElements());
+        assertEquals(1, result.pageInfo().totalPages());
 
         verify(postRepository).findAllByStatus(
                 PostStatus.PUBLISHED,
                 pageRequest
         );
+        verify(postRepository).findAllByIdInWithUser(List.of(1L));
         verifyNoMoreInteractions(postRepository);
     }
 
@@ -1238,12 +1245,12 @@ class PostServiceTest {
                 postService.getAll(0, 10, "desc");
 
         assertNotNull(result);
-        assertTrue(result.getContent().isEmpty());
+        assertTrue(result.content().isEmpty());
 
-        assertEquals(0, result.getPageInfo().getPage());
-        assertEquals(10, result.getPageInfo().getSize());
-        assertEquals(0L, result.getPageInfo().getTotalElements());
-        assertEquals(0, result.getPageInfo().getTotalPages());
+        assertEquals(0, result.pageInfo().page());
+        assertEquals(10, result.pageInfo().size());
+        assertEquals(0L, result.pageInfo().totalElements());
+        assertEquals(0, result.pageInfo().totalPages());
 
         verify(postRepository).findAllByStatus(
                 PostStatus.PUBLISHED,
@@ -1403,9 +1410,9 @@ class PostServiceTest {
         assertEquals("nickname", result.content().get(0).writerName());
         assertEquals("spring title", result.content().get(0).title());
 
-        assertEquals(10, result.sliceInfo().getSize());
-        assertEquals(1, result.sliceInfo().getNumberOfElement());
-        assertFalse(result.sliceInfo().isHasNext());
+        assertEquals(10, result.sliceInfo().size());
+        assertEquals(1, result.sliceInfo().numberOfElement());
+        assertFalse(result.sliceInfo().hasNext());
 
         verify(postRepository).searchAllPosts(
                 PostStatus.PUBLISHED.name(),
@@ -1444,7 +1451,7 @@ class PostServiceTest {
                 postService.searchPosts(0, 10, "spring");
 
         assertNotNull(result);
-        assertTrue(result.sliceInfo().isHasNext());
+        assertTrue(result.sliceInfo().hasNext());
 
         verify(postRepository).searchAllPosts(
                 PostStatus.PUBLISHED.name(),
@@ -1452,5 +1459,59 @@ class PostServiceTest {
                 pageRequest
         );
         verifyNoMoreInteractions(postRepository);
+    }
+
+    @Test
+    @DisplayName("게시글_단건_조회_조회수_증가_실패해도_조회는_성공")
+    void findOneSuccessWhenViewCountIncreaseFails() {
+        Long id = 1L;
+        Board board = freeBoard();
+
+        Users user = new Users(
+                "username1",
+                "nickname",
+                "password1",
+                "qwe1@qwe.com",
+                "010-1234-1231",
+                UserRole.USER
+        );
+        ReflectionTestUtils.setField(user, "userId", 5L);
+
+        Post post = new Post(
+                board,
+                user,
+                "title1",
+                "content1",
+                ContentFormat.MARKDOWN
+        );
+        ReflectionTestUtils.setField(post, "id", id);
+
+        SliceResponse<GetAllCommentResponse> emptyComments = new SliceResponse<>(
+                List.of(),
+                new SliceInfo(10, 0, false)
+        );
+
+        given(postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)).willReturn(Optional.of(post));
+
+        doThrow(new RuntimeException("Redis 장애"))
+                .when(postViewCountService)
+                .increaseIfFirstView(id, "test-viewer");
+
+        given(commentService.getAll(any(GetCommentQuery.class))).willReturn(emptyComments);
+
+        given(attachmentRepository.findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED)).willReturn(List.of());
+
+        GetOnePostResult out = postService.getOne(new GetOnePostCommand(id, "test-viewer"));
+
+        assertNotNull(out);
+        assertEquals(id, out.id());
+        assertEquals(5L, out.userId());
+        assertEquals("title1", out.title());
+        assertEquals("content1", out.content());
+
+        verify(postViewCountService).increaseIfFirstView(id, "test-viewer");
+        verify(postRepository).findByIdAndStatus(id, PostStatus.PUBLISHED);
+        verify(commentService).getAll(any(GetCommentQuery.class));
+        verify(attachmentRepository).findByPostIdAndStatus(id, AttachmentStatus.CONFIRMED);
     }
 }

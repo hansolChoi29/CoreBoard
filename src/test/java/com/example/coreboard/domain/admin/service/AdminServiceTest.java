@@ -6,10 +6,10 @@ import com.example.coreboard.domain.admin.dto.query.AdminUserListQuery;
 import com.example.coreboard.domain.admin.dto.response.AdminGetResponse;
 import com.example.coreboard.domain.auth.dto.SignUpDto;
 import com.example.coreboard.domain.auth.dto.command.SignUpCommand;
-import com.example.coreboard.domain.common.config.EmailPhoneNumberManager;
-import com.example.coreboard.domain.common.config.PasswordManager;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
+import com.example.coreboard.domain.auth.support.EmailPhoneNumberManager;
+import com.example.coreboard.domain.auth.support.PasswordManager;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.global.response.OffsetPageResponse;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -158,14 +158,14 @@ class AdminServiceTest {
         OffsetPageResponse<AdminGetResponse> response =
                 adminService.get(query);
 
-        assertThat(response.getContent()).hasSize(1);
-        assertThat(response.getContent().get(0).username()).isEqualTo("admin");
-        assertThat(response.getContent().get(0).role()).isEqualTo(UserRole.ADMIN);
+        assertThat(response.content()).hasSize(1);
+        assertThat(response.content().get(0).username()).isEqualTo("admin");
+        assertThat(response.content().get(0).role()).isEqualTo(UserRole.ADMIN);
 
-        assertThat(response.getPageInfo().getPage()).isEqualTo(0);
-        assertThat(response.getPageInfo().getSize()).isEqualTo(10);
-        assertThat(response.getPageInfo().getTotalElements()).isEqualTo(11);
-        assertThat(response.getPageInfo().getTotalPages()).isEqualTo(2);
+        assertThat(response.pageInfo().page()).isEqualTo(0);
+        assertThat(response.pageInfo().size()).isEqualTo(10);
+        assertThat(response.pageInfo().totalElements()).isEqualTo(11);
+        assertThat(response.pageInfo().totalPages()).isEqualTo(2);
 
         verify(usersRepository).findByUsername(username);
         verify(usersRepository).findByRole(UserRole.ADMIN, pageable);

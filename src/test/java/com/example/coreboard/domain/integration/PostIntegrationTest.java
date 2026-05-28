@@ -2,8 +2,8 @@ package com.example.coreboard.domain.integration;
 
 import com.example.coreboard.domain.board.entity.Board;
 import com.example.coreboard.domain.board.repository.BoardRepository;
-import com.example.coreboard.domain.common.type.ContentFormat;
-import com.example.coreboard.domain.common.util.JwtUtil;
+import com.example.coreboard.global.type.ContentFormat;
+import com.example.coreboard.global.security.JwtUtil;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.repository.PostRepository;

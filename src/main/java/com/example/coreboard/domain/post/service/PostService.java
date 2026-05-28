@@ -9,15 +9,14 @@ import com.example.coreboard.domain.board.repository.BoardRepository;
 import com.example.coreboard.domain.comment.dto.query.GetCommentQuery;
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
 import com.example.coreboard.domain.comment.service.CommentService;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorCode;
-import com.example.coreboard.domain.common.exception.board.BoardErrorCode;
-import com.example.coreboard.domain.common.exception.board.BoardErrorException;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.PageInfo;
-import com.example.coreboard.domain.common.response.SliceInfo;
-import com.example.coreboard.domain.common.response.SliceResponse;
-import com.example.coreboard.domain.common.validation.PostAttachmentPolicyValidator;
-import com.example.coreboard.domain.common.validation.PostAttachmentUpdatePolicy;
+import com.example.coreboard.domain.board.exception.BoardErrorCode;
+import com.example.coreboard.domain.board.exception.BoardErrorException;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.response.PageInfo;
+import com.example.coreboard.global.response.SliceInfo;
+import com.example.coreboard.global.response.SliceResponse;
+import com.example.coreboard.domain.post.validation.PostAttachmentPolicyValidator;
+import com.example.coreboard.domain.post.validation.PostAttachmentUpdatePolicy;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
@@ -31,8 +30,8 @@ import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import com.example.coreboard.domain.post.repository.PostRepository;
-import com.example.coreboard.domain.common.exception.auth.AuthErrorException;
-import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.auth.exception.AuthErrorException;
+import com.example.coreboard.domain.post.exception.PostErrorException;
 import com.example.coreboard.domain.users.entity.UserRole;
 import com.example.coreboard.domain.users.entity.Users;
 import com.example.coreboard.domain.users.repository.UsersRepository;
@@ -42,14 +41,16 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.coreboard.domain.common.exception.auth.AuthErrorCode.*;
-import static com.example.coreboard.domain.common.exception.post.PostErrorCode.*;
+import static com.example.coreboard.domain.auth.exception.AuthErrorCode.*;
+import static com.example.coreboard.domain.post.exception.PostErrorCode.*;
 
 import java.util.List;
 
 @Service
 public class PostService {
     private static final Logger log = LoggerFactory.getLogger(PostService.class);
+
+    private final PostViewCountService postViewCountService;
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
@@ -59,6 +60,7 @@ public class PostService {
     private final AttachmentRepository attachmentRepository;
 
     public PostService(
+            PostViewCountService postViewCountService,
             PostRepository postRepository,
             BoardRepository boardRepository,
             UsersRepository usersRepository,
@@ -66,6 +68,7 @@ public class PostService {
             AttachmentService attachmentService,
             AttachmentRepository attachmentRepository
     ) {
+        this.postViewCountService = postViewCountService;
         this.postRepository = postRepository;
         this.boardRepository = boardRepository;
         this.usersRepository = usersRepository;
@@ -89,7 +92,7 @@ public class PostService {
         Board board = boardRepository.findById(command.boardId())
                 .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
         if (!board.canWrite(user.getRole())) {
-            throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
+            throw new AuthErrorException(FORBIDDEN);
         }
 
         PostAttachmentPolicyValidator.validate(board, command.attachmentIds());
@@ -111,6 +114,11 @@ public class PostService {
     public GetOnePostResult getOne(GetOnePostCommand command) {
         Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
                 .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+        try {
+            postViewCountService.increaseIfFirstView(command.id(), command.viewerKey());
+        } catch (Exception e) {
+            log.warn("조회수 증가 실패. postId = {}", command.id(), e);
+        }
 
         SliceResponse<GetAllCommentResponse> comments = commentService.getAll(new GetCommentQuery(command.id(), 0, 10));
 
@@ -154,8 +162,24 @@ public class PostService {
                 PostStatus.PUBLISHED,
                 pageable
         );
+        PageInfo pageInfo = new PageInfo(
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages()
+        );
 
-        List<PostSummaryResponse> contents = postPage.getContent().stream()
+        List<Long> ids = postPage.getContent()
+                .stream()
+                .map(Post::getId)
+                .toList();
+
+        if (ids.isEmpty()) {
+            return new OffsetPageResponse<>(List.of(), pageInfo);
+        }
+
+        List<Post> postsWithUser = postRepository.findAllByIdInWithUser(ids);
+        List<PostSummaryResponse> contents = postsWithUser.stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),
@@ -163,13 +187,6 @@ public class PostService {
                         post.getCreatedAt(),
                         post.getUpdatedAt()
                 )).toList();
-
-        PageInfo pageInfo = new PageInfo(
-                postPage.getNumber(),
-                postPage.getSize(),
-                postPage.getTotalElements(),
-                postPage.getTotalPages()
-        );
 
         return new OffsetPageResponse<>(contents, pageInfo);
     }
@@ -188,8 +205,13 @@ public class PostService {
                 PostStatus.PUBLISHED,
                 pageable
         );
+        List<Long> ids = postSlice.getContent()
+                .stream()
+                .map(Post::getId)
+                .toList();
+        List<Post> postWithUser = postRepository.findAllByIdInWithUser(ids);
 
-        List<PostSummaryResponse> contents = postSlice.getContent().stream()
+        List<PostSummaryResponse> contents = postWithUser.stream()
                 .map(post -> new PostSummaryResponse(
                         post.getId(),
                         post.getUser().getNickname(),

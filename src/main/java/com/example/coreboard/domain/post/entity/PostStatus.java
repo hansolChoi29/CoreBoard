@@ -4,8 +4,3 @@ public enum PostStatus {
     PUBLISHED,
     DELETED
 }
-/*
- * free
- * notice
- * qna
- * */

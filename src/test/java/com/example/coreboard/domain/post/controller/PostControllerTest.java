@@ -1,20 +1,22 @@
 package com.example.coreboard.domain.post.controller;
 
 import com.example.coreboard.domain.comment.dto.response.GetAllCommentResponse;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.PageInfo;
-import com.example.coreboard.domain.common.response.SliceInfo;
-import com.example.coreboard.domain.common.response.SliceResponse;
+import com.example.coreboard.domain.post.service.PopularPostService;
+import com.example.coreboard.domain.post.support.ViewerKeyGenerator;
+import com.example.coreboard.global.response.OffsetPageResponse;
+import com.example.coreboard.global.response.PageInfo;
+import com.example.coreboard.global.response.SliceInfo;
+import com.example.coreboard.global.response.SliceResponse;
 import com.example.coreboard.domain.post.dto.command.DeletePostCommand;
 import com.example.coreboard.domain.post.dto.command.GetOnePostCommand;
 import com.example.coreboard.domain.post.dto.request.UpdatePostRequest;
 import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.dto.result.GetOnePostResult;
 import com.example.coreboard.domain.post.dto.result.UpdatePostResult;
-import com.example.coreboard.domain.common.type.ContentFormat;
+import com.example.coreboard.global.type.ContentFormat;
 import com.example.coreboard.domain.post.service.PostService;
-import com.example.coreboard.domain.common.exception.post.PostErrorCode;
-import com.example.coreboard.domain.common.exception.post.PostErrorException;
+import com.example.coreboard.domain.post.exception.PostErrorCode;
+import com.example.coreboard.domain.post.exception.PostErrorException;
 import com.example.coreboard.domain.support.fixture.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -52,15 +54,21 @@ class PostControllerTest {
     PostService postService;
 
     @InjectMocks
-    PostController postControler;
+    PostController postController;
+
+    @Mock
+    ViewerKeyGenerator viewerKeyGenerator;
+
+    @Mock
+    PopularPostService popularPostService;
 
     MockMvc mockMvc;
     MockMvc mockMvcWithInterceptor;
 
     @BeforeEach
     void setup() {
-        mockMvc = MockMvcSupport.create(postControler);
-        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(postControler);
+        mockMvc = MockMvcSupport.create(postController);
+        mockMvcWithInterceptor = MockMvcSupport.createWithInterceptor(postController);
     }
 
     @Test
@@ -483,5 +491,16 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.message").value("정렬 방향은 asc 또는 desc만 허용됩니다."));
 
         verify(postService, never()).getAll(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("인기글목록_조회")
+    void popular() throws Exception {
+        mockMvc.perform(
+                        get(BASE + "/popular")
+                                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("인기목록 조회 성공!"));
+        verify(popularPostService).getPopularPosts(anyInt());
     }
 }

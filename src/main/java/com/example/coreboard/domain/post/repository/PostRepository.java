@@ -1,12 +1,12 @@
 package com.example.coreboard.domain.post.repository;
 
 import com.example.coreboard.domain.post.dto.query.PostSummaryProjection;
-import com.example.coreboard.domain.post.dto.response.PostSummaryResponse;
 import com.example.coreboard.domain.post.entity.Post;
 import com.example.coreboard.domain.post.entity.PostStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,11 +20,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     boolean existsByTitle(String title);
 
-    boolean existsByBoardId(Long boardId);
-
     boolean existsByBoardIdAndStatus(Long boardId, PostStatus status);
 
-    // getOne
     @Query("""
             select p
             from Post p
@@ -37,7 +34,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") PostStatus status
     );
 
-    // 전체조회
     @Query("""
                 select p
                 from Post p
@@ -48,6 +44,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("boardId") Long boardId,
             @Param("status") PostStatus status,
             Pageable pageable
+    );
+
+    @Query("""
+                    select p
+                    from Post p
+                    join fetch p.user
+                    where p.id in :ids
+            """)
+    List<Post> findAllByIdInWithUser(
+            @Param("ids") List<Long> ids
     );
 
     @Query(
@@ -69,18 +75,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(
             value = """
-                    SELECT
-                        p.id AS id,
-                        u.nickname AS writerName,
-                        p.title AS title,
-                        p.created_at AS createdAt,
-                        p.updated_at AS updatedAt,
-                        MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE) AS score
-                    FROM post p
-                    JOIN users u ON u.user_id = p.user_id
-                    WHERE p.status = :status
-                    AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
-                    ORDER BY score DESC, p.created_at DESC
+                    select
+                        p.id as id,
+                        u.nickname as writerName,
+                        p.title as title,
+                        p.created_at as createdAt,
+                        p.updated_at as updatedAt,
+                        match(p.title, p.content) AGAINST(:keyword in BOOLEAN MODE) as score
+                    from post p
+                    join users u on u.user_id = p.user_id
+                    where p.status = :status
+                    and match(p.title, p.content) AGAINST(:keyword in BOOLEAN MODE)
+                    order by score desc, p.created_at desc
                     """,
             nativeQuery = true
     )
@@ -88,5 +94,28 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") String status,
             @Param("keyword") String keyword,
             Pageable pageable
+    );
+
+    @Modifying
+    @Query("""
+                    update Post p
+                    set p.viewCount = p.viewCount + :delta
+                    where p.id = :postId
+            """)
+    int increaseViewCount(
+            @Param("postId") Long postId,
+            @Param("delta") long delta
+    );
+
+    @Query("""
+                select p
+                from Post p
+                join fetch p.user
+                where p.id in :postIds
+                and p.status = :status
+            """)
+    List<Post> findAllByIdInAndStatusWithUser(
+            @Param("postIds") List<Long> postIds,
+            @Param("status") PostStatus status
     );
 }

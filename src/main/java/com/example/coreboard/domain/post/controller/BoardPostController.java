@@ -1,10 +1,9 @@
 package com.example.coreboard.domain.post.controller;
 
 
-import com.example.coreboard.domain.common.response.ApiResponse;
-import com.example.coreboard.domain.common.response.OffsetPageResponse;
-import com.example.coreboard.domain.common.response.SliceResponse;
-import com.example.coreboard.domain.common.validation.PostValidation;
+import com.example.coreboard.global.response.ApiResponse;
+import com.example.coreboard.global.response.SliceResponse;
+import com.example.coreboard.domain.post.validation.PostValidation;
 import com.example.coreboard.domain.post.dto.command.CreatePostCommand;
 import com.example.coreboard.domain.post.dto.request.CreatePostRequest;
 import com.example.coreboard.domain.post.dto.response.CreatePostResponse;
