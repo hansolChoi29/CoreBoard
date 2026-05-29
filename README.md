@@ -11,65 +11,59 @@ Devlog : https://winwin0219.tistory.com/category/CoreBoard
 성능 테스트 문서 : [CoreBoard Performance Test](docs/performance/performance/README.md)
 
 CoreBoard는 Spring Boot 기반의 게시판 프로젝트입니다.
-처음에는 기본 게시글 CRUD를 학습하기 위한 미니 게시판으로 시작했지만, 현재는 **게시판 운영 정책, 권한, 첨부파일, 댓글, 검색, 응답 포맷, 테스트, 배포와 관측 가능성**까지 함께 다루는 방향으로 확장하고 있습니다.
-
-이 프로젝트에서 중점적으로 다룬 내용은 다음과 같습니다.
-
-- Spring Security 없이 `HandlerInterceptor`로 JWT 인증 흐름 직접 구현
-- 비밀번호는 BCrypt, 이메일과 휴대폰번호는 AES/GCM 방식으로 암호화
-- `request → command → result → response` 흐름으로 DTO 역할 분리
-- 입력값 검증은 Controller 진입 전용 Validator에서 처리하고, Service는 비즈니스 흐름과 권한 검증에 집중
-- 게시판별 정책으로 댓글 허용 여부, 첨부파일 필수 여부, 첨부파일 최대 개수, 작성 가능 권한 관리
-- 게시판별 게시글 목록은 최신순 Slice 기반으로 조회
-- 전체 게시글 목록은 Page 기반으로 조회하고, 검색 조회는 별도 `/posts/search` API에서 Slice 기반으로 처리
-- 첨부파일은 게시글 작성 전 임시 업로드 후, 게시글 저장 시 확정 처리
-- 오래된 임시 첨부파일과 삭제 대기 첨부파일은 스케줄러로 정리
+처음에는 기본 게시글 CRUD를 학습하기 위한 미니 게시판으로 시작했지만, 현재는 **게시판 운영 정책, 권한, 첨부파일, 댓글, 검색, 응답 포맷, 테스트, 배포와 관측 가능성**까지 함께 다루는 방향으로 확장했습니다.
 
 ---
-
 ## 기술 스택
+> Spring Security와 Lombok은 사용하지 않았습니다.
 
 #### Language
-
 ![Java](https://img.shields.io/badge/Java-17-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
 
 #### Backend
-
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![Spring Web](https://img.shields.io/badge/Spring%20Web-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white)
 
 #### Database
-
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
 
 #### Storage
-
 ![MinIO](https://img.shields.io/badge/MinIO-C72E49?style=for-the-badge&logo=minio&logoColor=white)
-![S3 Compatible](https://img.shields.io/badge/S3%20Compatible%20Storage-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+![S3 Compatible Storage](https://img.shields.io/badge/S3%20Compatible%20Storage-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
 
-#### Monitoring
+
+## 인프라 & DevOps
+
+![GCP Compute Engine](https://img.shields.io/badge/GCP%20Compute%20Engine-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)
+![Nginx Reverse Proxy](https://img.shields.io/badge/Nginx%20Reverse%20Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![GitHub Actions CI/CD](https://img.shields.io/badge/GitHub%20Actions%20CI%2FCD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+## 모니터링
 
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
-![Actuator](https://img.shields.io/badge/Spring%20Boot%20Actuator-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Spring Boot Actuator](https://img.shields.io/badge/Spring%20Boot%20Actuator-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 
-#### API Documentation
-
-![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
-
-#### Build Tool
-
-![Gradle](https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)
-
-#### Test
+## 테스트
 
 ![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
 ![Mockito](https://img.shields.io/badge/Mockito-78A641?style=for-the-badge)
 ![Testcontainers](https://img.shields.io/badge/Testcontainers-MySQL-blue?style=for-the-badge)
 
-> Spring Security와 Lombok은 사용하지 않았습니다.
+## API 문서
+
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+
+## 빌드
+
+![Gradle](https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)
+
+
 
 ---
 
@@ -80,9 +74,10 @@ CoreBoard는 Spring Boot 기반의 게시판 프로젝트입니다.
 - Java 17
 - Gradle 8.14.3
 - Spring Boot 3.5.6
-- Docker
+- Docker 
 - MySQL 8.0.34
-- MinIO
+- Redis 7.4.7
+- MinIO RELEASE.2025-09-07T16-13-09Z
 
 #### MySQL 컨테이너 실행
 
@@ -107,28 +102,38 @@ docker run -d --name coreboard-mysql `
 
 </details>
 
-#### MinIO 컨테이너 실행
+
+#### Redis 컨테이너 실행
+
+게시글 조회수 중복 방지, 조회수 증가분 임시 저장, 인기글 점수 저장에 사용합니다.
 
 ```bash
-docker run -d --name coreboard-minio \
-  -p 9000:9000 \
-  -p 9001:9001 \
-  -e MINIO_ROOT_USER=minioadmin \
-  -e MINIO_ROOT_PASSWORD=minioadmin \
-  minio/minio server /data --console-address ":9001"
+docker run -d --name coreboard-redis \
+  -p 6379:6379 \
+  --restart=always redis:7
 ```
 
-MinIO 관리자 화면은 아래 주소로 접속합니다.
+<details>
+<summary>Windows PowerShell</summary>
 
-```text
-http://localhost:9001
+```powershell
+docker run -d --name coreboard-redis `
+  -p 6379:6379 `
+  --restart=always redis:7
 ```
+</details>
+
 
 #### 애플리케이션 실행
 
 ```bash
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
+#### DB 마이그레이션
+
+운영 환경에서는 Flyway로 인덱스 변경 이력을 관리합니다. 현재 마이그레이션에는 게시글 제목 UNIQUE INDEX와 검색용 FULLTEXT INDEX가 포함되어 있습니다.
+
+로컬 `application-local.yml`에서는 `spring.flyway.enabled=false`로 설정되어 있어, 로컬 학습/개발 환경에서는 JPA `ddl-auto=update` 기준으로 실행합니다.
 
 #### API 명세 확인
 
@@ -151,6 +156,30 @@ Grafana: http://localhost:3000
 ```
 
 ---
+
+## 테스트 실행 방법
+
+```bash
+./gradlew test
+```
+
+테스트는 컨트롤러 테스트, 서비스 단위 테스트, 유틸/설정 테스트, Testcontainers 기반 통합 테스트로 구성되어 있습니다.
+
+| 종류        | 설명                                   |
+|-----------|--------------------------------------|
+| 컨트롤러 테스트  | MockMvc 기반 요청, 응답, 검증 실패 흐름 확인       |
+| 서비스 테스트   | Mockito 기반 비즈니스 흐름, 권한, 예외, 저장 대상 검증 |
+| 유틸/설정 테스트 | JWT, 암호화, 설정 객체 검증                   |
+| 통합 테스트    | Testcontainers MySQL 기반 주요 흐름 검증     |
+
+커버리지 리포트는 아래 명령어로 확인할 수 있습니다.
+
+```bash
+./gradlew test jacocoTestReport
+```
+
+---
+
 
 ## API 목록
 
@@ -193,10 +222,13 @@ http://localhost:8080/swagger-ui/index.html
 |--------|-----------------------------------------------------------|------------------|---------------|
 | POST   | `/boards/{boardId}/posts`                                 | 특정 게시판에 게시글 생성   | USER 또는 ADMIN |
 | GET    | `/boards/{boardId}/posts`                                 | 특정 게시판 게시글 목록 조회 | 불필요           |
+| GET    | `/posts?page={page}&size={size}&sort={sort}`              | 전체 게시글 목록 조회     | 불필요           |
 | GET    | `/posts/search?keyword={keyword}&page={page}&size={size}` | 전체 게시글 검색 조회     | 불필요           |
+| GET    | `/posts/popular?size={size}`                              | 인기글 목록 조회        | 불필요           |
 | GET    | `/posts/{id}`                                             | 게시글 단건 조회        | 불필요           |
 | PUT    | `/posts/{id}`                                             | 게시글 수정           | 작성자 또는 ADMIN  |
 | DELETE | `/posts/{id}`                                             | 게시글 삭제           | 작성자 또는 ADMIN  |
+
 
 #### Comment API
 
@@ -216,8 +248,9 @@ http://localhost:8080/swagger-ui/index.html
 ---
 
 ## 주요 설계 정리
+<details>
 
-#### 1. 인증과 역할 기반 권한
+<summary> 1. 인증과 역할 기반 권한 </summary>
 
 - JWT 기반 인증을 사용합니다.
 - AccessToken은 응답 본문으로 반환하고, RefreshToken은 HttpOnly 쿠키에 저장합니다.
@@ -227,14 +260,22 @@ http://localhost:8080/swagger-ui/index.html
 - ADMIN 계정이 1명 이하일 때는 마지막 ADMIN을 일반 USER로 변경할 수 없도록 막았습니다.
 - 게시판 작성 권한은 게시판별 설정값에 따라 USER 또는 ADMIN으로 제한할 수 있습니다.
 
-#### 2. 게시판 운영 정책
+</details>
+
+<details>
+
+<summary>2. 게시판 운영 정책</summary>
 
 - 게시판은 코드에 고정하지 않고 DB 데이터로 관리합니다.
 - 게시판마다 댓글 허용 여부, 답변 채택 허용 여부, 첨부파일 필수 여부, 첨부파일 최대 개수, 작성 가능 권한을 가질 수 있습니다.
 - 게시판 삭제는 실제 삭제가 아니라 `deletedAt`을 기록하는 방식으로 처리합니다.
 - 게시글이 존재하는 게시판은 삭제할 수 없도록 막았습니다.
 
-#### 3. 게시글과 댓글
+</details>
+
+<details>
+
+<summary>3. 게시글과 댓글</summary>
 
 - 게시글은 게시판에 속하며, 상태는 `PUBLISHED`, `DELETED`로 관리합니다.
 - 게시판별 게시글 목록은 최신순 Slice 기반으로 조회합니다.
@@ -244,7 +285,11 @@ http://localhost:8080/swagger-ui/index.html
 - 댓글은 게시글에 속하며, 댓글 목록은 Slice 기반으로 조회합니다.
 - 삭제된 게시글이나 댓글이 비활성화된 게시판에는 댓글을 작성할 수 없습니다.
 
-#### 4. 첨부파일
+</details>
+
+<details>
+
+<summary>4. 첨부파일</summary>
 
 - 첨부파일은 게시글 저장 전에 먼저 임시 업로드합니다.
 - 임시 업로드 상태는 `TEMP`, 게시글 연결 후에는 `CONFIRMED` 상태로 관리합니다.
@@ -252,12 +297,18 @@ http://localhost:8080/swagger-ui/index.html
 - 24시간이 지난 `TEMP` 첨부파일과 7일이 지난 `DELETED` 첨부파일은 스케줄러로 정리합니다.
 - 파일 본문은 DB에 저장하지 않고 S3 호환 스토리지에 저장합니다.
 
-#### 5. 응답과 검증
+</details>
+
+<details>
+
+<summary>5. 응답과 검증</summary>
 
 - 성공 응답은 `ApiResponse` 형식으로 통일했습니다.
 - 목록 응답은 `OffsetPageResponse`, `SliceResponse`로 구분했습니다.
 - 요청값 검증은 Controller 계층의 Validator에서 먼저 수행합니다.
 - Service는 사용자 조회, 권한 확인, 도메인 상태 확인, 저장 흐름을 담당합니다.
+
+</details>
 
 ---
 
@@ -306,7 +357,7 @@ http://localhost:8080/swagger-ui/index.html
 | content       | String        | 본문                   |
 | contentFormat | ContentFormat | 본문 형식                |
 | status        | PostStatus    | PUBLISHED 또는 DELETED |
-| viewCount     | Long          | 조회수 저장용 필드           |
+| viewCount     | long          | 조회수 저장용 필드           |
 | createdAt     | LocalDateTime | 생성 시각                |
 | updatedAt     | LocalDateTime | 수정 시각                |
 
@@ -372,23 +423,3 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
-## 테스트 실행 방법
-
-```bash
-./gradlew test
-```
-
-테스트는 컨트롤러 테스트, 서비스 단위 테스트, 유틸/설정 테스트, Testcontainers 기반 통합 테스트로 구성되어 있습니다.
-
-| 종류        | 설명                                   |
-|-----------|--------------------------------------|
-| 컨트롤러 테스트  | MockMvc 기반 요청, 응답, 검증 실패 흐름 확인       |
-| 서비스 테스트   | Mockito 기반 비즈니스 흐름, 권한, 예외, 저장 대상 검증 |
-| 유틸/설정 테스트 | JWT, 암호화, 설정 객체 검증                   |
-| 통합 테스트    | Testcontainers MySQL 기반 주요 흐름 검증     |
-
-커버리지 리포트는 아래 명령어로 확인할 수 있습니다.
-
-```bash
-./gradlew test jacocoTestReport
-```
