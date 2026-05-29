@@ -207,17 +207,3 @@ Smoke Test 재실행 결과 게시글 목록 조회는 55ms, 전체 p95는 55ms�
 
 따라서 Scenario D의 병목은 Page 기반 전체 개수 계산과 정렬 비용에서 발생한 것으로 판단하며, 최신순 탐색 중심의 앨범형 게시판에는 Slice 기반 응답이 더 적합하다고 결론 내렸다.
 
-
-
-## 10. 결론
-
-Scenario D Smoke Test에서 p95 3초 초과가 발생했으며, 실제 지연 구간은 첨부파일 상세 조회가 아니라 게시글 목록 조회 API였다.
-
-초기 EXPLAIN 결과 게시글 목록 조회는 `board_id` FK 인덱스만 사용하고 있었고, `created_at DESC` 정렬에서 `Using filesort`가 발생했다.  
-복합 인덱스를 추가한 뒤 `Using filesort`는 제거되었고, 목록 조회 쿼리 자체는 `EXPLAIN ANALYZE` 기준 약 0.07ms로 측정되었다.
-
-하지만 `Page` 응답 생성을 위한 count query는 조건에 맞는 1,420,116건을 확인해야 했고, `EXPLAIN ANALYZE` 기준 약 479ms가 소요되었다.
-
-따라서 현재 남은 병목은 게시글 10개를 조회하는 쿼리가 아니라, 전체 개수를 계산하는 count query 비용으로 판단한다.
-
-다음 개선 단계에서는 게시글 목록 응답을 `Page`에서 `Slice`로 변경하여 count query를 제거하고, JMeter로 Smoke Test를 재실행해 응답 시간 개선 여부를 확인한다.

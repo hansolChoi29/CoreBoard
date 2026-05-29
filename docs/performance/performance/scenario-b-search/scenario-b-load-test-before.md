@@ -1,4 +1,4 @@
-# Load Test
+# Load Test 개선 전
 
 ## 1. 테스트 목적
 
