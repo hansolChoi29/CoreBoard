@@ -33,6 +33,7 @@ public class Comment {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime lastModifiedDate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CommentStatus status;

@@ -401,8 +401,7 @@ class BoardServiceTest {
 
         given(usersRepository.findByUsername(username)).willReturn(Optional.of(user));
         given(boardRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(board));
-        given(boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id))
-                .willReturn(true);
+        given(boardRepository.existsByNameAndIdNotAndDeletedAtIsNull(command.name(), id)).willReturn(true);
 
         BoardErrorException exception = assertThrows(
                 BoardErrorException.class,

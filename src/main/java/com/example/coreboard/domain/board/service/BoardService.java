@@ -49,8 +49,7 @@ public class BoardService {
 
     @Transactional
     public CreateBoardResult create(CreateBoardCommand command, String username) {
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        Users user = findUsername(username);
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
@@ -77,8 +76,8 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public GetOneBoardResult getOne(GetOneBoardCommand command) {
-        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
-                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = findByIdAndDeleteNull(command.id());
+
         List<PostSummaryResponse> posts = postRepository.findAllByBoardIdWithUser(command.id(), PostStatus.PUBLISHED)
                 .stream()
                 .map(post -> new PostSummaryResponse(
@@ -131,10 +130,9 @@ public class BoardService {
             String username,
             Long id
     ) {
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
-        Board board = boardRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        Users user = findUsername(username);
+        Board board = findByIdAndDeleteNull(command.id());
+
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
@@ -158,16 +156,24 @@ public class BoardService {
 
     @Transactional
     public void delete(DeleteBoardCommand command) {
-        Users user = usersRepository.findByUsername(command.username())
-                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+        Users user = findUsername(command.username());
         if (user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(AuthErrorCode.FORBIDDEN);
         }
-        Board board = boardRepository.findByIdAndDeletedAtIsNull(command.id())
-                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = findByIdAndDeleteNull(command.id());
         if (postRepository.existsByBoardIdAndStatus(command.id(), PostStatus.PUBLISHED)) {
             throw new BoardErrorException(BoardErrorCode.BOARD_HAS_POSTS);
         }
         board.softDelete();
+    }
+
+    private Users findUsername(String username) {
+        return usersRepository.findByUsername(username)
+                .orElseThrow(() -> new AuthErrorException(AuthErrorCode.NOT_FOUND));
+    }
+
+    private Board findByIdAndDeleteNull(Long id){
+        return boardRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new BoardErrorException(BoardErrorCode.BOARD_NOT_FOUND));
     }
 }
