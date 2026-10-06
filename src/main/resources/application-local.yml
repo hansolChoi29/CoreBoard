@@ -3,13 +3,14 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/CoreBoard?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mysql:3306/coreboard?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
   jpa:
@@ -19,13 +20,17 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
   flyway:
     enabled: false
-
-
+  cloud:
+    aws:
+      s3:
+        enabled: false
 jwt:
   secret:
     key: ad28a1bb3bad96055ba5345cbe3c6b99
+
 aes:
   secret:
     key: MySuperSecretKey
@@ -34,26 +39,23 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, metrics, prometheus
+        include: health,metrics,prometheus
   endpoint:
     health:
       show-details: always
 
 cloud:
   aws:
-    endpoint: http://localhost:9000
+    endpoint: http://minio:9000
     public-url: http://localhost:9000/coreboard-attachments
     credentials:
       access-key: minioadmin
-      secret-key: minioadmin
+      secret-key: minioadmin123
     s3:
       bucket: coreboard-attachments
     region:
       static: us-east-1
-  # 사람이 브라우저로 보는 관리자 화면 → http://localhost:9001
-  # Spring Boot 서버가 S3Client로 접근하는 API → http://localhost:9000
 
-# 바인딩값까지
 logging:
   level:
     org.hibernate.SQL: debug

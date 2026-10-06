@@ -82,8 +82,7 @@ public class PostService {
             CreatePostCommand command,
             String username
     ) {
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+        Users user = userFind(username);
 
         if (postRepository.existsByTitle(command.title())) {
             throw new PostErrorException(TITLE_DUPLICATED);
@@ -112,8 +111,8 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public GetOnePostResult getOne(GetOnePostCommand command) {
-        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
-                .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+        Post post = postFindAndStatus(command.id());
+
         try {
             postViewCountService.increaseIfFirstView(command.id(), command.viewerKey());
         } catch (Exception e) {
@@ -266,11 +265,8 @@ public class PostService {
 
     @Transactional
     public UpdatePostResult update(UpdatePostCommand command) {
-        Users user = usersRepository.findByUsername(command.username())
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
-
-        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
-                .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+        Users user = userFind(command.username());
+        Post post = postFindAndStatus(command.id());
 
         if (!post.isWrittenBy(user) && user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(FORBIDDEN);
@@ -310,11 +306,9 @@ public class PostService {
 
     @Transactional
     public void delete(DeletePostCommand command) {
-        Users user = usersRepository.findByUsername(command.username())
-                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+        Users user = userFind(command.username());
 
-        Post post = postRepository.findByIdAndStatus(command.id(), PostStatus.PUBLISHED)
-                .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
+        Post post = postFindAndStatus(command.id());
 
         if (!post.isWrittenBy(user) && user.getRole() != UserRole.ADMIN) {
             throw new AuthErrorException(FORBIDDEN);
@@ -322,5 +316,15 @@ public class PostService {
 
         post.delete();
         attachmentService.markDeletedByPost(post.getId());
+    }
+
+    private Users userFind(String username) {
+        return usersRepository.findByUsername(username)
+                .orElseThrow(() -> new AuthErrorException(NOT_FOUND));
+    }
+
+    private Post postFindAndStatus(Long id){
+        return postRepository.findByIdAndStatus(id, PostStatus.PUBLISHED)
+                .orElseThrow(() -> new PostErrorException(POST_NOT_FOUND));
     }
 }
